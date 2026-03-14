@@ -37,14 +37,14 @@ export default function SiteHeader() {
       }`}
     >
       <div className="container">
-        <div className="flex items-center justify-between h-16 lg:h-20">
+          <div className="flex items-center justify-between h-20 lg:h-24">
           {/* Logo */}
           <Link href="/">
             <div className="flex items-center cursor-pointer">
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_16cfa60b.png"
                 alt="Detailing Labs"
-                className="h-12 w-auto object-contain"
+                className="h-16 w-auto object-contain"
               />
             </div>
           </Link>

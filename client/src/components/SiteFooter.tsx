@@ -12,7 +12,7 @@ export default function SiteFooter() {
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_16cfa60b.png"
                 alt="Detailing Labs"
-                className="h-14 w-auto object-contain"
+                className="h-20 w-auto object-contain"
               />
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed mb-5">
