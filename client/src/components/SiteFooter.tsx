@@ -1,0 +1,137 @@
+import { Link } from "wouter";
+import { Phone, Mail, MapPin, Instagram, Facebook, ChevronRight } from "lucide-react";
+
+export default function SiteFooter() {
+  return (
+    <footer className="bg-[oklch(0.06_0.004_280)] border-t border-border">
+      <div className="container py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+          {/* Brand */}
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-sm text-primary-foreground font-display">
+                DL
+              </div>
+              <span className="font-display font-bold text-lg tracking-wide">
+                DETAILING<span className="text-primary ml-1">LABS</span>
+              </span>
+            </div>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-5">
+              Premium mobile auto detailing — we come to you. Professional results at your home, office, or anywhere in between.
+            </p>
+            <div className="flex items-center gap-3">
+              <a
+                href="https://instagram.com/detailinglabs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-lg bg-secondary hover:bg-primary/20 border border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-all"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a
+                href="https://facebook.com/detailinglabs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-lg bg-secondary hover:bg-primary/20 border border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-all"
+              >
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a
+                href="https://tiktok.com/@detailinglabs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-lg bg-secondary hover:bg-primary/20 border border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-all"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.52V6.77a4.85 4.85 0 01-1.02-.08z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          {/* Services */}
+          <div>
+            <h4 className="font-display font-semibold text-foreground mb-4">Services</h4>
+            <ul className="space-y-2">
+              {["Interior Detail", "Exterior Detail", "Full Detail", "Paint Decontamination", "Ceramic Coating", "Maintenance Detail"].map((s) => (
+                <li key={s}>
+                  <Link href="/services">
+                    <span className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1 group">
+                      <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      {s}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h4 className="font-display font-semibold text-foreground mb-4">Quick Links</h4>
+            <ul className="space-y-2">
+              {[
+                { href: "/book", label: "Book Appointment" },
+                { href: "/pricing", label: "Pricing & Packages" },
+                { href: "/gallery", label: "Photo Gallery" },
+                { href: "/about", label: "About Us" },
+                { href: "/faq", label: "FAQ" },
+                { href: "/portal", label: "Customer Portal" },
+              ].map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href}>
+                    <span className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1 group">
+                      <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      {link.label}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h4 className="font-display font-semibold text-foreground mb-4">Contact</h4>
+            <ul className="space-y-3">
+              <li>
+                <a href="tel:5550000000" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                    <Phone className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  (555) 000-0000
+                </a>
+              </li>
+              <li>
+                <a href="mailto:hello@detailinglabs.com" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                    <Mail className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  hello@detailinglabs.com
+                </a>
+              </li>
+              <li>
+                <div className="flex items-start gap-3 text-sm text-muted-foreground">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MapPin className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <span>Mobile Service<br />We Come To You<br />Greater Metro Area</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-12 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-muted-foreground">
+            &copy; {new Date().getFullYear()} Detailing Labs. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span className="hover:text-foreground transition-colors cursor-pointer">Privacy Policy</span>
+            <span className="hover:text-foreground transition-colors cursor-pointer">Terms of Service</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
