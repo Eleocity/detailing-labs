@@ -42,7 +42,7 @@ export default function SiteHeader() {
           <Link href="/">
             <div className="flex items-center cursor-pointer">
               <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-dark_95ac0734.png"
+                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png"
                 alt="Detailing Labs"
                 className="h-24 lg:h-28 w-auto object-contain"
               />
