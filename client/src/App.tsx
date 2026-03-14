@@ -37,6 +37,7 @@ const AdminInvoicesList = lazy(() => import("./pages/admin/AdminInvoices").then(
 const AdminMedia = lazy(() => import("./pages/admin/AdminMedia"));
 const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminRoutePlanner = lazy(() => import("./pages/admin/AdminRoutePlanner"));
+const AdminSiteEditor = lazy(() => import("./pages/admin/AdminSiteEditor"));
 
 function PageLoader() {
   return (
@@ -80,6 +81,7 @@ function Router() {
         <Route path="/admin/media" component={AdminMedia} />
         <Route path="/admin/reviews" component={AdminReviews} />
         <Route path="/admin/route-planner" component={AdminRoutePlanner} />
+        <Route path="/admin/site-editor" component={AdminSiteEditor} />
 
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

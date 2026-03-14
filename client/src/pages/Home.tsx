@@ -7,6 +7,14 @@ import {
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import { trpc } from "@/lib/trpc";
+
+function useContent(section: string) {
+  const { data } = trpc.content.getSiteContent.useQuery({ section });
+  const map: Record<string, string> = {};
+  if (data) for (const row of data) map[row.key] = row.value ?? "";
+  return map;
+}
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -95,6 +103,8 @@ const packages = [
 ];
 
 export default function Home() {
+  const hero = useContent("hero");
+  const about = useContent("about");
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
@@ -124,7 +134,7 @@ export default function Home() {
               <motion.div variants={fadeUp}>
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-semibold tracking-widest uppercase">
                   <Sparkles className="w-3 h-3" />
-                  Premium Mobile Detailing
+                  {hero.badge || "Premium Mobile Detailing"}
                 </span>
               </motion.div>
 
@@ -132,26 +142,32 @@ export default function Home() {
                 variants={fadeUp}
                 className="text-5xl sm:text-6xl lg:text-7xl font-display font-bold leading-[1.05] tracking-tight"
               >
-                Your Vehicle.{" "}
-                <span className="text-gradient">Perfected.</span>
-                <br />
-                At Your Door.
+                {hero.headline ? (
+                  <span dangerouslySetInnerHTML={{ __html: hero.headline.replace(/(Perfected\.?)/, '<span class="text-gradient">$1</span>') }} />
+                ) : (
+                  <>
+                    Your Vehicle.{" "}
+                    <span className="text-gradient">Perfected.</span>
+                    <br />
+                    At Your Door.
+                  </>
+                )}
               </motion.h1>
 
               <motion.p
                 variants={fadeUp}
                 className="text-lg sm:text-xl text-muted-foreground max-w-2xl leading-relaxed"
               >
-                Detailing Labs brings showroom-quality results directly to you. Professional mobile detailing at your home, office, or anywhere that works — no drop-off required.
+                {hero.subheadline || "Detailing Labs brings showroom-quality results directly to you. Professional mobile detailing at your home, office, or anywhere that works — no drop-off required."}
               </motion.p>
 
               <motion.div variants={fadeUp} className="flex flex-wrap gap-4 pt-2">
-                <Link href="/book">
+                <Link href="/booking">
                   <Button
                     size="lg"
                     className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12 text-base shadow-lg shadow-primary/25"
                   >
-                    Book Your Detail
+                    {hero.cta_primary || "Book Your Detail"}
                     <ChevronRight className="w-5 h-5 ml-1" />
                   </Button>
                 </Link>
@@ -161,7 +177,7 @@ export default function Home() {
                     variant="outline"
                     className="border-border hover:border-primary/50 hover:bg-primary/5 font-semibold px-8 h-12 text-base"
                   >
-                    View Services
+                    {hero.cta_secondary || "View Services"}
                   </Button>
                 </Link>
               </motion.div>
@@ -171,15 +187,15 @@ export default function Home() {
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   ))}
-                  <span className="ml-2 text-sm text-muted-foreground">5.0 · 200+ reviews</span>
+                  <span className="ml-2 text-sm text-muted-foreground">{hero.trust_reviews || "5.0 · 200+ reviews"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
-                  Fully insured & certified
+                  {hero.trust_certified || "Fully insured & certified"}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
-                  Same-week availability
+                  {hero.trust_availability || "Same-week availability"}
                 </div>
               </motion.div>
             </motion.div>
@@ -198,10 +214,10 @@ export default function Home() {
         <div className="container py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { value: "500+", label: "Vehicles Detailed" },
+              { value: about.vehicles_detailed || "2,500+", label: "Vehicles Detailed" },
               { value: "5.0★", label: "Average Rating" },
-              { value: "3+", label: "Years in Business" },
-              { value: "100%", label: "Satisfaction Rate" },
+              { value: about.years_experience || "8+", label: "Years in Business" },
+              { value: about.satisfaction_rate || "99%", label: "Satisfaction Rate" },
             ].map((stat) => (
               <div key={stat.label}>
                 <div className="text-2xl font-display font-bold text-primary">{stat.value}</div>

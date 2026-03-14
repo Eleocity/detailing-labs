@@ -339,6 +339,18 @@ export const businessSettings = mysqlTable("businessSettings", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+// ─── Site Content ───────────────────────────────────────────────────────────────
+export const siteContent = mysqlTable("siteContent", {
+  id: int("id").autoincrement().primaryKey(),
+  section: varchar("section", { length: 100 }).notNull(), // e.g. 'hero', 'about', 'faq'
+  key: varchar("key", { length: 100 }).notNull(),          // e.g. 'headline', 'subtext'
+  value: text("value"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SiteContent = typeof siteContent.$inferSelect;
+export type InsertSiteContent = typeof siteContent.$inferInsert;
+
 // ─── Service Areas ────────────────────────────────────────────────────────────
 export const serviceAreas = mysqlTable("serviceAreas", {
   id: int("id").autoincrement().primaryKey(),

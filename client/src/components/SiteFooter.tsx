@@ -1,7 +1,18 @@
 import { Link } from "wouter";
 import { Phone, Mail, MapPin, Instagram, Facebook, ChevronRight } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 export default function SiteFooter() {
+  const { data: contactContent } = trpc.content.getSiteContent.useQuery({ section: "contact" });
+  const contact = (() => {
+    const map: Record<string, string> = {};
+    if (contactContent) for (const row of contactContent) map[row.key] = row.value ?? "";
+    return map;
+  })();
+  const phone = contact.phone || "(555) 000-0000";
+  const email = contact.email || "hello@detailinglabs.com";
+  const address = contact.address || "Greater Metro Area";
+
   return (
     <footer className="bg-[oklch(0.06_0.004_280)] border-t border-border">
       <div className="container py-16">
@@ -94,19 +105,19 @@ export default function SiteFooter() {
             <h4 className="font-display font-semibold text-foreground mb-4">Contact</h4>
             <ul className="space-y-3">
               <li>
-                <a href="tel:5550000000" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+                <a href={`tel:${phone.replace(/\D/g, "")}`} className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
                   <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
                     <Phone className="w-3.5 h-3.5 text-primary" />
                   </div>
-                  (555) 000-0000
+                  {phone}
                 </a>
               </li>
               <li>
-                <a href="mailto:hello@detailinglabs.com" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+                <a href={`mailto:${email}`} className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
                   <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
                     <Mail className="w-3.5 h-3.5 text-primary" />
                   </div>
-                  hello@detailinglabs.com
+                  {email}
                 </a>
               </li>
               <li>
@@ -114,7 +125,7 @@ export default function SiteFooter() {
                   <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <MapPin className="w-3.5 h-3.5 text-primary" />
                   </div>
-                  <span>Mobile Service<br />We Come To You<br />Greater Metro Area</span>
+                  <span>Mobile Service<br />We Come To You<br />{address}</span>
                 </div>
               </li>
             </ul>

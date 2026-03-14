@@ -90,3 +90,13 @@
 - [x] Vitest tests (19 tests passing)
 - [x] Custom scrollbar styling
 - [x] Print styles for invoices
+
+## Phase 12: Site Content Editor (Admin)
+- [ ] site_content DB table (key/value store for all editable text)
+- [ ] Packages table full CRUD support (name, description, price, duration, features, isPopular, isActive)
+- [ ] Add-ons table full CRUD support (name, description, price, isActive)
+- [ ] tRPC content router (getAll, upsert, packages CRUD, addons CRUD)
+- [ ] AdminSiteEditor page with tabs: Pricing, Hero, Services, FAQs, Contact, Business Settings
+- [ ] Public pages read content dynamically from DB
+- [ ] Booking flow prices update from DB
+- [ ] Wire "Site Editor" nav item in AdminLayout

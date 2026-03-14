@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Menu, X, Phone, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { trpc } from "@/lib/trpc";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -17,6 +18,9 @@ export default function SiteHeader() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [location] = useLocation();
+  const { data: contactContent } = trpc.content.getSiteContent.useQuery({ section: "contact" });
+  const phone = contactContent?.find((r) => r.key === "phone")?.value || "(555) 000-0000";
+  const phoneHref = `tel:${phone.replace(/\D/g, "")}`;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -69,11 +73,11 @@ export default function SiteHeader() {
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center gap-3">
             <a
-              href="tel:5550000000"
+              href={phoneHref}
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <Phone className="w-4 h-4" />
-              (555) 000-0000
+              {phone}
             </a>
             <Link href="/booking">
               <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5">

@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import { trpc } from "@/lib/trpc";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -115,6 +116,23 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function FAQ() {
+  const { data: faqContent } = trpc.content.getSiteContent.useQuery({ section: "faq" });
+
+  // Build dynamic FAQs from DB content
+  const dynamicFaqs = (() => {
+    if (!faqContent || faqContent.length === 0) return null;
+    const map: Record<string, string> = {};
+    for (const row of faqContent) map[row.key] = row.value ?? "";
+    const indices = Object.keys(map)
+      .filter((k) => k.endsWith("_q"))
+      .map((k) => k.replace("item_", "").replace("_q", ""))
+      .filter((v, i, a) => a.indexOf(v) === i)
+      .sort((a, b) => Number(a) - Number(b));
+    return indices
+      .map((i) => ({ q: map[`item_${i}_q`] ?? "", a: map[`item_${i}_a`] ?? "" }))
+      .filter((f) => f.q && f.a);
+  })();
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
@@ -140,22 +158,37 @@ export default function FAQ() {
       <section className="py-20">
         <div className="container max-w-3xl">
           <div className="space-y-12">
-            {faqs.map((section) => (
+            {dynamicFaqs && dynamicFaqs.length > 0 ? (
               <motion.div
-                key={section.category}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-60px" }}
                 variants={fadeUp}
               >
-                <h2 className="text-xl font-display font-bold mb-4 text-primary">{section.category}</h2>
                 <div className="space-y-3">
-                  {section.questions.map((faq) => (
+                  {dynamicFaqs.map((faq) => (
                     <FAQItem key={faq.q} q={faq.q} a={faq.a} />
                   ))}
                 </div>
               </motion.div>
-            ))}
+            ) : (
+              faqs.map((section) => (
+                <motion.div
+                  key={section.category}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-60px" }}
+                  variants={fadeUp}
+                >
+                  <h2 className="text-xl font-display font-bold mb-4 text-primary">{section.category}</h2>
+                  <div className="space-y-3">
+                    {section.questions.map((faq) => (
+                      <FAQItem key={faq.q} q={faq.q} a={faq.a} />
+                    ))}
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
 
           <div className="mt-16 p-8 rounded-2xl border border-border bg-card text-center">

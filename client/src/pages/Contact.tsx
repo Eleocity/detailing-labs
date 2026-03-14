@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import { trpc } from "@/lib/trpc";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -17,6 +18,12 @@ const fadeUp = {
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [sending, setSending] = useState(false);
+  const { data: contactContent } = trpc.content.getSiteContent.useQuery({ section: "contact" });
+  const contact = (() => {
+    const map: Record<string, string> = {};
+    if (contactContent) for (const row of contactContent) map[row.key] = row.value ?? "";
+    return map;
+  })();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,10 +70,11 @@ export default function Contact() {
 
               <motion.div variants={fadeUp} className="space-y-4 mb-8">
                 {[
-                  { icon: <Phone className="w-5 h-5" />, label: "Phone", value: "(555) 000-0000", href: "tel:5550000000" },
-                  { icon: <Mail className="w-5 h-5" />, label: "Email", value: "hello@detailinglabs.com", href: "mailto:hello@detailinglabs.com" },
-                  { icon: <MapPin className="w-5 h-5" />, label: "Service Area", value: "Greater Metro Area — Mobile Service", href: null },
-                  { icon: <Clock className="w-5 h-5" />, label: "Hours", value: "Mon–Fri 8am–6pm · Sat 8am–4pm", href: null },
+                  { icon: <Phone className="w-5 h-5" />, label: "Phone", value: contact.phone || "(555) 000-0000", href: `tel:${(contact.phone || "5550000000").replace(/\D/g, "")}` },
+                  { icon: <Mail className="w-5 h-5" />, label: "Email", value: contact.email || "hello@detailinglabs.com", href: `mailto:${contact.email || "hello@detailinglabs.com"}` },
+                  { icon: <MapPin className="w-5 h-5" />, label: "Service Area", value: contact.address || "Greater Metro Area — Mobile Service", href: null },
+                  { icon: <Clock className="w-5 h-5" />, label: "Weekday Hours", value: contact.hours_weekday || "Mon–Fri: 7:00 AM – 7:00 PM", href: null },
+                  { icon: <Clock className="w-5 h-5" />, label: "Weekend Hours", value: contact.hours_weekend || "Sat–Sun: 8:00 AM – 5:00 PM", href: null },
                 ].map((item) => (
                   <div key={item.label} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-card">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary flex-shrink-0">
