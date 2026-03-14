@@ -101,7 +101,7 @@ function StepService({ data, setData }: { data: BookingData; setData: (d: Partia
     <div>
       <h2 className="text-2xl font-display font-bold mb-2">Choose Your Package</h2>
       <p className="text-muted-foreground text-sm mb-6">Select the detailing package that best fits your needs.</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="flex flex-col gap-3">
         {(packages ?? []).map((pkg) => {
           const features = pkg.features ? JSON.parse(pkg.features) : [];
           const isSelected = data.packageId === pkg.id;
@@ -114,30 +114,49 @@ function StepService({ data, setData }: { data: BookingData; setData: (d: Partia
                 packagePrice: Number(pkg.price),
                 packageDuration: pkg.duration,
               })}
-              className={`text-left p-5 rounded-xl border transition-all ${
+              className={`w-full text-left p-5 rounded-xl border transition-all ${
                 isSelected
                   ? "border-primary bg-primary/8 shadow-md shadow-primary/10"
                   : "border-border bg-card hover:border-primary/40 hover:bg-primary/5"
               }`}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div className="flex items-center gap-2">
+              <div className="flex items-start gap-4">
+                {/* Left: name + duration + description */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
                     <span className="font-display font-bold text-lg">{pkg.name}</span>
                     {pkg.isPopular && (
                       <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 font-semibold">Popular</span>
                     )}
                   </div>
-                  <span className="text-muted-foreground text-xs">{Math.floor(pkg.duration / 60)}h {pkg.duration % 60 > 0 ? `${pkg.duration % 60}m` : ""}</span>
+                  <span className="text-muted-foreground text-xs block mb-2">{Math.floor(pkg.duration / 60)}h {pkg.duration % 60 > 0 ? `${pkg.duration % 60}m` : ""}</span>
+                  <p className="text-muted-foreground text-xs leading-relaxed">{pkg.description}</p>
                 </div>
-                <div className="text-right">
-                  <div className="text-xl font-display font-bold text-primary">${Number(pkg.price)}</div>
-                  {isSelected && <Check className="w-4 h-4 text-primary ml-auto mt-1" />}
+                {/* Middle: feature list */}
+                {features.length > 0 && (
+                  <ul className="hidden sm:flex flex-col gap-1 min-w-[180px]">
+                    {features.slice(0, 4).map((f: string) => (
+                      <li key={f} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Check className="w-3 h-3 text-primary flex-shrink-0" />
+                        {f}
+                      </li>
+                    ))}
+                    {features.length > 4 && (
+                      <li className="text-xs text-primary">+{features.length - 4} more included</li>
+                    )}
+                  </ul>
+                )}
+                {/* Right: price + check */}
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <div className="text-2xl font-display font-bold text-primary">${Number(pkg.price)}</div>
+                  {isSelected
+                    ? <Check className="w-5 h-5 text-primary" />
+                    : <div className="w-5 h-5 rounded-full border-2 border-border" />}
                 </div>
               </div>
-              <p className="text-muted-foreground text-xs mb-3 leading-relaxed">{pkg.description}</p>
+              {/* Mobile feature list */}
               {features.length > 0 && (
-                <ul className="space-y-1">
+                <ul className="sm:hidden flex flex-wrap gap-x-4 gap-y-1 mt-3 pt-3 border-t border-border/50">
                   {features.slice(0, 4).map((f: string) => (
                     <li key={f} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Check className="w-3 h-3 text-primary flex-shrink-0" />
