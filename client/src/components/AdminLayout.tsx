@@ -52,7 +52,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
-          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center font-bold text-primary-foreground font-display text-lg">DL</div>
+          <img
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_16cfa60b.png"
+            alt="Detailing Labs"
+            className="h-20 w-auto object-contain"
+          />
           <div className="text-center">
             <h1 className="text-2xl font-display font-bold mb-2">Admin Access Required</h1>
             <p className="text-sm text-muted-foreground">Sign in to access the Detailing Labs admin dashboard.</p>
@@ -123,11 +127,12 @@ function AdminLayoutContent({ children, setSidebarWidth }: { children: React.Rea
                 <PanelLeft className="h-4 w-4 text-sidebar-foreground/60" />
               </button>
               {!isCollapsed && (
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-6 h-6 rounded bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold font-display flex-shrink-0">DL</div>
-                  <span className="font-display font-bold text-sm truncate text-sidebar-foreground">
-                    DETAILING LABS
-                  </span>
+                <div className="flex items-center min-w-0 flex-1">
+                  <img
+                    src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_16cfa60b.png"
+                    alt="Detailing Labs"
+                    className="h-8 w-auto object-contain"
+                  />
                 </div>
               )}
             </div>

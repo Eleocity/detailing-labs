@@ -40,13 +40,12 @@ export default function SiteHeader() {
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <Link href="/">
-            <div className="flex items-center gap-2 group cursor-pointer">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-sm text-primary-foreground font-display">
-                DL
-              </div>
-              <span className="font-display font-bold text-lg tracking-wide text-foreground">
-                DETAILING<span className="text-primary ml-1">LABS</span>
-              </span>
+            <div className="flex items-center cursor-pointer">
+              <img
+                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_16cfa60b.png"
+                alt="Detailing Labs"
+                className="h-12 w-auto object-contain"
+              />
             </div>
           </Link>
 

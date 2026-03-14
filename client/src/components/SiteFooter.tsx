@@ -8,13 +8,12 @@ export default function SiteFooter() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-sm text-primary-foreground font-display">
-                DL
-              </div>
-              <span className="font-display font-bold text-lg tracking-wide">
-                DETAILING<span className="text-primary ml-1">LABS</span>
-              </span>
+            <div className="mb-4">
+              <img
+                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_16cfa60b.png"
+                alt="Detailing Labs"
+                className="h-14 w-auto object-contain"
+              />
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed mb-5">
               Premium mobile auto detailing — we come to you. Professional results at your home, office, or anywhere in between.

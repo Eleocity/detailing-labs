@@ -90,10 +90,11 @@ export default function InvoiceDetail() {
             {/* Header */}
             <div className="flex items-start justify-between mb-8">
               <div>
-                <div className="text-2xl font-display font-black tracking-tight mb-1">
-                  DETAILING<span className="text-primary">LABS</span>
-                </div>
-                <div className="text-sm text-muted-foreground">Premium Mobile Auto Detailing</div>
+                <img
+                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_16cfa60b.png"
+                  alt="Detailing Labs"
+                  className="h-14 w-auto object-contain"
+                />
               </div>
               <div className="text-right text-sm text-muted-foreground">
                 <div className="font-medium text-foreground">Invoice #{invoice!.invoiceNumber}</div>
