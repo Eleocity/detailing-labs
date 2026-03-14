@@ -91,7 +91,7 @@ export default function InvoiceDetail() {
             <div className="flex items-start justify-between mb-8">
               <div>
                 <img
-                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_16cfa60b.png"
+                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-dark_95ac0734.png"
                   alt="Detailing Labs"
                   className="h-14 w-auto object-contain"
                 />
