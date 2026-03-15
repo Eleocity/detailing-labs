@@ -45,6 +45,8 @@ const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminRoutePlanner = lazy(() => import("./pages/admin/AdminRoutePlanner"));
 const AdminSiteEditor = lazy(() => import("./pages/admin/AdminSiteEditor"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
+const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 
 function PageLoader() {
   return (
@@ -96,6 +98,10 @@ function Router() {
         <Route path="/admin/route-planner" component={AdminRoutePlanner} />
         <Route path="/admin/site-editor" component={AdminSiteEditor} />
         <Route path="/admin/users" component={AdminUsers} />
+        <Route path="/admin/profile" component={ProfileSettings} />
+
+        {/* Invite */}
+        <Route path="/accept-invite" component={AcceptInvite} />
 
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

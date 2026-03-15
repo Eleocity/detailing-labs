@@ -5,6 +5,7 @@ import { users } from "../../drizzle/schema";
 import { protectedProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { nanoid } from "nanoid";
+import { sendEmail, passwordResetEmail } from "../email";
 
 // Admin-only guard
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -156,12 +157,16 @@ export const usersRouter = router({
       return { success: true };
     }),
 
-  // Generate a password reset link for a user (admin sends to user)
+  // Generate a password reset link for a user and email it
   sendPasswordReset: adminProcedure
-    .input(z.object({ userId: z.number() }))
+    .input(z.object({ userId: z.number(), origin: z.string().url() }))
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const [user] = await db.select(safeUserFields).from(users).where(eq(users.id, input.userId)).limit(1);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      if (!user.email) throw new TRPCError({ code: "BAD_REQUEST", message: "User has no email address" });
 
       const token = nanoid(48);
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
@@ -171,9 +176,11 @@ export const usersRouter = router({
         .set({ resetToken: token, resetTokenExpiresAt: expiresAt })
         .where(eq(users.id, input.userId));
 
-      // In production, this token would be emailed to the user.
-      // For now, return the reset URL so admin can copy/share it.
-      return { success: true, token, message: "Reset token generated. Share the reset link with the user." };
+      const resetUrl = `${input.origin}/reset-password?token=${token}`;
+      const emailContent = passwordResetEmail(resetUrl, user.name || "there");
+      const emailSent = await sendEmail({ to: user.email, ...emailContent });
+
+      return { success: true, resetUrl, emailSent, message: emailSent ? `Reset link sent to ${user.email}` : "Reset link generated (email delivery failed — copy the link manually)." };
     }),
 
   // Delete a user account

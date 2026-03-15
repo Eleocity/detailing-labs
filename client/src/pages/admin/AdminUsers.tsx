@@ -29,8 +29,9 @@ import {
   Users, Search, Shield, ShieldOff, Trash2, Crown,
   Mail, Calendar, LogIn, UserCheck, Edit2, KeyRound,
   Copy, MoreHorizontal, X, Phone, Clock, RefreshCw,
-  SortAsc, SortDesc, Filter, UserCircle,
+  SortAsc, SortDesc, Filter, UserCircle, UserPlus, CheckCircle,
 } from "lucide-react";
+import { Select as SelectRoot, SelectContent as SelectCnt, SelectItem as SelectItm, SelectTrigger as SelectTrig, SelectValue as SelectVal } from "@/components/ui/select";
 import { format, formatDistanceToNow } from "date-fns";
 
 type SortField = "createdAt" | "lastSignedIn" | "name" | "email";
@@ -129,7 +130,9 @@ function ResetPasswordDialog({ user, open, onClose }: { user: UserRow; open: boo
 
   const resetMutation = trpc.users.sendPasswordReset.useMutation({
     onSuccess: (data) => {
-      setResetUrl(`${window.location.origin}/reset-password?token=${data.token}`);
+      setResetUrl(data.resetUrl);
+      if (data.emailSent) toast.success(data.message);
+      else toast.info(data.message);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -166,7 +169,7 @@ function ResetPasswordDialog({ user, open, onClose }: { user: UserRow; open: boo
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>{resetUrl ? "Close" : "Cancel"}</Button>
           {!resetUrl && (
-            <Button onClick={() => resetMutation.mutate({ userId: user.id })} disabled={resetMutation.isPending}>
+            <Button onClick={() => resetMutation.mutate({ userId: user.id, origin: window.location.origin })} disabled={resetMutation.isPending}>
               {resetMutation.isPending && <RefreshCw className="h-4 w-4 animate-spin mr-2" />}
               Generate Link
             </Button>
@@ -288,6 +291,91 @@ function UserDetailPanel({ user, isSelf, onEdit, onReset, onDelete, onClose }: {
   );
 }
 
+// ─── Invite User Dialog ─────────────────────────────────────────────────────
+function InviteUserDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"user" | "admin" | "employee">("user");
+  const [sent, setSent] = useState(false);
+  const utils = trpc.useUtils();
+
+  const inviteMutation = trpc.invitations.send.useMutation({
+    onSuccess: (data) => {
+      setSent(true);
+      utils.users.list.invalidate();
+      if (data.emailSent) toast.success(`Invitation sent to ${email}`);
+      else toast.info("Invitation created — email delivery failed. Copy the link manually.");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const handleClose = () => { setSent(false); setEmail(""); setRole("user"); onClose(); };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    inviteMutation.mutate({ email, role, origin: window.location.origin });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4 text-primary" /> Invite User
+          </DialogTitle>
+          <DialogDescription>
+            Send an invitation email with a secure registration link.
+          </DialogDescription>
+        </DialogHeader>
+
+        {sent ? (
+          <div className="py-6 text-center space-y-3">
+            <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
+            <p className="font-medium text-foreground">Invitation sent to {email}</p>
+            <p className="text-sm text-muted-foreground">They'll receive a link to set up their account. It expires in 72 hours.</p>
+            <Button variant="outline" onClick={handleClose} className="mt-2">Done</Button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="invite-email">Email Address</Label>
+              <Input
+                id="invite-email"
+                type="email"
+                placeholder="colleague@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoFocus
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="invite-role">Role</Label>
+              <Select value={role} onValueChange={(v) => setRole(v as typeof role)}>
+                <SelectTrigger id="invite-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User — standard access</SelectItem>
+                  <SelectItem value="employee">Employee — team member</SelectItem>
+                  <SelectItem value="admin">Admin — full dashboard access</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter className="pt-2">
+              <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
+              <Button type="submit" disabled={inviteMutation.isPending} className="gap-2">
+                {inviteMutation.isPending
+                  ? <><RefreshCw className="h-4 w-4 animate-spin" /> Sending…</>
+                  : <><Mail className="h-4 w-4" /> Send Invitation</>}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminUsers() {
   const { user: currentUser } = useAuth();
@@ -299,6 +387,7 @@ export default function AdminUsers() {
   const [editUser, setEditUser] = useState<UserRow | null>(null);
   const [resetUser, setResetUser] = useState<UserRow | null>(null);
   const [deleteUser, setDeleteUser] = useState<UserRow | null>(null);
+  const [showInvite, setShowInvite] = useState(false);
 
   const utils = trpc.useUtils();
   const { data: stats } = trpc.users.stats.useQuery();
@@ -353,12 +442,19 @@ export default function AdminUsers() {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Header */}
           <div className="border-b border-border bg-background/95 backdrop-blur sticky top-0 z-10 px-6 py-4">
-            <h1 className="text-xl font-display font-bold flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" /> User Management
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Manage accounts, roles, and admin access
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-display font-bold flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" /> User Management
+                </h1>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Manage accounts, roles, and admin access
+                </p>
+              </div>
+              <Button onClick={() => setShowInvite(true)} className="gap-2">
+                <UserPlus className="h-4 w-4" /> Invite User
+              </Button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -564,6 +660,9 @@ export default function AdminUsers() {
 
       {/* Reset password dialog */}
       {resetUser && <ResetPasswordDialog user={resetUser} open={!!resetUser} onClose={() => setResetUser(null)} />}
+
+      {/* Invite dialog */}
+      <InviteUserDialog open={showInvite} onClose={() => setShowInvite(false)} />
 
       {/* Delete confirm */}
       <AlertDialog open={!!deleteUser} onOpenChange={(o) => !o && setDeleteUser(null)}>

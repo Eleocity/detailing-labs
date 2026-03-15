@@ -8,6 +8,7 @@ import { invoicesRouter } from "./routers/invoices";
 import { mediaRouter } from "./routers/media";
 import { contentRouter } from "./routers/content";
 import { usersRouter } from "./routers/users";
+import { invitationsRouter } from "./routers/invitations";
 
 export const appRouter = router({
   system: systemRouter,
@@ -19,6 +20,7 @@ export const appRouter = router({
   media: mediaRouter,
   content: contentRouter,
   users: usersRouter,
+  invitations: invitationsRouter,
 });
 
 export type AppRouter = typeof appRouter;

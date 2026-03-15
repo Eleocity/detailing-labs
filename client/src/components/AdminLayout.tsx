@@ -10,8 +10,9 @@ import {
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard, Calendar, Users, UserCheck, MapPin, FileText,
-  Camera, Star, LogOut, PanelLeft, ChevronRight, Bell, Globe
+  Camera, Star, LogOut, PanelLeft, ChevronRight, Bell, Globe, Settings
 } from "lucide-react";
+import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
@@ -178,6 +179,11 @@ function AdminLayoutContent({ children, setSidebarWidth }: { children: React.Rea
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setLocation("/admin/profile")} className="cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Profile Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive focus:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign out

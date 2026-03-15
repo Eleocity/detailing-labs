@@ -108,3 +108,12 @@
 - [x] Role assignment (admin/user toggle)
 - [x] Account actions (reset password link, delete account)
 - [x] User stats summary cards (total, admins, recent signups)
+
+## Phase 14: Email, Invitations & Profile Settings
+- [ ] Email provider integration (Resend API) with SMTP fallback
+- [ ] Auto-email password reset links when admin generates them
+- [ ] User invitations table (token, email, role, expiry)
+- [ ] Invite User dialog in Admin → Users (email + role + send)
+- [ ] Accept invite registration page (/invite?token=...)
+- [ ] Profile Settings page (/profile/settings) with Change Password form
+- [ ] Header user menu linking to profile settings
