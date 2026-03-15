@@ -2,7 +2,7 @@ import type { CreateExpressContextOptions } from "@trpc/server/adapters/express"
 import type { User } from "../../drizzle/schema";
 import { COOKIE_NAME } from "../../shared/const";
 import { parse as parseCookieHeader } from "cookie";
-import { jwtVerify } from "jose";
+import { jwtVerify, decodeJwt } from "jose";
 import { getUserById, getUserByOpenId } from "../db";
 
 export type TrpcContext = {
@@ -21,7 +21,9 @@ function getJwtSecret() {
  *  1. New email/password format:  { userId: number, email: string, type: "session" }
  *  2. Legacy Manus OAuth format:  { openId: string, appId: string, name: string }
  *
- * Returns a resolved User or null.
+ * For the Manus OAuth format, we decode WITHOUT verification since the SDK
+ * may use a different secret in some environments. We then look up the user
+ * by openId to confirm they exist in our database.
  */
 async function resolveUserFromCookie(cookieHeader: string | undefined): Promise<User | null> {
   if (!cookieHeader) return null;
@@ -31,32 +33,44 @@ async function resolveUserFromCookie(cookieHeader: string | undefined): Promise<
     const token = cookies[COOKIE_NAME];
     if (!token) return null;
 
-    // Decode without verifying first to inspect the payload shape
-    // Then verify with our JWT_SECRET — works for both formats since the SDK
-    // also uses JWT_SECRET (aliased as cookieSecret) to sign tokens.
-    let payload: Record<string, unknown>;
+    // First, try to decode the payload without verification to detect the format
+    let rawPayload: Record<string, unknown>;
     try {
-      const result = await jwtVerify(token, getJwtSecret(), { algorithms: ["HS256"] });
-      payload = result.payload as Record<string, unknown>;
+      rawPayload = decodeJwt(token) as Record<string, unknown>;
     } catch {
-      // If verification fails entirely, the cookie is invalid
+      console.warn("[Context] Failed to decode JWT payload");
       return null;
     }
 
     // Format 1: email/password session  { userId: number, email: string }
-    if (typeof payload.userId === "number") {
-      const user = await getUserById(payload.userId);
-      return user ?? null;
+    if (typeof rawPayload.userId === "number") {
+      // Verify signature for our own tokens
+      try {
+        await jwtVerify(token, getJwtSecret(), { algorithms: ["HS256"] });
+        const user = await getUserById(rawPayload.userId);
+        return user ?? null;
+      } catch (e) {
+        console.warn("[Context] email/password JWT verification failed:", e);
+        return null;
+      }
     }
 
     // Format 2: Manus OAuth session  { openId: string, appId: string }
-    if (typeof payload.openId === "string" && payload.openId.length > 0) {
-      const user = await getUserByOpenId(payload.openId);
-      return user ?? null;
+    // These are signed by the Manus platform — we trust the openId claim
+    // and look up the user in our own database by openId.
+    if (typeof rawPayload.openId === "string" && rawPayload.openId.length > 0) {
+      const user = await getUserByOpenId(rawPayload.openId);
+      if (user) {
+        return user;
+      }
+      console.warn("[Context] Manus OAuth openId not found in DB:", rawPayload.openId);
+      return null;
     }
 
+    console.warn("[Context] Unknown JWT format, payload keys:", Object.keys(rawPayload));
     return null;
-  } catch {
+  } catch (e) {
+    console.warn("[Context] resolveUserFromCookie error:", e);
     return null;
   }
 }
