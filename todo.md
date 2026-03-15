@@ -100,3 +100,11 @@
 - [ ] Public pages read content dynamically from DB
 - [ ] Booking flow prices update from DB
 - [ ] Wire "Site Editor" nav item in AdminLayout
+
+## Phase 13: User Management Interface
+- [x] Extended users router (getById, update, delete, stats)
+- [x] AdminUsers full list with search, filter by role, sort
+- [x] User detail/edit panel (name, email, phone, role)
+- [x] Role assignment (admin/user toggle)
+- [x] Account actions (reset password link, delete account)
+- [x] User stats summary cards (total, admins, recent signups)
