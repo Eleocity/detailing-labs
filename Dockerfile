@@ -34,8 +34,9 @@ RUN pnpm install --frozen-lockfile --prod
 # Vite outputs frontend to dist/public, esbuild outputs server to dist/index.js
 COPY --from=builder /app/dist ./dist
 
-# Drizzle schema for migrations (optional, if you run migrations at startup)
+# Drizzle schema + migration runner script
 COPY --from=builder /app/drizzle ./drizzle
+COPY --from=builder /app/scripts ./scripts
 
 EXPOSE 3000
 
