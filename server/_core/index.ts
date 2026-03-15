@@ -33,7 +33,12 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
-  // OAuth callback under /api/oauth/callback
+  // Health check endpoint for Railway / load balancers
+  app.get("/api/health", (_req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // Legacy Manus OAuth callback (safe to keep for existing sessions)
   registerOAuthRoutes(app);
   // tRPC API
   app.use(

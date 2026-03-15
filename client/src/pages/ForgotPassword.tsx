@@ -16,7 +16,7 @@ const schema = z.object({
 type ForgotForm = z.infer<typeof schema>;
 
 const LOGO_URL =
-  "https://cdn-assets.manus.space/uploads/detailing-labs/detailing-labs-logo-clean_8e8b2a4e.png";
+  "https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_00201e93.png";
 
 export default function ForgotPassword() {
   const [submitted, setSubmitted] = useState(false);

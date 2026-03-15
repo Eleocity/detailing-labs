@@ -1,20 +1,10 @@
 export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 
-// Generate login URL at runtime so redirect URI reflects the current origin.
-// Pass returnPath (e.g. "/admin") to redirect back there after sign-in.
+// Returns the local login URL with an optional returnTo path.
+// Previously used Manus OAuth — now uses email/password auth at /login.
 export const getLoginUrl = (returnPath?: string) => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
-  const redirectUri = `${window.location.origin}/api/oauth/callback`;
-  // Encode returnPath into state so the server can redirect back after login
-  const statePayload = returnPath ? `${redirectUri}|${returnPath}` : redirectUri;
-  const state = btoa(statePayload);
-
-  const url = new URL(`${oauthPortalUrl}/app-auth`);
-  url.searchParams.set("appId", appId);
-  url.searchParams.set("redirectUri", redirectUri);
-  url.searchParams.set("state", state);
-  url.searchParams.set("type", "signIn");
-
-  return url.toString();
+  if (returnPath) {
+    return `/login?returnTo=${encodeURIComponent(returnPath)}`;
+  }
+  return "/login";
 };

@@ -117,3 +117,15 @@
 - [ ] Accept invite registration page (/invite?token=...)
 - [ ] Profile Settings page (/profile/settings) with Change Password form
 - [ ] Header user menu linking to profile settings
+
+## Phase 15: Railway Deployment Preparation
+- [x] Replace Manus storage proxy with real AWS S3/Cloudflare R2 SDK (server/storage.ts)
+- [x] Add /api/health endpoint for Railway health checks
+- [x] Update railway.toml to auto-run migrations on deploy
+- [x] Rewrite DEPLOY.md with complete Railway setup guide (zero Manus references)
+- [x] Create scripts/migrate.mjs for idempotent database migration runner
+- [x] Remove notifyOwner (Manus notification service) from bookings router
+- [x] Fix broken Manus CDN logo URLs in Login, Register, ForgotPassword, ResetPassword, AcceptInvite pages
+- [x] Replace getLoginUrl Manus OAuth redirect with /login route in const.ts, DashboardLayout, main.tsx
+- [x] Remove unused getLoginUrl import from CustomerPortal
+- [x] 27 tests passing, TypeScript clean

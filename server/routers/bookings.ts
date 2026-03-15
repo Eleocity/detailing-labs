@@ -6,7 +6,8 @@ import {
   bookings, customers, vehicles, services, packages, addOns,
   bookingAssignments, bookingStatusHistory, invoices, notifications, employees
 } from "../../drizzle/schema";
-import { notifyOwner } from "../_core/notification";
+// notifyOwner removed — Manus notification service not available on Railway.
+// New bookings are visible in the Admin → Bookings dashboard.
 
 function generateBookingNumber(): string {
   const prefix = "DL";
@@ -152,11 +153,8 @@ export const bookingsRouter = router({
         }
       }
 
-      // Notify owner
-      await notifyOwner({
-        title: `New Booking: ${bookingNumber}`,
-        content: `${input.customerFirstName} ${input.customerLastName} booked ${input.serviceName || input.packageName || "a service"} for ${appointmentDate.toLocaleDateString()}`,
-      });
+      // Owner notification: visible in Admin → Bookings dashboard.
+      // (Manus push notification service not used on Railway)
 
       return { bookingNumber, bookingId: newBooking?.id };
     }),

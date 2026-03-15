@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, Loader2, ShieldAlert, Eye, EyeOff } from "lucide-react";
 
-const LOGO_URL = "https://cdn.manus.im/webdev/detailing-labs/detailing-labs-logo-clean_16cfa60b.png";
+const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_00201e93.png";
 
 export default function AcceptInvite() {
   const [, navigate] = useLocation();
