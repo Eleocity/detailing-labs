@@ -48,7 +48,7 @@ async function runMigrations() {
         "SELECT id FROM __drizzle_migrations WHERE hash = ?",
         [hash]
       );
-      if ((rows as any[]).length > 0) {
+      if (rows.length > 0) {
         console.log(`  ✓ ${file} (already applied)`);
         continue;
       }
