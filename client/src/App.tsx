@@ -7,6 +7,12 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { Loader2 } from "lucide-react";
 
+// Auth pages
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+
 // Marketing pages
 const Home = lazy(() => import("./pages/Home"));
 const Services = lazy(() => import("./pages/Services"));
@@ -52,6 +58,12 @@ function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Switch>
+        {/* Auth */}
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
+
         {/* Marketing */}
         <Route path="/" component={Home} />
         <Route path="/services" component={Services} />

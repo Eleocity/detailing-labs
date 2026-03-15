@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `users` MODIFY COLUMN `openId` varchar(64);\nALTER TABLE `users` ADD `passwordHash` varchar(255);\nALTER TABLE `users` ADD `resetToken` varchar(128);\nALTER TABLE `users` ADD `resetTokenExpiresAt` timestamp;\nALTER TABLE `users` ADD CONSTRAINT `users_email_unique` UNIQUE(`email`);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 8hDBgAAw4ChVkTB.5d3ca3ddf784 --database 7UUm3VYuvjMZWzXs65cJTQ --execute ALTER TABLE `users` MODIFY COLUMN `openId` varchar(64);\nALTER TABLE `users` ADD `passwordHash` varchar(255);\nALTER TABLE `users` ADD `resetToken` varchar(128);\nALTER TABLE `users` ADD `resetTokenExpiresAt` timestamp;\nALTER TABLE `users` ADD CONSTRAINT `users_email_unique` UNIQUE(`email`);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 3949
+}

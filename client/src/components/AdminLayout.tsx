@@ -7,7 +7,6 @@ import {
   Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarInset,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar,
 } from "@/components/ui/sidebar";
-import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard, Calendar, Users, UserCheck, MapPin, FileText,
@@ -63,7 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <h1 className="text-2xl font-display font-bold mb-2">Admin Access Required</h1>
             <p className="text-sm text-muted-foreground">Sign in to access the Detailing Labs admin dashboard.</p>
           </div>
-          <Button onClick={() => { window.location.href = getLoginUrl("/admin"); }} size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
+          <Button onClick={() => { window.location.href = "/login?returnTo=/admin"; }} size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
             Sign In to Admin
           </Button>
         </div>

@@ -1,4 +1,3 @@
-import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { useCallback, useEffect, useMemo } from "react";
@@ -9,7 +8,7 @@ type UseAuthOptions = {
 };
 
 export function useAuth(options?: UseAuthOptions) {
-  const { redirectOnUnauthenticated = false, redirectPath = getLoginUrl() } =
+  const { redirectOnUnauthenticated = false, redirectPath = "/login" } =
     options ?? {};
   const utils = trpc.useUtils();
 
@@ -42,10 +41,6 @@ export function useAuth(options?: UseAuthOptions) {
   }, [logoutMutation, utils]);
 
   const state = useMemo(() => {
-    localStorage.setItem(
-      "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
-    );
     return {
       user: meQuery.data ?? null,
       loading: meQuery.isLoading || logoutMutation.isPending,
@@ -65,9 +60,12 @@ export function useAuth(options?: UseAuthOptions) {
     if (meQuery.isLoading || logoutMutation.isPending) return;
     if (state.user) return;
     if (typeof window === "undefined") return;
-    if (window.location.pathname === redirectPath) return;
+    const currentPath = window.location.pathname;
+    if (currentPath === redirectPath || currentPath.startsWith("/login") || currentPath.startsWith("/register")) return;
 
-    window.location.href = redirectPath
+    // Append returnTo so the login page can redirect back after sign-in
+    const returnTo = encodeURIComponent(currentPath + window.location.search);
+    window.location.href = `${redirectPath}?returnTo=${returnTo}`;
   }, [
     redirectOnUnauthenticated,
     redirectPath,
