@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Phone, ChevronRight, LayoutDashboard } from "lucide-react";
+import { Menu, X, Phone, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -23,8 +21,6 @@ export default function SiteHeader() {
   const { data: contactContent } = trpc.content.getSiteContent.useQuery({ section: "contact" });
   const phone = contactContent?.find((r) => r.key === "phone")?.value || "(555) 000-0000";
   const phoneHref = `tel:${phone.replace(/\D/g, "")}`;
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -83,14 +79,6 @@ export default function SiteHeader() {
               <Phone className="w-4 h-4" />
               {phone}
             </a>
-            {isAdmin ? (
-              <Link href="/admin">
-                <Button size="sm" variant="outline" className="border-primary/40 text-primary hover:bg-primary/10 font-semibold px-4">
-                  <LayoutDashboard className="w-4 h-4 mr-1.5" />
-                  Admin
-                </Button>
-              </Link>
-            ) : null}
             <Link href="/booking">
               <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5">
                 Book Now
@@ -128,14 +116,6 @@ export default function SiteHeader() {
               </Link>
             ))}
             <div className="pt-3 border-t border-border mt-2 flex flex-col gap-2">
-              {isAdmin && (
-                <Link href="/admin">
-                  <Button variant="outline" className="w-full border-primary/40 text-primary hover:bg-primary/10 font-semibold">
-                    <LayoutDashboard className="w-4 h-4 mr-1.5" />
-                    Admin Dashboard
-                  </Button>
-                </Link>
-              )}
               <Link href="/booking">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
                   Book Now

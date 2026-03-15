@@ -139,6 +139,9 @@ export default function SiteFooter() {
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <span className="hover:text-foreground transition-colors cursor-pointer">Privacy Policy</span>
             <span className="hover:text-foreground transition-colors cursor-pointer">Terms of Service</span>
+            <Link href="/admin">
+              <span className="hover:text-foreground transition-colors cursor-pointer opacity-40 hover:opacity-70">Admin</span>
+            </Link>
           </div>
         </div>
       </div>

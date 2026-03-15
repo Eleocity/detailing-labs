@@ -29,6 +29,7 @@ const menuItems = [
   { icon: Camera, label: "Media", path: "/admin/media" },
   { icon: Star, label: "Reviews", path: "/admin/reviews" },
   { icon: Globe, label: "Site Editor", path: "/admin/site-editor" },
+  { icon: Users, label: "Users", path: "/admin/users" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "dl-admin-sidebar-width";

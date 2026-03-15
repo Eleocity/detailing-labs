@@ -1,0 +1,13 @@
+node_modules
+.git
+.gitignore
+*.md
+!DEPLOY.md
+.env
+.env.*
+!.env.example
+dist
+client/dist
+.manus-logs
+screenshots
+*.log
