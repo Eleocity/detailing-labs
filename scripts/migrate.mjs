@@ -15,13 +15,17 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 async function runMigrations() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    console.error("❌ DATABASE_URL environment variable is not set");
-    process.exit(1);
+    console.error("❌ DATABASE_URL not set — skipping migrations, server will start without DB.");
+    return; // Don't block server startup — Railway will show DB errors at query time
   }
 
   console.log("🔄 Running database migrations...");
 
-  const conn = await createConnection(databaseUrl);
+  // connectTimeout ensures we fail fast (15s) instead of hanging indefinitely
+  const conn = await createConnection({
+    uri: databaseUrl,
+    connectTimeout: 15000,
+  });
 
   try {
     // Create migrations tracking table if it doesn't exist
@@ -84,6 +88,8 @@ async function runMigrations() {
 }
 
 runMigrations().catch(err => {
-  console.error("❌ Migration failed:", err);
-  process.exit(1);
+  console.error("❌ Migration failed:", err.message);
+  console.error("⚠️  Server will still start — check DATABASE_URL and DB connectivity.");
+  // Do NOT exit(1) here — let the server start so /api/health responds
+  // and Railway doesn't loop-crash. DB errors will surface at query time.
 });
