@@ -91,7 +91,7 @@ async function startServer() {
   });
 
   // ── Manual migration trigger (secured by MIGRATE_SECRET env var) ──
-  app.post("/api/migrate", async (req, res) => {
+  app.all("/api/migrate", async (req, res) => {
     const secret = process.env.MIGRATE_SECRET;
     const provided = req.headers["x-migrate-secret"] ?? req.query.secret;
     if (secret && provided !== secret) {
