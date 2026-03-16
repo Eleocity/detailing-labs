@@ -58,7 +58,12 @@ async function runMigrations(): Promise<{ applied: number; log: string[] }> {
     }
 
     const sql = await readFile(join(migrationsDir, file), "utf-8");
-    const statements = sql
+    // Drizzle migration files use '--> statement-breakpoint' as a separator.
+    // We must strip those markers BEFORE splitting on ';' — otherwise the
+    // '-->...' text (which starts with '--') gets treated as a comment and
+    // every ALTER TABLE / CREATE TABLE after a breakpoint is silently dropped.
+    const sanitized = sql.replace(/--> statement-breakpoint/g, "");
+    const statements = sanitized
       .split(";")
       .map((s: string) => s.trim())
       .filter((s: string) => s.length > 0 && !s.startsWith("--"));
