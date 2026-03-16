@@ -1,57 +1,209 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import {
   Search, Plus, ChevronRight, ChevronLeft, Phone, Mail, MapPin,
   Car, Calendar, FileText, MessageSquare, CheckCircle2, Loader2,
-  Tag, Star, Edit, User
+  Star, Edit, User, Copy, Check, X,
+  StickyNote, PhoneCall, Send, AlarmClock, ClipboardList,
+  TrendingUp, DollarSign, Wrench, Hash,
+  AlertCircle, UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import AdminLayout from "@/components/AdminLayout";
+import { cn } from "@/lib/utils";
+import { formatDistanceToNow, format } from "date-fns";
 
-const CRM_STATUSES = [
-  { value: "all", label: "All" },
-  { value: "new_lead", label: "New Lead" },
-  { value: "contacted", label: "Contacted" },
+// ─── Types ────────────────────────────────────────────────────────────────────
+type CrmStatus = "new_lead" | "contacted" | "quote_sent" | "booked" | "active" | "follow_up" | "vip" | "inactive";
+type NoteType = "note" | "call" | "email" | "sms" | "task" | "reminder";
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const CRM_STATUSES: { value: CrmStatus | "all"; label: string }[] = [
+  { value: "all",        label: "All Clients" },
+  { value: "new_lead",   label: "New Lead" },
+  { value: "contacted",  label: "Contacted" },
   { value: "quote_sent", label: "Quote Sent" },
-  { value: "booked", label: "Booked" },
-  { value: "active", label: "Active" },
-  { value: "follow_up", label: "Follow Up" },
-  { value: "vip", label: "VIP" },
-  { value: "inactive", label: "Inactive" },
+  { value: "booked",     label: "Booked" },
+  { value: "active",     label: "Active" },
+  { value: "follow_up",  label: "Follow-Up" },
+  { value: "vip",        label: "VIP" },
+  { value: "inactive",   label: "Inactive" },
 ];
 
-const STATUS_COLORS: Record<string, string> = {
-  new_lead: "bg-blue-500/15 text-blue-400 border-blue-500/20",
-  contacted: "bg-purple-500/15 text-purple-400 border-purple-500/20",
-  quote_sent: "bg-amber-500/15 text-amber-400 border-amber-500/20",
-  booked: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
-  active: "bg-green-500/15 text-green-400 border-green-500/20",
-  follow_up: "bg-orange-500/15 text-orange-400 border-orange-500/20",
-  vip: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20",
-  inactive: "bg-gray-500/15 text-gray-400 border-gray-500/20",
+const STATUS_META: Record<string, { label: string; dot: string; pill: string }> = {
+  new_lead:   { label: "New Lead",   dot: "bg-blue-500",    pill: "bg-blue-500/12 text-blue-400 border-blue-500/25" },
+  contacted:  { label: "Contacted",  dot: "bg-violet-500",  pill: "bg-violet-500/12 text-violet-400 border-violet-500/25" },
+  quote_sent: { label: "Quote Sent", dot: "bg-amber-500",   pill: "bg-amber-500/12 text-amber-400 border-amber-500/25" },
+  booked:     { label: "Booked",     dot: "bg-emerald-500", pill: "bg-emerald-500/12 text-emerald-400 border-emerald-500/25" },
+  active:     { label: "Active",     dot: "bg-green-500",   pill: "bg-green-500/12 text-green-400 border-green-500/25" },
+  follow_up:  { label: "Follow-Up",  dot: "bg-orange-500",  pill: "bg-orange-500/12 text-orange-400 border-orange-500/25" },
+  vip:        { label: "VIP",        dot: "bg-yellow-400",  pill: "bg-yellow-500/12 text-yellow-400 border-yellow-500/25" },
+  inactive:   { label: "Inactive",   dot: "bg-zinc-500",    pill: "bg-zinc-500/12 text-zinc-400 border-zinc-500/25" },
 };
 
-const NOTE_TYPE_ICONS: Record<string, any> = {
-  note: FileText,
-  call: Phone,
-  email: Mail,
-  sms: MessageSquare,
-  task: CheckCircle2,
-  reminder: Calendar,
+const NOTE_META: Record<NoteType, { label: string; icon: React.ElementType; color: string }> = {
+  note:     { label: "Note",     icon: StickyNote,    color: "text-zinc-400 bg-zinc-500/10 border-zinc-500/20" },
+  call:     { label: "Call",     icon: PhoneCall,     color: "text-green-400 bg-green-500/10 border-green-500/20" },
+  email:    { label: "Email",    icon: Mail,          color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
+  sms:      { label: "SMS",      icon: MessageSquare, color: "text-violet-400 bg-violet-500/10 border-violet-500/20" },
+  task:     { label: "Task",     icon: ClipboardList, color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
+  reminder: { label: "Reminder", icon: AlarmClock,    color: "text-orange-400 bg-orange-500/10 border-orange-500/20" },
 };
 
-// ── Customer List ─────────────────────────────────────────────────────────────
+const BOOKING_STATUS_PILL: Record<string, string> = {
+  new:         "bg-blue-500/12 text-blue-400 border-blue-500/25",
+  confirmed:   "bg-emerald-500/12 text-emerald-400 border-emerald-500/25",
+  assigned:    "bg-violet-500/12 text-violet-400 border-violet-500/25",
+  en_route:    "bg-amber-500/12 text-amber-400 border-amber-500/25",
+  in_progress: "bg-orange-500/12 text-orange-400 border-orange-500/25",
+  completed:   "bg-green-500/12 text-green-400 border-green-500/25",
+  cancelled:   "bg-zinc-500/12 text-zinc-400 border-zinc-500/25",
+};
+
+const LEAD_SOURCES = ["Google", "Instagram", "Facebook", "Referral", "Walk-in", "TikTok", "Yelp", "Other"];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function initials(name: string) {
+  return name.trim().split(/\s+/).map(n => n[0]).join("").toUpperCase().slice(0, 2);
+}
+
+function avatarGradient(id: number) {
+  const g = [
+    "from-violet-600 to-violet-900",
+    "from-purple-600 to-purple-900",
+    "from-indigo-600 to-indigo-900",
+    "from-blue-600 to-blue-900",
+    "from-cyan-700 to-cyan-900",
+  ];
+  return g[id % g.length];
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const m = STATUS_META[status];
+  if (!m) return null;
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full border tracking-wide", m.pill)}>
+      <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", m.dot)} />
+      {m.label}
+    </span>
+  );
+}
+
+function CopyBtn({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }); }}
+      className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 text-muted-foreground hover:text-primary"
+    >
+      {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+    </button>
+  );
+}
+
+// ─── Add Customer Dialog ──────────────────────────────────────────────────────
+function AddCustomerDialog({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", city: "", state: "", source: "", crmStatus: "new_lead" as CrmStatus });
+  const mut = trpc.crm.createCustomer.useMutation({
+    onSuccess: () => { toast.success("Customer added"); onSuccess(); onClose(); setForm({ firstName: "", lastName: "", email: "", phone: "", city: "", state: "", source: "", crmStatus: "new_lead" }); },
+    onError: e => toast.error(e.message),
+  });
+  const f = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(p => ({ ...p, [k]: e.target.value }));
+  return (
+    <Dialog open={open} onOpenChange={v => !v && onClose()}>
+      <DialogContent className="max-w-md bg-card border-border/50">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 font-display"><UserPlus className="w-4 h-4 text-primary" />Add New Customer</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-3 py-1">
+          <div className="space-y-1"><Label className="text-xs">First Name *</Label><Input value={form.firstName} onChange={f("firstName")} placeholder="First" className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="space-y-1"><Label className="text-xs">Last Name *</Label><Input value={form.lastName} onChange={f("lastName")} placeholder="Last" className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="space-y-1"><Label className="text-xs">Phone</Label><Input value={form.phone} onChange={f("phone")} placeholder="(615) 000-0000" className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="space-y-1"><Label className="text-xs">Email</Label><Input value={form.email} onChange={f("email")} placeholder="email@example.com" className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="space-y-1"><Label className="text-xs">City</Label><Input value={form.city} onChange={f("city")} placeholder="Nashville" className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="space-y-1"><Label className="text-xs">State</Label><Input value={form.state} onChange={f("state")} placeholder="TN" className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="space-y-1">
+            <Label className="text-xs">Lead Source</Label>
+            <Select value={form.source} onValueChange={v => setForm(p => ({ ...p, source: v }))}>
+              <SelectTrigger className="h-9 bg-background/50 border-border/50"><SelectValue placeholder="Source…" /></SelectTrigger>
+              <SelectContent>{LEAD_SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Status</Label>
+            <Select value={form.crmStatus} onValueChange={v => setForm(p => ({ ...p, crmStatus: v as CrmStatus }))}>
+              <SelectTrigger className="h-9 bg-background/50 border-border/50"><SelectValue /></SelectTrigger>
+              <SelectContent>{CRM_STATUSES.filter(s => s.value !== "all").map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose} className="border-border/50">Cancel</Button>
+          <Button onClick={() => mut.mutate(form as any)} disabled={!form.firstName || !form.lastName || mut.isPending} className="bg-primary hover:bg-primary/90">
+            {mut.isPending ? <><Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />Adding…</> : "Add Customer"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Add Vehicle Dialog ───────────────────────────────────────────────────────
+function AddVehicleDialog({ customerId, open, onClose, onSuccess }: { customerId: number; open: boolean; onClose: () => void; onSuccess: () => void }) {
+  const [form, setForm] = useState({ make: "", model: "", year: new Date().getFullYear(), color: "", vehicleType: "sedan", licensePlate: "", notes: "" });
+  const mut = trpc.crm.addVehicle.useMutation({
+    onSuccess: () => { toast.success("Vehicle added"); onSuccess(); onClose(); },
+    onError: e => toast.error(e.message),
+  });
+  const f = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm(p => ({ ...p, [k]: e.target.value }));
+  return (
+    <Dialog open={open} onOpenChange={v => !v && onClose()}>
+      <DialogContent className="max-w-md bg-card border-border/50">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 font-display"><Car className="w-4 h-4 text-primary" />Add Vehicle</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-3 py-1">
+          <div className="space-y-1"><Label className="text-xs">Year *</Label><Input type="number" value={form.year} onChange={e => setForm(p => ({ ...p, year: Number(e.target.value) }))} className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="space-y-1"><Label className="text-xs">Make *</Label><Input value={form.make} onChange={f("make")} placeholder="BMW" className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="space-y-1"><Label className="text-xs">Model *</Label><Input value={form.model} onChange={f("model")} placeholder="M3 Competition" className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="space-y-1"><Label className="text-xs">Color</Label><Input value={form.color} onChange={f("color")} placeholder="Tanzanite Blue" className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="space-y-1">
+            <Label className="text-xs">Type</Label>
+            <Select value={form.vehicleType} onValueChange={v => setForm(p => ({ ...p, vehicleType: v }))}>
+              <SelectTrigger className="h-9 bg-background/50 border-border/50"><SelectValue /></SelectTrigger>
+              <SelectContent>{["sedan","suv","truck","van","coupe","convertible","wagon","other"].map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1"><Label className="text-xs">License Plate</Label><Input value={form.licensePlate} onChange={f("licensePlate")} placeholder="ABC-1234" className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="col-span-2 space-y-1"><Label className="text-xs">Notes</Label><Textarea value={form.notes} onChange={f("notes")} rows={2} placeholder="Coating, PPF notes…" className="resize-none bg-background/50 border-border/50 text-sm" /></div>
+        </div>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose} className="border-border/50">Cancel</Button>
+          <Button onClick={() => mut.mutate({ customerId, ...form } as any)} disabled={!form.make || !form.model || mut.isPending} className="bg-primary hover:bg-primary/90">
+            {mut.isPending ? <><Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />Adding…</> : "Add Vehicle"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  CUSTOMER LIST
+// ════════════════════════════════════════════════════════════════════════════
 export function AdminCRMList() {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [page, setPage] = useState(0);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [search, setSearch]             = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [page, setPage]                 = useState(0);
+  const [showAdd, setShowAdd]           = useState(false);
+  const [, setLocation]                 = useLocation();
   const PAGE_SIZE = 25;
 
   const { data, isLoading, refetch } = trpc.crm.listCustomers.useQuery({
@@ -62,40 +214,51 @@ export function AdminCRMList() {
   });
 
   const customers = data?.customers ?? [];
-  const total = data?.total ?? 0;
+  const total     = data?.total ?? 0;
+  const pages     = Math.ceil(total / PAGE_SIZE);
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col" style={{ minHeight: "calc(100vh - 56px)" }}>
+
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border/50">
           <div>
-            <h1 className="text-2xl font-display font-bold">Customer CRM</h1>
-            <p className="text-muted-foreground text-sm">{total} customers</p>
+            <h1 className="text-xl font-display font-bold tracking-tight">Customers</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">{total.toLocaleString()} total clients</p>
           </div>
-          <Button onClick={() => setShowAddModal(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
-            <Plus className="w-4 h-4 mr-2" /> Add Customer
+          <Button onClick={() => setShowAdd(true)} className="bg-primary hover:bg-primary/90 h-9 text-sm font-semibold gap-1.5">
+            <Plus className="w-3.5 h-3.5" /> Add Customer
           </Button>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-3 mb-6">
-          <div className="relative flex-1 min-w-48">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        {/* ── Filters ── */}
+        <div className="px-6 py-3 border-b border-border/40 flex items-center gap-3 flex-wrap">
+          <div className="relative flex-1 min-w-52 max-w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input
-              placeholder="Search customers..."
+              placeholder="Search name, phone, email…"
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-              className="pl-9 bg-input border-border"
+              onChange={e => { setSearch(e.target.value); setPage(0); }}
+              className="pl-9 h-9 bg-background/50 border-border/50 text-sm"
             />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            {CRM_STATUSES.map((s) => (
+          <div className="flex gap-1 flex-wrap">
+            {CRM_STATUSES.map(s => (
               <button
                 key={s.value}
                 onClick={() => { setStatusFilter(s.value); setPage(0); }}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                  statusFilter === s.value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"
-                }`}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-xs font-medium transition-all border",
+                  statusFilter === s.value
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground bg-transparent"
+                )}
               >
                 {s.label}
               </button>
@@ -103,380 +266,729 @@ export function AdminCRMList() {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
+        {/* ── Table ── */}
+        <div className="flex-1 overflow-x-auto">
           {isLoading ? (
-            <div className="flex items-center justify-center p-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+            <div className="flex items-center justify-center h-48"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
           ) : customers.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground">No customers found.</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/30">
-                    <th className="text-left p-4 font-medium text-muted-foreground">Customer</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Contact</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Location</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Lifetime Value</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Last Service</th>
-                    <th className="p-4"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {customers.map((c) => (
-                    <tr key={c.id} className="hover:bg-muted/20 transition-colors">
-                      <td className="p-4">
-                        <div className="font-medium">{c.firstName} {c.lastName}</div>
-                        {c.tags && <div className="text-xs text-muted-foreground mt-0.5">{c.tags}</div>}
-                      </td>
-                      <td className="p-4 text-muted-foreground">
-                        <div>{c.phone ?? "—"}</div>
-                        <div className="text-xs">{c.email ?? "—"}</div>
-                      </td>
-                      <td className="p-4 text-muted-foreground text-xs">
-                        {c.city ? `${c.city}, ${c.state ?? ""}` : "—"}
-                      </td>
-                      <td className="p-4">
-                        <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[c.crmStatus ?? ""] ?? ""}`}>
-                          {(c.crmStatus ?? "").replace("_", " ")}
-                        </span>
-                      </td>
-                      <td className="p-4 font-medium">${Number(c.lifetimeValue ?? 0).toFixed(0)}</td>
-                      <td className="p-4 text-muted-foreground text-xs">
-                        {c.lastServiceDate ? new Date(c.lastServiceDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
-                      </td>
-                      <td className="p-4">
-                        <a href={`/admin/crm/${c.id}`}>
-                          <Button variant="ghost" size="sm" className="text-xs">
-                            View <ChevronRight className="w-3 h-3 ml-1" />
-                          </Button>
-                        </a>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="flex flex-col items-center justify-center h-48 gap-2 text-muted-foreground">
+              <User className="w-8 h-8 opacity-25" />
+              <p className="text-sm">No customers found</p>
+              <Button size="sm" variant="outline" onClick={() => { setSearch(""); setStatusFilter("all"); }} className="text-xs border-border/50">Clear filters</Button>
             </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border/40 bg-muted/20 sticky top-0 z-10">
+                  {["Customer", "Contact", "Location", "Status", "Lifetime Value", "Last Service", "Source", ""].map(h => (
+                    <th key={h} className="text-left px-4 py-3 text-xs font-medium text-muted-foreground first:pl-6 last:w-8">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {customers.map(c => (
+                  <tr
+                    key={c.id}
+                    onClick={() => setLocation(`/admin/crm/${c.id}`)}
+                    className="hover:bg-muted/20 transition-colors cursor-pointer group"
+                  >
+                    {/* Customer */}
+                    <td className="pl-6 pr-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className={cn("w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-bold text-white bg-gradient-to-br", avatarGradient(c.id))}>
+                          {initials(`${c.firstName} ${c.lastName}`)}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-foreground flex items-center gap-1 truncate">
+                            {c.firstName} {c.lastName}
+                            {c.crmStatus === "vip" && <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 flex-shrink-0" />}
+                          </div>
+                          {c.tags && (
+                            <div className="flex gap-1 mt-0.5 flex-wrap">
+                              {c.tags.split(",").filter(Boolean).map(t => (
+                                <span key={t} className="text-[10px] px-1.5 rounded bg-primary/10 text-primary/80 border border-primary/20 font-medium leading-4">
+                                  {t.trim()}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Contact */}
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
+                        {c.phone && <span className="flex items-center gap-1.5"><Phone className="w-3 h-3 flex-shrink-0" />{c.phone}</span>}
+                        {c.email && <span className="flex items-center gap-1.5 max-w-[160px] truncate"><Mail className="w-3 h-3 flex-shrink-0" />{c.email}</span>}
+                      </div>
+                    </td>
+
+                    {/* Location */}
+                    <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                      {c.city ? `${c.city}${c.state ? `, ${c.state}` : ""}` : "—"}
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-4 py-3"><StatusBadge status={c.crmStatus ?? "new_lead"} /></td>
+
+                    {/* LTV */}
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-semibold text-foreground">${Number(c.lifetimeValue ?? 0).toLocaleString()}</span>
+                    </td>
+
+                    {/* Last service */}
+                    <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                      {c.lastServiceDate ? format(new Date(c.lastServiceDate), "MMM d, yyyy") : "—"}
+                    </td>
+
+                    {/* Source */}
+                    <td className="px-4 py-3">
+                      {c.source && (
+                        <span className="text-xs px-2 py-0.5 rounded bg-muted/50 text-muted-foreground border border-border/50">
+                          {c.source}
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="pr-4 py-3">
+                      <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
 
-        {total > PAGE_SIZE && (
-          <div className="flex items-center justify-between mt-4">
-            <p className="text-sm text-muted-foreground">Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total}</p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setPage(page - 1)} disabled={page === 0} className="border-border">Previous</Button>
-              <Button variant="outline" size="sm" onClick={() => setPage(page + 1)} disabled={(page + 1) * PAGE_SIZE >= total} className="border-border">Next</Button>
+        {/* ── Pagination ── */}
+        {pages > 1 && (
+          <div className="flex items-center justify-between px-6 py-3 border-t border-border/40 bg-background/50 flex-shrink-0">
+            <p className="text-xs text-muted-foreground">
+              {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button size="sm" variant="outline" onClick={() => setPage(p => p - 1)} disabled={page === 0} className="h-7 w-7 p-0 border-border/50"><ChevronLeft className="w-3.5 h-3.5" /></Button>
+              {Array.from({ length: Math.min(5, pages) }, (_, i) => Math.max(0, page - 2) + i).filter(p => p < pages).map(p => (
+                <Button key={p} size="sm" variant={p === page ? "default" : "outline"} onClick={() => setPage(p)}
+                  className={cn("h-7 w-7 p-0 text-xs", p === page ? "bg-primary" : "border-border/50")}>{p + 1}</Button>
+              ))}
+              <Button size="sm" variant="outline" onClick={() => setPage(p => p + 1)} disabled={page >= pages - 1} className="h-7 w-7 p-0 border-border/50"><ChevronRight className="w-3.5 h-3.5" /></Button>
             </div>
           </div>
         )}
-
-        <AddCustomerModal open={showAddModal} onClose={() => setShowAddModal(false)} onSuccess={() => { setShowAddModal(false); refetch(); }} />
       </div>
+
+      <AddCustomerDialog open={showAdd} onClose={() => setShowAdd(false)} onSuccess={refetch} />
     </AdminLayout>
   );
 }
 
-// ── Customer Detail ───────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+//  CUSTOMER DETAIL
+// ════════════════════════════════════════════════════════════════════════════
+type Tab = "overview" | "jobs" | "vehicles" | "invoices" | "activity";
+
 export function AdminCRMDetail() {
-  const { id } = useParams<{ id: string }>();
-  const [, navigate] = useLocation();
-  const customerId = parseInt(id ?? "0");
-  const [noteType, setNoteType] = useState<"note" | "call" | "email" | "sms" | "task" | "reminder">("note");
-  const [noteContent, setNoteContent] = useState("");
-  const [editStatus, setEditStatus] = useState<string | null>(null);
+  const { id }        = useParams<{ id: string }>();
+  const [, setLoc]    = useLocation();
+  const cid           = Number(id);
+  const utils         = trpc.useUtils();
 
-  const { data, refetch } = trpc.crm.getCustomer.useQuery({ id: customerId }, { enabled: !!customerId });
+  const [tab, setTab]             = useState<Tab>("overview");
+  const [editOpen, setEditOpen]   = useState(false);
+  const [addVeh, setAddVeh]       = useState(false);
+  const [noteText, setNoteText]   = useState("");
+  const [noteType, setNoteType]   = useState<NoteType>("note");
+  const [editForm, setEditForm]   = useState<Record<string, string>>({});
 
-  const addNote = trpc.crm.addNote.useMutation({
-    onSuccess: () => { toast.success("Note added"); setNoteContent(""); refetch(); },
-    onError: (err) => toast.error(err.message),
+  const { data, isLoading, refetch } = trpc.crm.getCustomer.useQuery({ id: cid });
+
+  const updateMut = trpc.crm.updateCustomer.useMutation({
+    onSuccess: () => { toast.success("Customer updated"); setEditOpen(false); utils.crm.getCustomer.invalidate({ id: cid }); },
+    onError: e => toast.error(e.message),
+  });
+  const addNoteMut = trpc.crm.addNote.useMutation({
+    onSuccess: () => { toast.success("Logged"); setNoteText(""); utils.crm.getCustomer.invalidate({ id: cid }); },
+    onError: e => toast.error(e.message),
+  });
+  const completeMut = trpc.crm.completeNote.useMutation({
+    onSuccess: () => utils.crm.getCustomer.invalidate({ id: cid }),
   });
 
-  const updateCustomer = trpc.crm.updateCustomer.useMutation({
-    onSuccess: () => { toast.success("Status updated"); setEditStatus(null); refetch(); },
-    onError: (err) => toast.error(err.message),
-  });
+  useEffect(() => {
+    if (data?.customer) {
+      const c = data.customer;
+      setEditForm({
+        firstName: c.firstName, lastName: c.lastName,
+        phone: c.phone ?? "", email: c.email ?? "",
+        address: c.address ?? "", city: c.city ?? "",
+        state: c.state ?? "", zip: c.zip ?? "",
+        source: c.source ?? "", tags: c.tags ?? "",
+        notes: c.notes ?? "", crmStatus: c.crmStatus ?? "new_lead",
+      });
+    }
+  }, [data?.customer]);
 
-  if (!data) {
+  if (isLoading) {
+    return <AdminLayout><div className="flex items-center justify-center h-64"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div></AdminLayout>;
+  }
+  if (!data?.customer) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center p-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+        <div className="flex flex-col items-center justify-center h-64 gap-3 text-muted-foreground">
+          <AlertCircle className="w-8 h-8 opacity-30" />
+          <p className="text-sm">Customer not found</p>
+          <Button variant="outline" size="sm" onClick={() => setLoc("/admin/crm")} className="border-border/50">← Back to CRM</Button>
+        </div>
       </AdminLayout>
     );
   }
 
-  const { customer, vehicles, bookings, notes, photos } = data;
+  const { customer: c, vehicles: vehs, bookings: bks, notes: nts } = data;
+  const fullName    = `${c.firstName} ${c.lastName}`;
+  const ltv         = Number(c.lifetimeValue ?? 0);
+  const completed   = bks.filter(b => b.status === "completed");
+  const avgTicket   = completed.length ? ltv / completed.length : 0;
+
+  const TABS: { id: Tab; label: string; icon: React.ElementType; badge?: number }[] = [
+    { id: "overview",  label: "Overview",  icon: User },
+    { id: "jobs",      label: "Jobs",      icon: Wrench,        badge: bks.length || undefined },
+    { id: "vehicles",  label: "Vehicles",  icon: Car,           badge: vehs.length || undefined },
+    { id: "invoices",  label: "Invoices",  icon: FileText },
+    { id: "activity",  label: "Activity",  icon: MessageSquare, badge: nts.length || undefined },
+  ];
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/admin/crm")} className="text-muted-foreground">
-            <ChevronLeft className="w-4 h-4 mr-1" /> Back
-          </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-display font-bold">{customer.firstName} {customer.lastName}</h1>
-              <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[customer.crmStatus ?? ""] ?? ""}`}>
-                {(customer.crmStatus ?? "").replace("_", " ")}
-              </span>
-            </div>
-            <p className="text-muted-foreground text-sm">Customer since {new Date(customer.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={editStatus ?? customer.crmStatus ?? ""}
-              onChange={(e) => {
-                setEditStatus(e.target.value);
-                updateCustomer.mutate({ id: customerId, crmStatus: e.target.value as any });
-              }}
-              className="h-9 px-3 rounded-md border border-border bg-input text-foreground text-sm focus:outline-none"
-            >
-              {CRM_STATUSES.filter((s) => s.value !== "all").map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </select>
-          </div>
+      <div className="flex flex-col" style={{ minHeight: "calc(100vh - 56px)" }}>
+
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 px-6 py-2.5 border-b border-border/40 bg-background/50">
+          <button onClick={() => setLoc("/admin/crm")} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <ChevronLeft className="w-3.5 h-3.5" /> Customers
+          </button>
+          <span className="text-muted-foreground/40 text-xs">/</span>
+          <span className="text-xs font-medium text-foreground">{fullName}</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: Activity & Notes */}
-          <div className="lg:col-span-2 space-y-5">
-            {/* Add Note */}
-            <div className="p-5 rounded-xl border border-border bg-card">
-              <h3 className="font-semibold mb-4">Add Activity</h3>
-              <div className="flex gap-2 mb-3 flex-wrap">
-                {(["note", "call", "email", "sms", "task"] as const).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setNoteType(t)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-all capitalize ${
-                      noteType === t ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+
+          {/* ─────────────────────────────────────────────
+              LEFT SIDEBAR
+          ───────────────────────────────────────────── */}
+          <aside className="w-72 flex-shrink-0 border-r border-border/40 overflow-y-auto flex flex-col">
+
+            {/* Avatar + name */}
+            <div className="px-6 pt-6 pb-5 border-b border-border/30 text-center">
+              <div className={cn(
+                "w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-bold text-white bg-gradient-to-br mx-auto mb-3 ring-[3px] ring-background shadow-xl",
+                avatarGradient(c.id)
+              )}>
+                {initials(fullName)}
               </div>
-              <Textarea
-                value={noteContent}
-                onChange={(e) => setNoteContent(e.target.value)}
-                placeholder={`Add a ${noteType}...`}
-                className="bg-input border-border resize-none mb-3"
-                rows={3}
-              />
-              <Button
-                size="sm"
-                onClick={() => addNote.mutate({ customerId, type: noteType, content: noteContent })}
-                disabled={!noteContent.trim() || addNote.isPending}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                {addNote.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Save Activity"}
+              <div className="font-display font-bold text-base text-foreground">{fullName}</div>
+              {c.crmStatus === "vip" && (
+                <div className="flex items-center justify-center gap-1 mt-0.5">
+                  <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                  <span className="text-xs text-yellow-400 font-semibold">VIP Client</span>
+                </div>
+              )}
+              <div className="mt-2 flex justify-center"><StatusBadge status={c.crmStatus ?? "new_lead"} /></div>
+              <p className="text-[11px] text-muted-foreground mt-2">Client since {format(new Date(c.createdAt), "MMM yyyy")}</p>
+            </div>
+
+            {/* Quick actions */}
+            <div className="px-4 py-4 border-b border-border/30 flex flex-col gap-2">
+              <Button className="w-full h-8 text-xs bg-primary hover:bg-primary/90 gap-1.5 font-semibold" onClick={() => setLoc("/booking")}>
+                <Plus className="w-3 h-3" /> New Booking
               </Button>
-            </div>
-
-            {/* Activity Log */}
-            <div className="p-5 rounded-xl border border-border bg-card">
-              <h3 className="font-semibold mb-4">Activity Log ({notes.length})</h3>
-              {notes.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No activity recorded yet.</p>
-              ) : (
-                <div className="space-y-3">
-                  {notes.map((note) => {
-                    const Icon = NOTE_TYPE_ICONS[note.type ?? "note"] ?? FileText;
-                    return (
-                      <div key={note.id} className="flex gap-3">
-                        <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <Icon className="w-3 h-3 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-xs font-medium capitalize">{note.type}</span>
-                            <span className="text-xs text-muted-foreground">{new Date(note.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{note.content}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Booking History */}
-            <div className="p-5 rounded-xl border border-border bg-card">
-              <h3 className="font-semibold mb-4">Booking History ({bookings.length})</h3>
-              {bookings.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No bookings yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {bookings.map((b) => (
-                    <a key={b.id} href={`/admin/bookings/${b.id}`}>
-                      <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors cursor-pointer">
-                        <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium">{b.packageName ?? "Custom Service"}</div>
-                          <div className="text-xs text-muted-foreground">{new Date(b.appointmentDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium">${Number(b.totalAmount ?? 0).toFixed(0)}</div>
-                          <div className="text-xs text-muted-foreground capitalize">{b.status.replace("_", " ")}</div>
-                        </div>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right: Customer Info */}
-          <div className="space-y-5">
-            {/* Contact Info */}
-            <div className="p-5 rounded-xl border border-border bg-card">
-              <h3 className="font-semibold mb-4">Contact Info</h3>
-              <div className="space-y-3 text-sm">
-                {customer.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span>{customer.phone}</span>
-                  </div>
-                )}
-                {customer.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span className="truncate">{customer.email}</span>
-                  </div>
-                )}
-                {customer.city && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span>{customer.city}{customer.state ? `, ${customer.state}` : ""}</span>
-                  </div>
-                )}
-                {customer.source && (
-                  <div className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span className="text-muted-foreground">Source: {customer.source}</span>
-                  </div>
-                )}
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" className="h-8 text-xs border-border/50 gap-1" onClick={() => setTab("activity")}>
+                  <StickyNote className="w-3 h-3" /> Log Note
+                </Button>
+                <Button variant="outline" className="h-8 text-xs border-border/50 gap-1">
+                  <Send className="w-3 h-3" /> Message
+                </Button>
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="p-5 rounded-xl border border-border bg-card">
-              <h3 className="font-semibold mb-4">Stats</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Lifetime Value</span>
-                  <span className="font-semibold text-primary">${Number(customer.lifetimeValue ?? 0).toFixed(0)}</span>
+            {/* Contact */}
+            <div className="px-4 py-4 border-b border-border/30 space-y-2.5">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Contact</p>
+              {c.phone ? (
+                <div className="flex items-center gap-2.5 group">
+                  <div className="w-6 h-6 rounded bg-muted/60 flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-3 h-3 text-muted-foreground" />
+                  </div>
+                  <span className="text-sm text-foreground flex-1">{c.phone}</span>
+                  <CopyBtn text={c.phone} />
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Total Bookings</span>
-                  <span className="font-semibold">{bookings.length}</span>
+              ) : null}
+              {c.email ? (
+                <div className="flex items-center gap-2.5 group">
+                  <div className="w-6 h-6 rounded bg-muted/60 flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-3 h-3 text-muted-foreground" />
+                  </div>
+                  <span className="text-sm text-foreground flex-1 truncate">{c.email}</span>
+                  <CopyBtn text={c.email} />
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Vehicles</span>
-                  <span className="font-semibold">{vehicles.length}</span>
+              ) : null}
+              {(c.city || c.address) ? (
+                <div className="flex items-start gap-2.5">
+                  <div className="w-6 h-6 rounded bg-muted/60 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MapPin className="w-3 h-3 text-muted-foreground" />
+                  </div>
+                  <div className="text-sm text-foreground leading-snug">
+                    {c.address && <div>{c.address}</div>}
+                    {c.city && <div>{c.city}{c.state ? `, ${c.state}` : ""}{c.zip ? ` ${c.zip}` : ""}</div>}
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Photos</span>
-                  <span className="font-semibold">{photos.length}</span>
-                </div>
-              </div>
+              ) : null}
+              {!c.phone && !c.email && !c.city && <p className="text-xs text-muted-foreground/60 italic">No contact info</p>}
             </div>
 
-            {/* Vehicles */}
-            <div className="p-5 rounded-xl border border-border bg-card">
-              <h3 className="font-semibold mb-4">Vehicles ({vehicles.length})</h3>
-              {vehicles.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No vehicles on file.</p>
-              ) : (
-                <div className="space-y-2">
-                  {vehicles.map((v) => (
-                    <div key={v.id} className="flex items-center gap-2 text-sm">
-                      <Car className="w-4 h-4 text-primary flex-shrink-0" />
-                      <span>{v.year} {v.make} {v.model}</span>
-                      {v.color && <span className="text-muted-foreground">· {v.color}</span>}
-                    </div>
+            {/* Tags */}
+            {c.tags && (
+              <div className="px-4 py-4 border-b border-border/30">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Tags</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {c.tags.split(",").filter(Boolean).map(t => (
+                    <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary/90 border border-primary/20 font-medium">
+                      {t.trim()}
+                    </span>
                   ))}
                 </div>
-              )}
-            </div>
-
-            {/* Notes */}
-            {customer.notes && (
-              <div className="p-5 rounded-xl border border-border bg-card">
-                <h3 className="font-semibold mb-2">Notes</h3>
-                <p className="text-sm text-muted-foreground">{customer.notes}</p>
               </div>
             )}
-          </div>
+
+            {/* Details */}
+            <div className="px-4 py-4 border-b border-border/30 space-y-2">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Details</p>
+              {[
+                { k: "Lead Source",    v: c.source },
+                { k: "Review Status",  v: (c.reviewRequestStatus ?? "not_sent").replace(/_/g, " ") },
+                { k: "Last Updated",   v: formatDistanceToNow(new Date(c.updatedAt), { addSuffix: true }) },
+              ].map(({ k, v }) => v ? (
+                <div key={k} className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{k}</span>
+                  <span className="font-medium text-foreground capitalize">{v}</span>
+                </div>
+              ) : null)}
+            </div>
+
+            {/* Notes preview */}
+            {c.notes && (
+              <div className="px-4 py-4 border-b border-border/30">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Notes</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{c.notes}</p>
+              </div>
+            )}
+
+            {/* Edit btn */}
+            <div className="px-4 py-4 mt-auto">
+              <Button variant="outline" className="w-full h-8 text-xs border-border/50 gap-1.5" onClick={() => setEditOpen(true)}>
+                <Edit className="w-3 h-3" /> Edit Customer
+              </Button>
+            </div>
+          </aside>
+
+          {/* ─────────────────────────────────────────────
+              RIGHT — Stats + Tabs + Content
+          ───────────────────────────────────────────── */}
+          <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
+
+            {/* Stat strip */}
+            <div className="grid grid-cols-4 border-b border-border/40 flex-shrink-0">
+              {[
+                { label: "Total Spent",  value: `$${ltv.toLocaleString()}`,                              icon: DollarSign,  color: "text-primary",        ring: "bg-primary/10" },
+                { label: "Jobs",         value: bks.length,                                               icon: Wrench,      color: "text-emerald-400",    ring: "bg-emerald-500/10" },
+                { label: "Avg Ticket",   value: avgTicket > 0 ? `$${Math.round(avgTicket).toLocaleString()}` : "—", icon: TrendingUp, color: "text-amber-400", ring: "bg-amber-500/10" },
+                { label: "Vehicles",     value: vehs.length,                                              icon: Car,         color: "text-violet-400",     ring: "bg-violet-500/10" },
+              ].map(s => (
+                <div key={s.label} className="flex items-center gap-3 px-5 py-4 border-r border-border/30 last:border-r-0">
+                  <div className={cn("p-2 rounded-lg flex-shrink-0", s.ring)}>
+                    <s.icon className={cn("w-4 h-4", s.color)} />
+                  </div>
+                  <div>
+                    <div className="text-lg font-display font-bold text-foreground leading-none">{s.value}</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">{s.label}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Tab bar */}
+            <div className="flex border-b border-border/40 px-5 bg-background/20 flex-shrink-0">
+              {TABS.map(t => (
+                <button key={t.id} onClick={() => setTab(t.id)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-1 py-3 text-xs font-medium border-b-2 mr-5 transition-colors whitespace-nowrap",
+                    tab === t.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-border/50"
+                  )}>
+                  <t.icon className="w-3.5 h-3.5" />
+                  {t.label}
+                  {t.badge != null && (
+                    <span className={cn("text-[10px] font-semibold px-1.5 rounded-full leading-4",
+                      tab === t.id ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")}>
+                      {t.badge}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Content area */}
+            <div className="flex-1 overflow-y-auto p-6">
+
+              {/* ── OVERVIEW ── */}
+              {tab === "overview" && (
+                <div className="space-y-6 max-w-3xl">
+
+                  {/* Recent jobs */}
+                  <section>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-display font-semibold">Recent Jobs</h3>
+                      <button onClick={() => setTab("jobs")} className="text-xs text-primary hover:underline">View all →</button>
+                    </div>
+                    {bks.length === 0 ? (
+                      <EmptyState icon={Wrench} text="No bookings yet." action={{ label: "Create Booking", onClick: () => setLoc("/booking") }} />
+                    ) : (
+                      <div className="rounded-xl border border-border/40 overflow-hidden divide-y divide-border/25">
+                        {bks.slice(0, 5).map(b => (
+                          <div key={b.id} onClick={() => setLoc(`/admin/bookings/${b.id}`)}
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-muted/20 transition-colors cursor-pointer">
+                            <div className="w-2 h-2 rounded-full bg-primary/50 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-foreground truncate">{b.packageName ?? "Custom Service"}</div>
+                              <div className="text-xs text-muted-foreground">{b.vehicleYear} {b.vehicleMake} {b.vehicleModel} · {format(new Date(b.appointmentDate), "MMM d, yyyy")}</div>
+                            </div>
+                            <span className={cn("text-[11px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0", BOOKING_STATUS_PILL[b.status] ?? "")}>
+                              {b.status.replace("_", " ")}
+                            </span>
+                            <span className="text-sm font-semibold text-foreground flex-shrink-0">${Number(b.totalAmount ?? 0).toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Vehicles */}
+                  <section>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-display font-semibold">Vehicles</h3>
+                      <button onClick={() => setTab("vehicles")} className="text-xs text-primary hover:underline">View all →</button>
+                    </div>
+                    {vehs.length === 0 ? (
+                      <EmptyState icon={Car} text="No vehicles on file." action={{ label: "+ Add Vehicle", onClick: () => setAddVeh(true) }} />
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        {vehs.map(v => <VehicleCard key={v.id} v={v} />)}
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Activity preview */}
+                  {nts.length > 0 && (
+                    <section>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-display font-semibold">Recent Activity</h3>
+                        <button onClick={() => setTab("activity")} className="text-xs text-primary hover:underline">View all →</button>
+                      </div>
+                      <div className="space-y-2">
+                        {nts.slice(0, 3).map(n => <NoteRow key={n.id} n={n} onComplete={() => completeMut.mutate({ id: n.id })} />)}
+                      </div>
+                    </section>
+                  )}
+                </div>
+              )}
+
+              {/* ── JOBS ── */}
+              {tab === "jobs" && (
+                <div className="max-w-4xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-display font-semibold">Booking History ({bks.length})</h3>
+                    <Button size="sm" className="bg-primary hover:bg-primary/90 h-8 text-xs gap-1" onClick={() => setLoc("/booking")}>
+                      <Plus className="w-3 h-3" /> New Booking
+                    </Button>
+                  </div>
+                  {bks.length === 0 ? (
+                    <EmptyState icon={Wrench} text="No bookings on record." />
+                  ) : (
+                    <div className="rounded-xl border border-border/40 overflow-hidden">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-border/40 bg-muted/20">
+                            {["Date", "Service", "Vehicle", "Status", "Amount"].map(h => (
+                              <th key={h} className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/25">
+                          {bks.map(b => (
+                            <tr key={b.id} onClick={() => setLoc(`/admin/bookings/${b.id}`)} className="hover:bg-muted/20 transition-colors cursor-pointer">
+                              <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{format(new Date(b.appointmentDate), "MMM d, yyyy")}</td>
+                              <td className="px-4 py-3 text-sm font-medium text-foreground max-w-[200px] truncate">{b.packageName ?? "Custom"}</td>
+                              <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{b.vehicleYear} {b.vehicleMake} {b.vehicleModel}</td>
+                              <td className="px-4 py-3">
+                                <span className={cn("text-[11px] px-2 py-0.5 rounded-full border font-semibold", BOOKING_STATUS_PILL[b.status] ?? "")}>{b.status.replace("_", " ")}</span>
+                              </td>
+                              <td className="px-4 py-3 text-sm font-semibold text-foreground">${Number(b.totalAmount ?? 0).toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="border-t border-border/40 bg-muted/10">
+                          <tr>
+                            <td colSpan={4} className="px-4 py-2 text-xs font-semibold text-muted-foreground text-right">Lifetime Value</td>
+                            <td className="px-4 py-2 text-sm font-bold text-primary">${ltv.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── VEHICLES ── */}
+              {tab === "vehicles" && (
+                <div className="max-w-3xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-display font-semibold">Vehicles on File ({vehs.length})</h3>
+                    <Button size="sm" variant="outline" className="border-border/50 h-8 text-xs gap-1" onClick={() => setAddVeh(true)}>
+                      <Plus className="w-3 h-3" /> Add Vehicle
+                    </Button>
+                  </div>
+                  {vehs.length === 0 ? (
+                    <EmptyState icon={Car} text="No vehicles on file yet." action={{ label: "Add First Vehicle", onClick: () => setAddVeh(true) }} />
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      {vehs.map(v => <VehicleCard key={v.id} v={v} large />)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── INVOICES ── */}
+              {tab === "invoices" && (
+                <div className="max-w-4xl">
+                  <h3 className="text-sm font-display font-semibold mb-4">Invoice History</h3>
+                  {bks.length === 0 ? (
+                    <EmptyState icon={FileText} text="No invoices on record." />
+                  ) : (
+                    <div className="rounded-xl border border-border/40 overflow-hidden">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-border/40 bg-muted/20">
+                            {["Booking #", "Service", "Date", "Status", "Amount"].map(h => (
+                              <th key={h} className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/25">
+                          {bks.map(b => (
+                            <tr key={b.id} onClick={() => setLoc(`/admin/bookings/${b.id}`)} className="hover:bg-muted/20 transition-colors cursor-pointer">
+                              <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground">{b.bookingNumber}</td>
+                              <td className="px-4 py-3 text-sm text-foreground max-w-[180px] truncate">{b.packageName ?? "Custom"}</td>
+                              <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{format(new Date(b.appointmentDate), "MMM d, yyyy")}</td>
+                              <td className="px-4 py-3">
+                                <span className={cn("text-[11px] px-2 py-0.5 rounded-full border font-semibold", BOOKING_STATUS_PILL[b.status] ?? "")}>{b.status.replace("_", " ")}</span>
+                              </td>
+                              <td className="px-4 py-3 text-sm font-semibold text-foreground">${Number(b.totalAmount ?? 0).toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="border-t border-border/40 bg-muted/10">
+                          <tr>
+                            <td colSpan={4} className="px-4 py-2 text-xs font-semibold text-muted-foreground text-right">Lifetime Value</td>
+                            <td className="px-4 py-2 text-sm font-bold text-primary">${ltv.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── ACTIVITY ── */}
+              {tab === "activity" && (
+                <div className="max-w-2xl space-y-5">
+
+                  {/* Log form */}
+                  <div className="rounded-xl border border-border/40 p-4 bg-muted/10">
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">Log Activity</p>
+
+                    {/* Type pills */}
+                    <div className="flex gap-1.5 mb-3 flex-wrap">
+                      {(Object.keys(NOTE_META) as NoteType[]).map(t => {
+                        const m = NOTE_META[t];
+                        const I = m.icon;
+                        return (
+                          <button key={t} onClick={() => setNoteType(t)}
+                            className={cn(
+                              "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-all font-medium",
+                              noteType === t ? "bg-primary text-primary-foreground border-primary" : "border-border/50 text-muted-foreground hover:border-primary/40"
+                            )}>
+                            <I className="w-3 h-3" />
+                            {m.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <Textarea
+                      value={noteText}
+                      onChange={e => setNoteText(e.target.value)}
+                      placeholder={`Add a ${NOTE_META[noteType].label.toLowerCase()}…`}
+                      rows={3}
+                      className="resize-none bg-background/50 border-border/50 text-sm mb-3"
+                    />
+                    <div className="flex justify-end">
+                      <Button size="sm" onClick={() => addNoteMut.mutate({ customerId: cid, type: noteType, content: noteText })}
+                        disabled={!noteText.trim() || addNoteMut.isPending}
+                        className="bg-primary hover:bg-primary/90 h-8 text-xs gap-1.5">
+                        {addNoteMut.isPending ? <><Loader2 className="w-3 h-3 animate-spin" />Saving…</> : <><Send className="w-3 h-3" />Log {NOTE_META[noteType].label}</>}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Feed */}
+                  {nts.length === 0 ? (
+                    <EmptyState icon={MessageSquare} text="No activity logged yet." />
+                  ) : (
+                    <div className="space-y-2">
+                      {nts.map(n => <NoteRow key={n.id} n={n} onComplete={() => completeMut.mutate({ id: n.id })} />)}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </main>
         </div>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={editOpen} onOpenChange={v => !v && setEditOpen(false)}>
+        <DialogContent className="max-w-lg bg-card border-border/50 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-display"><Edit className="w-4 h-4 text-primary" />Edit — {fullName}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 py-1">
+            {[
+              { k:"firstName", label:"First Name", span:false },
+              { k:"lastName",  label:"Last Name",  span:false },
+              { k:"phone",     label:"Phone",      span:false },
+              { k:"email",     label:"Email",      span:false },
+              { k:"address",   label:"Address",    span:true  },
+              { k:"city",      label:"City",       span:false },
+              { k:"state",     label:"State",      span:false },
+              { k:"zip",       label:"ZIP",        span:false },
+              { k:"tags",      label:"Tags (comma-separated)", span:true },
+            ].map(f => (
+              <div key={f.k} className={cn("space-y-1", f.span ? "col-span-2" : "")}>
+                <Label className="text-xs">{f.label}</Label>
+                <Input value={editForm[f.k] ?? ""} onChange={e => setEditForm(p => ({ ...p, [f.k]: e.target.value }))} className="h-9 bg-background/50 border-border/50" />
+              </div>
+            ))}
+            <div className="space-y-1">
+              <Label className="text-xs">Status</Label>
+              <Select value={editForm.crmStatus} onValueChange={v => setEditForm(p => ({ ...p, crmStatus: v }))}>
+                <SelectTrigger className="h-9 bg-background/50 border-border/50"><SelectValue /></SelectTrigger>
+                <SelectContent>{CRM_STATUSES.filter(s => s.value !== "all").map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Lead Source</Label>
+              <Select value={editForm.source} onValueChange={v => setEditForm(p => ({ ...p, source: v }))}>
+                <SelectTrigger className="h-9 bg-background/50 border-border/50"><SelectValue placeholder="Source" /></SelectTrigger>
+                <SelectContent>{LEAD_SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2 space-y-1">
+              <Label className="text-xs">Internal Notes</Label>
+              <Textarea value={editForm.notes ?? ""} onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))} rows={3} className="resize-none bg-background/50 border-border/50 text-sm" placeholder="Private notes…" />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditOpen(false)} className="border-border/50">Cancel</Button>
+            <Button onClick={() => updateMut.mutate({ id: cid, ...editForm as any })} disabled={updateMut.isPending} className="bg-primary hover:bg-primary/90">
+              {updateMut.isPending ? <><Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />Saving…</> : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AddVehicleDialog customerId={cid} open={addVeh} onClose={() => setAddVeh(false)} onSuccess={refetch} />
     </AdminLayout>
   );
 }
 
-// ── Add Customer Modal ────────────────────────────────────────────────────────
-function AddCustomerModal({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", city: "", state: "", notes: "" });
-  const createCustomer = trpc.crm.createCustomer.useMutation({
-    onSuccess: () => { toast.success("Customer added!"); onSuccess(); },
-    onError: (err) => toast.error(err.message),
-  });
+// ─── Shared sub-components ────────────────────────────────────────────────────
 
-  const update = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
-
+function EmptyState({ icon: Icon, text, action }: { icon: React.ElementType; text: string; action?: { label: string; onClick: () => void } }) {
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-card border-border max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Add Customer</DialogTitle>
-        </DialogHeader>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>First Name *</Label>
-            <Input value={form.firstName} onChange={(e) => update("firstName", e.target.value)} className="bg-input border-border" />
-          </div>
-          <div className="space-y-2">
-            <Label>Last Name *</Label>
-            <Input value={form.lastName} onChange={(e) => update("lastName", e.target.value)} className="bg-input border-border" />
-          </div>
-          <div className="space-y-2">
-            <Label>Phone</Label>
-            <Input value={form.phone} onChange={(e) => update("phone", e.target.value)} className="bg-input border-border" />
-          </div>
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input value={form.email} onChange={(e) => update("email", e.target.value)} className="bg-input border-border" />
-          </div>
-          <div className="space-y-2">
-            <Label>City</Label>
-            <Input value={form.city} onChange={(e) => update("city", e.target.value)} className="bg-input border-border" />
-          </div>
-          <div className="space-y-2">
-            <Label>State</Label>
-            <Input value={form.state} onChange={(e) => update("state", e.target.value)} className="bg-input border-border" maxLength={2} />
-          </div>
-          <div className="space-y-2 col-span-2">
-            <Label>Notes</Label>
-            <Textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} className="bg-input border-border resize-none" rows={2} />
-          </div>
+    <div className="rounded-xl border border-dashed border-border/50 p-10 flex flex-col items-center gap-2 text-muted-foreground">
+      <Icon className="w-7 h-7 opacity-25" />
+      <p className="text-sm">{text}</p>
+      {action && (
+        <button onClick={action.onClick} className="text-xs text-primary hover:underline mt-1">{action.label}</button>
+      )}
+    </div>
+  );
+}
+
+function VehicleCard({ v, large }: { v: any; large?: boolean }) {
+  return (
+    <div className="rounded-xl border border-border/40 p-4 hover:border-primary/30 transition-all">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+          <Car className="w-4.5 h-4.5 text-primary" style={{ width: 18, height: 18 }} />
         </div>
-        <div className="flex gap-3 justify-end mt-2">
-          <Button variant="outline" onClick={onClose} className="border-border">Cancel</Button>
-          <Button
-            onClick={() => createCustomer.mutate({ firstName: form.firstName, lastName: form.lastName, email: form.email, phone: form.phone, city: form.city, state: form.state, notes: form.notes })}
-            disabled={!form.firstName || !form.lastName || createCustomer.isPending}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            {createCustomer.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add Customer"}
-          </Button>
+        <div className="min-w-0">
+          <div className="font-display font-bold text-foreground text-sm truncate">{v.year} {v.make} {v.model}</div>
+          <div className="text-xs text-muted-foreground capitalize">{v.color}{v.vehicleType ? ` · ${v.vehicleType}` : ""}</div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+      {v.licensePlate && (
+        <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+          <Hash className="w-3 h-3" />{v.licensePlate}
+        </div>
+      )}
+      {large && v.notes && (
+        <p className="text-xs text-muted-foreground mt-2 leading-relaxed border-t border-border/30 pt-2">{v.notes}</p>
+      )}
+    </div>
+  );
+}
+
+function NoteRow({ n, onComplete }: { n: any; onComplete: () => void }) {
+  const meta = NOTE_META[n.type as NoteType] ?? NOTE_META.note;
+  const Icon = meta.icon;
+  return (
+    <div className={cn(
+      "flex gap-3 items-start p-3.5 rounded-xl border transition-colors",
+      n.isCompleted ? "border-border/20 bg-muted/5 opacity-55" : "border-border/40 bg-muted/10 hover:border-border/60"
+    )}>
+      <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 border mt-0.5", meta.color)}>
+        <Icon className="w-3.5 h-3.5" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <p className={cn("text-sm leading-relaxed", n.isCompleted ? "line-through text-muted-foreground" : "text-foreground")}>
+            {n.content}
+          </p>
+          {!n.isCompleted && (n.type === "task" || n.type === "reminder") && (
+            <button onClick={onComplete}
+              className="flex-shrink-0 w-5 h-5 rounded border-2 border-muted-foreground/25 hover:border-green-500 hover:bg-green-500/10 transition-colors flex items-center justify-center mt-0.5 group">
+              <Check className="w-3 h-3 text-transparent group-hover:text-green-500 transition-colors" />
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mt-1.5">
+          <span className={cn("text-[10px] font-semibold px-1.5 rounded border capitalize leading-4", meta.color)}>{meta.label}</span>
+          <span className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}</span>
+          {n.isCompleted && <span className="text-[10px] text-green-500 font-semibold">✓ Done</span>}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -33,7 +33,7 @@ export default function ForgotPassword() {
   });
 
   const onSubmit = (data: ForgotForm) => {
-    forgotMutation.mutate(data);
+    forgotMutation.mutate({ ...data, origin: window.location.origin });
   };
 
   return (

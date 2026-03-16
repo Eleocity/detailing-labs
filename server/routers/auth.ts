@@ -6,6 +6,7 @@ import { COOKIE_NAME, ONE_YEAR_MS } from "../../shared/const";
 import { getSessionCookieOptions } from "../_core/cookies";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
+import { sendEmail, passwordResetEmail } from "../email";
 
 const BCRYPT_ROUNDS = 12;
 const RESET_TOKEN_EXPIRY_MS = 1000 * 60 * 60; // 1 hour
@@ -143,7 +144,7 @@ export const authRouter = router({
 
   // ── Forgot Password ──────────────────────────────────────────────────────────
   forgotPassword: publicProcedure
-    .input(z.object({ email: z.string().email() }))
+    .input(z.object({ email: z.string().email(), origin: z.string().url().optional() }))
     .mutation(async ({ input }) => {
       const user = await db.getUserByEmail(input.email);
       // Always return success to prevent email enumeration
@@ -153,10 +154,14 @@ export const authRouter = router({
       const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRY_MS);
       await db.setResetToken(user.id, token, expiresAt);
 
-      // In production, send this via email (Sendgrid, Resend, etc.)
-      // For now, log it to the server console so you can test the flow
-      console.log(`[Password Reset] Token for ${input.email}: ${token}`);
-      console.log(`[Password Reset] Reset URL: /reset-password?token=${token}`);
+      const origin = input.origin ?? process.env.APP_URL ?? "https://detailinglabswi.com";
+      const resetUrl = `${origin}/reset-password?token=${token}`;
+      const emailContent = passwordResetEmail(resetUrl, user.name ?? "there");
+      const emailSent = await sendEmail({ to: user.email!, ...emailContent });
+
+      if (!emailSent) {
+        console.warn(`[Password Reset] SendGrid delivery failed for ${user.email}. Token: ${token}`);
+      }
 
       return { success: true };
     }),
