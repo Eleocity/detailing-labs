@@ -21,11 +21,13 @@ async function runMigrations() {
 
   console.log("🔄 Running database migrations...");
 
-  // connectTimeout ensures we fail fast (15s) instead of hanging indefinitely
-  const conn = await createConnection({
-    uri: databaseUrl,
-    connectTimeout: 15000,
-  });
+  // Use Promise.race so a bad DB connection fails in 15s instead of hanging
+  const conn = await Promise.race([
+    createConnection(databaseUrl),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("DB connection timed out after 15s")), 15000)
+    ),
+  ]);
 
   try {
     // Create migrations tracking table if it doesn't exist
