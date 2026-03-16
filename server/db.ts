@@ -1,23 +1,45 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import { InsertUser, users } from "../drizzle/schema";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
-    try {
-      _db = drizzle(process.env.DATABASE_URL);
-    } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
-      _db = null;
-    }
+  if (_db) return _db;
+
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    console.warn("[Database] DATABASE_URL not set");
+    return null;
   }
+
+  try {
+    // Parse the URL so we can pass explicit options.
+    // drizzle(url string) relies on mysql2 auto-parsing which can miss
+    // options on Railway's internal network — use a pool instead.
+    const pool = mysql.createPool({
+      uri: url,
+      ssl: { rejectUnauthorized: false }, // required for Railway proxy; harmless on internal
+      waitForConnections: true,
+      connectionLimit: 10,
+      connectTimeout: 20000,
+    });
+
+    // Verify the connection is actually reachable before caching
+    await pool.query("SELECT 1");
+    console.log("[Database] Connected ✅");
+
+    _db = drizzle(pool) as unknown as ReturnType<typeof drizzle>;
+  } catch (error: any) {
+    console.error("[Database] Failed to connect:", error?.message ?? error);
+    _db = null;
+  }
+
   return _db;
 }
 
-// ── Legacy OAuth helper (kept for backward compat) ────────────────────────────
+// ── Legacy OAuth helper ───────────────────────────────────────────────────────
 export async function upsertUser(user: InsertUser): Promise<void> {
   const db = await getDb();
   if (!db) {
@@ -61,7 +83,6 @@ export async function getUserByOpenId(openId: string) {
   return result[0] ?? undefined;
 }
 
-// ── Email / Password Auth helpers ─────────────────────────────────────────────
 export async function getUserByEmail(email: string) {
   const db = await getDb();
   if (!db) return undefined;
@@ -88,7 +109,7 @@ export async function createUser(data: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(users).values({
+  return db.insert(users).values({
     name: data.name,
     email: data.email.toLowerCase().trim(),
     passwordHash: data.passwordHash,
@@ -96,7 +117,6 @@ export async function createUser(data: {
     role: data.role ?? "user",
     lastSignedIn: new Date(),
   });
-  return result;
 }
 
 export async function updateUserPassword(userId: number, passwordHash: string) {
