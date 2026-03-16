@@ -15,6 +15,69 @@ process.on("unhandledRejection", (reason) => {
   process.exit(1);
 });
 
+async function runMigrations(): Promise<{ applied: number; log: string[] }> {
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) throw new Error("DATABASE_URL not set");
+
+  const { createConnection } = await import("mysql2/promise");
+  const { readdir, readFile } = await import("fs/promises");
+  const { join } = await import("path");
+
+  const conn = await Promise.race<any>([
+    createConnection(dbUrl),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("DB connection timed out after 20s")), 20000)
+    ),
+  ]);
+
+  const log: string[] = [];
+
+  await conn.execute(`
+    CREATE TABLE IF NOT EXISTS __drizzle_migrations (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      hash VARCHAR(255) NOT NULL UNIQUE,
+      created_at BIGINT
+    )
+  `);
+
+  const migrationsDir = join(process.cwd(), "drizzle");
+  const files = (await readdir(migrationsDir))
+    .filter((f: string) => f.endsWith(".sql"))
+    .sort();
+
+  let applied = 0;
+  for (const file of files) {
+    const hash = file.replace(".sql", "");
+    const [rows]: any = await conn.execute(
+      "SELECT id FROM __drizzle_migrations WHERE hash = ?",
+      [hash]
+    );
+    if ((rows as any[]).length > 0) {
+      log.push(`✓ ${file} (already applied)`);
+      continue;
+    }
+
+    const sql = await readFile(join(migrationsDir, file), "utf-8");
+    const statements = sql
+      .split(";")
+      .map((s: string) => s.trim())
+      .filter((s: string) => s.length > 0 && !s.startsWith("--"));
+
+    for (const stmt of statements) {
+      await conn.execute(stmt);
+    }
+    await conn.execute(
+      "INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)",
+      [hash, Date.now()]
+    );
+    log.push(`✅ Applied: ${file}`);
+    applied++;
+  }
+
+  await conn.end();
+  return { applied, log };
+}
+
 async function startServer() {
   const app = express();
   const server = createServer(app);
@@ -22,9 +85,27 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-  // ── Health check registered FIRST — before everything else ──
+  // ── Health check — always first ──
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // ── Manual migration trigger (secured by MIGRATE_SECRET env var) ──
+  app.post("/api/migrate", async (req, res) => {
+    const secret = process.env.MIGRATE_SECRET;
+    const provided = req.headers["x-migrate-secret"] ?? req.query.secret;
+    if (secret && provided !== secret) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    try {
+      const result = await runMigrations();
+      console.log(`[Migrate] Done — ${result.applied} applied`);
+      res.json({ success: true, ...result });
+    } catch (err: any) {
+      console.error("[Migrate] Failed:", err?.message);
+      res.status(500).json({ success: false, error: err?.message ?? String(err) });
+    }
   });
 
   registerOAuthRoutes(app);
@@ -44,7 +125,6 @@ async function startServer() {
 
   const port = parseInt(process.env.PORT || "3000", 10);
 
-  // Await the listen so we know the port is bound before logging
   await new Promise<void>((resolve, reject) => {
     server.on("error", reject);
     server.listen(port, "0.0.0.0", () => {
@@ -54,79 +134,15 @@ async function startServer() {
     });
   });
 
-  // Run DB migrations AFTER the server is already bound — health check
-  // will pass immediately while migrations complete in the background
-  runMigrationsInBackground();
-}
-
-async function runMigrationsInBackground() {
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) {
-    console.warn("[Migrate] DATABASE_URL not set — skipping");
-    return;
-  }
-
-  try {
-    // Dynamically import to avoid crashing server if mysql2 has any load issues
-    const { createConnection } = await import("mysql2/promise");
-    const { readdir, readFile } = await import("fs/promises");
-    const { join } = await import("path");
-
-    console.log("[Migrate] Connecting...");
-
-    // Race the connection against a 20s timeout
-    const conn = await Promise.race<any>([
-      createConnection(dbUrl),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("DB connection timed out")), 20000)
-      ),
-    ]);
-
-    await conn.execute(`
-      CREATE TABLE IF NOT EXISTS __drizzle_migrations (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        hash VARCHAR(255) NOT NULL UNIQUE,
-        created_at BIGINT
-      )
-    `);
-
-    const migrationsDir = join(process.cwd(), "drizzle");
-    const files = (await readdir(migrationsDir))
-      .filter((f: string) => f.endsWith(".sql"))
-      .sort();
-
-    let applied = 0;
-    for (const file of files) {
-      const hash = file.replace(".sql", "");
-      const [rows]: any = await conn.execute(
-        "SELECT id FROM __drizzle_migrations WHERE hash = ?",
-        [hash]
-      );
-      if ((rows as any[]).length > 0) continue;
-
-      const sql = await readFile(join(migrationsDir, file), "utf-8");
-      const statements = sql
-        .split(";")
-        .map((s: string) => s.trim())
-        .filter((s: string) => s.length > 0 && !s.startsWith("--"));
-
-      for (const stmt of statements) {
-        await conn.execute(stmt);
-      }
-      await conn.execute(
-        "INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)",
-        [hash, Date.now()]
-      );
-      console.log(`[Migrate] Applied: ${file}`);
-      applied++;
-    }
-
-    await conn.end();
-    console.log(`[Migrate] Done — ${applied} migration(s) applied`);
-  } catch (err: any) {
-    // Non-fatal — app runs, DB errors surface at query time
-    console.error("[Migrate] Failed (non-fatal):", err?.message ?? err);
-  }
+  // Auto-run migrations in background after server is bound
+  runMigrations()
+    .then(({ applied, log }) => {
+      log.forEach((l) => console.log(`[Migrate] ${l}`));
+      console.log(`[Migrate] Complete — ${applied} applied`);
+    })
+    .catch((err: any) => {
+      console.error("[Migrate] Background migration failed (non-fatal):", err?.message ?? err);
+    });
 }
 
 startServer().catch((err) => {
