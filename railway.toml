@@ -4,7 +4,7 @@ dockerfilePath = "Dockerfile"
 
 [deploy]
 # Runs DB migrations (idempotent) then starts the server
-startCommand = "node dist/index.js"
+startCommand = "node scripts/migrate.mjs && node dist/index.js"
 healthcheckPath = "/api/health"
 # Increased to 300s to allow time for migrations + server cold start
 healthcheckTimeout = 300
