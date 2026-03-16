@@ -6,7 +6,6 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
-import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -50,8 +49,12 @@ async function startServer() {
   );
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
+    // Dynamic import so vite (a devDependency) is never loaded in production
+    const { setupVite } = await import("./vite");
     await setupVite(app, server);
   } else {
+    // Use static.ts which has NO vite dependency — safe for production
+    const { serveStatic } = await import("./static");
     serveStatic(app);
   }
 
