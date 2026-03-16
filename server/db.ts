@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
+import mysql from "mysql2";
 import { InsertUser, users } from "../drizzle/schema";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -15,22 +15,21 @@ export async function getDb() {
   }
 
   try {
-    // Parse the URL so we can pass explicit options.
-    // drizzle(url string) relies on mysql2 auto-parsing which can miss
-    // options on Railway's internal network — use a pool instead.
+    // Use the non-promise mysql2 pool — this is what drizzle-orm/mysql2 expects.
+    // The promise pool (mysql2/promise) causes silent query failures with drizzle.
     const pool = mysql.createPool({
       uri: url,
-      ssl: { rejectUnauthorized: false }, // required for Railway proxy; harmless on internal
+      ssl: { rejectUnauthorized: false },
       waitForConnections: true,
       connectionLimit: 10,
       connectTimeout: 20000,
     });
 
-    // Verify the connection is actually reachable before caching
-    await pool.query("SELECT 1");
+    // Verify connectivity using the promise wrapper on the pool
+    await pool.promise().query("SELECT 1");
     console.log("[Database] Connected ✅");
 
-    _db = drizzle(pool) as unknown as ReturnType<typeof drizzle>;
+    _db = drizzle(pool);
   } catch (error: any) {
     console.error("[Database] Failed to connect:", error?.message ?? error);
     _db = null;
