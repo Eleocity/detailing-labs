@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { eq, desc, like, or, sql, and } from "drizzle-orm";
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { customers, vehicles, crmNotes, bookings, reviewRequests, media } from "../../drizzle/schema";
 
@@ -180,6 +180,51 @@ export const crmRouter = router({
 
       await db.update(bookings).set({ reviewRequestSent: true }).where(eq(bookings.id, input.bookingId));
 
+      return { success: true };
+    }),
+
+
+// ── Customer Portal: vehicles by customer email ───────────────────────────
+  listVehiclesByEmail: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return [];
+      // Find the customer by email, then return their vehicles
+      const [customer] = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.email, input.email.toLowerCase().trim()))
+        .limit(1);
+      if (!customer) return [];
+      return db.select().from(vehicles).where(eq(vehicles.customerId, customer.id));
+    }),
+
+  addVehicleByEmail: publicProcedure
+    .input(z.object({
+      email: z.string().email(),
+      make: z.string().min(1),
+      model: z.string().min(1),
+      year: z.number().int().optional(),
+      color: z.string().optional(),
+      vehicleType: z.enum(["sedan","suv","truck","van","coupe","convertible","wagon","other"]).optional(),
+      licensePlate: z.string().optional(),
+      notes: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      // Find or create customer by email
+      let [customer] = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.email, input.email.toLowerCase().trim()))
+        .limit(1);
+      if (!customer) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "No account found with that email. Book a service first." });
+      }
+      const { email: _email, ...vehicleData } = input;
+      await db.insert(vehicles).values({ ...vehicleData, customerId: customer.id });
       return { success: true };
     }),
 });

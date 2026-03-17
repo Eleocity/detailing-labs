@@ -81,6 +81,7 @@ function Router() {
 
         {/* Customer Portal */}
         <Route path="/portal" component={CustomerPortal} />
+        <Route path="/portal/garage" component={CustomerPortal} />
         <Route path="/invoice/:id" component={InvoiceDetail} />
 
         {/* Admin */}

@@ -423,4 +423,18 @@ export const bookingsRouter = router({
       todayAppointments: Number(todayCount.count),
     };
   }),
+
+  // ── Customer Portal: bookings by email (public — email is the "key") ─────────
+  listByEmail: publicProcedure
+    .input(z.object({ email: z.string().email(), limit: z.number().int().default(50) }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return [];
+      return db
+        .select()
+        .from(bookings)
+        .where(eq(bookings.customerEmail, input.email.toLowerCase().trim()))
+        .orderBy(desc(bookings.appointmentDate))
+        .limit(input.limit);
+    }),
 });
