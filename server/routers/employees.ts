@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { eq, desc } from "drizzle-orm";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
@@ -6,21 +7,21 @@ import { employees, employeeAvailability, bookingAssignments, bookings } from ".
 
 export const employeesRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+    if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
     const db = await getDb();
-    if (!db) throw new Error("Database unavailable");
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
     return db.select().from(employees).orderBy(employees.firstName);
   }),
 
   get: protectedProcedure
     .input(z.object({ id: z.number().int() }))
     .query(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       const [employee] = await db.select().from(employees).where(eq(employees.id, input.id)).limit(1);
-      if (!employee) throw new Error("Employee not found");
+      if (!employee) throw new TRPCError({ code: "NOT_FOUND", message: "Employee not found" });
 
       const availability = await db.select().from(employeeAvailability).where(eq(employeeAvailability.employeeId, input.id));
       const assignments = await db
@@ -43,9 +44,9 @@ export const employeesRouter = router({
       notes: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       await db.insert(employees).values({
         ...input,
         email: input.email || null,
@@ -67,9 +68,9 @@ export const employeesRouter = router({
       notes: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       const { id, skills, ...rest } = input;
       const updateData: Record<string, any> = { ...rest };
       if (skills !== undefined) updateData.skills = JSON.stringify(skills);
@@ -88,9 +89,9 @@ export const employeesRouter = router({
       })),
     }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       // Delete existing
       await db.delete(employeeAvailability).where(eq(employeeAvailability.employeeId, input.employeeId));

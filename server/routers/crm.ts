@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { eq, desc, like, or, sql, and } from "drizzle-orm";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
@@ -14,9 +15,9 @@ export const crmRouter = router({
       offset: z.number().int().default(0),
     }))
     .query(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       const conditions = [];
       if (input.search) {
@@ -41,12 +42,12 @@ export const crmRouter = router({
   getCustomer: protectedProcedure
     .input(z.object({ id: z.number().int() }))
     .query(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       const [customer] = await db.select().from(customers).where(eq(customers.id, input.id)).limit(1);
-      if (!customer) throw new Error("Customer not found");
+      if (!customer) throw new TRPCError({ code: "NOT_FOUND", message: "Customer not found" });
 
       const customerVehicles = await db.select().from(vehicles).where(eq(vehicles.customerId, input.id));
       const customerBookings = await db.select().from(bookings).where(eq(bookings.customerId, input.id)).orderBy(desc(bookings.appointmentDate));
@@ -72,9 +73,9 @@ export const crmRouter = router({
       crmStatus: z.enum(["new_lead","contacted","quote_sent","booked","active","follow_up","vip","inactive"]).optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       await db.insert(customers).values({ ...input, email: input.email || null });
       return { success: true };
     }),
@@ -95,9 +96,9 @@ export const crmRouter = router({
       crmStatus: z.enum(["new_lead","contacted","quote_sent","booked","active","follow_up","vip","inactive"]).optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       const { id, ...data } = input;
       await db.update(customers).set(data).where(eq(customers.id, id));
       return { success: true };
@@ -113,9 +114,9 @@ export const crmRouter = router({
       dueDate: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       await db.insert(crmNotes).values({
         customerId: input.customerId,
         bookingId: input.bookingId || null,
@@ -130,9 +131,9 @@ export const crmRouter = router({
   completeNote: protectedProcedure
     .input(z.object({ id: z.number().int() }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       await db.update(crmNotes).set({ isCompleted: true }).where(eq(crmNotes.id, input.id));
       return { success: true };
     }),
@@ -150,9 +151,9 @@ export const crmRouter = router({
       notes: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       await db.insert(vehicles).values(input);
       return { success: true };
     }),
@@ -165,9 +166,9 @@ export const crmRouter = router({
       channel: z.enum(["email","sms","both"]).default("email"),
     }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       await db.insert(reviewRequests).values({
         bookingId: input.bookingId,

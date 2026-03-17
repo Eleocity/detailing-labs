@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { eq, desc, and } from "drizzle-orm";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
@@ -10,18 +11,18 @@ export const mediaRouter = router({
   listByBooking: protectedProcedure
     .input(z.object({ bookingId: z.number().int() }))
     .query(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin" && ctx.user.role !== "employee") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin" && ctx.user.role !== "employee") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       return db.select().from(media).where(eq(media.bookingId, input.bookingId)).orderBy(desc(media.createdAt));
     }),
 
   listByCustomer: protectedProcedure
     .input(z.object({ customerId: z.number().int() }))
     .query(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       return db.select().from(media).where(eq(media.customerId, input.customerId)).orderBy(desc(media.createdAt));
     }),
 
@@ -36,9 +37,9 @@ export const mediaRouter = router({
       mimeType: z.string().default("image/jpeg"),
     }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin" && ctx.user.role !== "employee") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin" && ctx.user.role !== "employee") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       // Decode base64 and upload to S3
       const buffer = Buffer.from(input.fileBase64, "base64");
@@ -64,9 +65,9 @@ export const mediaRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.number().int() }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       await db.delete(media).where(eq(media.id, input.id));
       return { success: true };
     }),

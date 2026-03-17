@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { eq, desc, and, gte, lte, like, or, sql } from "drizzle-orm";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
@@ -26,19 +27,19 @@ export const bookingsRouter = router({
   // ── Public: Get services, packages, add-ons for booking form ────────────
   getServices: publicProcedure.query(async () => {
     const db = await getDb();
-    if (!db) throw new Error("Database unavailable");
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
     return db.select().from(services).where(eq(services.isActive, true)).orderBy(services.sortOrder);
   }),
 
   getPackages: publicProcedure.query(async () => {
     const db = await getDb();
-    if (!db) throw new Error("Database unavailable");
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
     return db.select().from(packages).where(eq(packages.isActive, true)).orderBy(packages.sortOrder);
   }),
 
   getAddOns: publicProcedure.query(async () => {
     const db = await getDb();
-    if (!db) throw new Error("Database unavailable");
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
     return db.select().from(addOns).where(eq(addOns.isActive, true)).orderBy(addOns.sortOrder);
   }),
 
@@ -78,7 +79,7 @@ export const bookingsRouter = router({
     )
     .mutation(async ({ input }) => {
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       const bookingNumber = generateBookingNumber();
       const appointmentDate = new Date(input.appointmentDate);
@@ -164,7 +165,7 @@ export const bookingsRouter = router({
     .input(z.object({ bookingNumber: z.string() }))
     .query(async ({ input }) => {
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       const [booking] = await db
         .select()
         .from(bookings)
@@ -187,10 +188,10 @@ export const bookingsRouter = router({
     )
     .query(async ({ input, ctx }) => {
       if (ctx.user.role !== "admin" && ctx.user.role !== "employee") {
-        throw new Error("Unauthorized");
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       }
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       const conditions = [];
       if (input.status && input.status !== "all") {
@@ -238,11 +239,11 @@ export const bookingsRouter = router({
   getById: protectedProcedure
     .input(z.object({ id: z.number().int() }))
     .query(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin" && ctx.user.role !== "employee") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin" && ctx.user.role !== "employee") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       const [booking] = await db.select().from(bookings).where(eq(bookings.id, input.id)).limit(1);
-      if (!booking) throw new Error("Booking not found");
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
 
       // Get assignments
       const assignments = await db
@@ -264,12 +265,12 @@ export const bookingsRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin" && ctx.user.role !== "employee") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin" && ctx.user.role !== "employee") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       const [current] = await db.select().from(bookings).where(eq(bookings.id, input.id)).limit(1);
-      if (!current) throw new Error("Booking not found");
+      if (!current) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
 
       await db.update(bookings).set({ status: input.status }).where(eq(bookings.id, input.id));
 
@@ -295,9 +296,9 @@ export const bookingsRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       const updateData: Record<string, any> = {};
       if (input.internalNotes !== undefined) updateData.internalNotes = input.internalNotes;
@@ -312,9 +313,9 @@ export const bookingsRouter = router({
   assignEmployee: protectedProcedure
     .input(z.object({ bookingId: z.number().int(), employeeId: z.number().int(), isPrimary: z.boolean().default(true) }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       // Remove existing assignment for this employee if exists
       await db
@@ -337,12 +338,12 @@ export const bookingsRouter = router({
   generateInvoice: protectedProcedure
     .input(z.object({ bookingId: z.number().int() }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
       const db = await getDb();
-      if (!db) throw new Error("Database unavailable");
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       const [booking] = await db.select().from(bookings).where(eq(bookings.id, input.bookingId)).limit(1);
-      if (!booking) throw new Error("Booking not found");
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
 
       // Check if invoice already exists
       const existing = await db.select().from(invoices).where(eq(invoices.bookingId, input.bookingId)).limit(1);
@@ -382,9 +383,9 @@ export const bookingsRouter = router({
 
   // ── Admin: Today's schedule ───────────────────────────────────────────────
   todaySchedule: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "admin" && ctx.user.role !== "employee") throw new Error("Unauthorized");
+    if (ctx.user.role !== "admin" && ctx.user.role !== "employee") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
     const db = await getDb();
-    if (!db) throw new Error("Database unavailable");
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
     const today = new Date();
     const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
@@ -399,9 +400,9 @@ export const bookingsRouter = router({
 
   // ── Admin: Dashboard stats ────────────────────────────────────────────────
   dashboardStats: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+    if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
     const db = await getDb();
-    if (!db) throw new Error("Database unavailable");
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
     const [newCount] = await db.select({ count: sql<number>`count(*)` }).from(bookings).where(eq(bookings.status, "new"));
     const [confirmedCount] = await db.select({ count: sql<number>`count(*)` }).from(bookings).where(eq(bookings.status, "confirmed"));

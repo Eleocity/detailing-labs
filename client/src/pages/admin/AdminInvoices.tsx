@@ -56,7 +56,12 @@ export function AdminInvoicesList() {
                       <tr key={inv.id} className="hover:bg-muted/20 transition-colors">
                         <td className="p-4 font-mono text-xs text-muted-foreground">{inv.invoiceNumber}</td>
                         <td className="p-4">
-                          <div className="font-medium">Customer #{inv.customerId ?? "—"}</div>
+                          <div className="font-medium">
+                            {inv.customerFirstName && inv.customerLastName
+                              ? `${inv.customerFirstName} ${inv.customerLastName}`
+                              : `Customer #${inv.customerId ?? "—"}`}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{inv.packageName ?? inv.serviceName ?? "—"}</div>
                           <div className="text-xs text-muted-foreground">Booking #{inv.bookingId}</div>
                         </td>
                         <td className="p-4 text-muted-foreground text-xs">

@@ -42,7 +42,10 @@ export function getSessionCookieOptions(
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
-    secure: isSecureRequest(req),
+    sameSite: "none" as const,
+    // SameSite=None requires Secure=true in all browsers.
+    // Railway always serves over HTTPS, so this is always true in production.
+    // In dev (http://localhost) we still set it; localhost is exempt from Secure requirement.
+    secure: true,
   };
 }

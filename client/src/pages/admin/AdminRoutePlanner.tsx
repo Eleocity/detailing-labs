@@ -197,10 +197,18 @@ export default function AdminRoutePlanner() {
 
           {/* Map */}
           <div className="lg:col-span-3 rounded-xl border border-border overflow-hidden" style={{ minHeight: "500px" }}>
-            <MapView
-              onMapReady={handleMapReady}
-              className="w-full h-full min-h-[500px]"
-            />
+            {import.meta.env.VITE_GOOGLE_MAPS_API_KEY ? (
+              <MapView
+                onMapReady={handleMapReady}
+                className="w-full h-full min-h-[500px]"
+              />
+            ) : (
+              <div className="w-full min-h-[500px] flex flex-col items-center justify-center gap-3 bg-muted/20 text-muted-foreground">
+                <MapPin className="w-8 h-8 opacity-30" />
+                <p className="text-sm font-medium">Map unavailable</p>
+                <p className="text-xs text-center max-w-xs">Add <code className="bg-muted px-1 rounded">VITE_GOOGLE_MAPS_API_KEY</code> to your Railway environment variables to enable the map.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

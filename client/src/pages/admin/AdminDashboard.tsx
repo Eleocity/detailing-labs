@@ -162,7 +162,7 @@ export default function AdminDashboard() {
                   { label: "View Schedule", href: "/admin/schedule", icon: Calendar },
                   { label: "Manage Bookings", href: "/admin/bookings", icon: CheckCircle2 },
                   { label: "Customer CRM", href: "/admin/crm", icon: Users },
-                  { label: "Route Planner", href: "/admin/routes", icon: Car },
+                  { label: "Route Planner", href: "/admin/route-planner", icon: Car },
                   { label: "Invoices", href: "/admin/invoices", icon: DollarSign },
                   { label: "Review Requests", href: "/admin/reviews", icon: Star },
                 ].map((action) => (
