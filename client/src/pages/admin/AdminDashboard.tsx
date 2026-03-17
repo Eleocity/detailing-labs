@@ -16,7 +16,7 @@ function StatCard({ label, value, icon: Icon, trend, color = "primary" }: {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-5 rounded-xl border border-border bg-card"
+      className="p-4 rounded-xl border border-border bg-card"
     >
       <div className="flex items-start justify-between mb-3">
         <div className={`w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center`}>
@@ -82,9 +82,9 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-3 sm:p-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-display font-bold">Dashboard</h1>
             <p className="text-muted-foreground text-sm mt-0.5">
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <StatCard label="Today's Appointments" value={stats.todayCount} icon={Calendar} />
           <StatCard label="Monthly Revenue" value={`$${stats.monthlyRevenue.toFixed(0)}`} icon={DollarSign} trend="+12%" />
           <StatCard label="Total Customers" value={stats.totalCustomers} icon={Users} />
@@ -108,7 +108,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Bookings */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2">
             <div className="rounded-xl border border-border bg-card">
               <div className="flex items-center justify-between p-5 border-b border-border">

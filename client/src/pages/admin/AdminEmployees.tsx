@@ -32,8 +32,8 @@ export function AdminEmployeesList() {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+      <div className="p-3 sm:p-6 max-w-5xl mx-auto">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
           <div>
             <h1 className="text-2xl font-display font-bold">Employees</h1>
             <p className="text-muted-foreground text-sm">{employees?.length ?? 0} team members</p>
@@ -46,7 +46,7 @@ export function AdminEmployeesList() {
         {isLoading ? (
           <div className="flex items-center justify-center p-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {(employees ?? []).map((emp) => {
               const skills = emp.skills ? JSON.parse(emp.skills) : [];
               return (
@@ -122,7 +122,7 @@ export function AdminEmployeeDetail() {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-4xl mx-auto">
+      <div className="p-3 sm:p-6 max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" size="sm" onClick={() => navigate("/admin/employees")} className="text-muted-foreground">
             <ChevronLeft className="w-4 h-4 mr-1" /> Back
@@ -150,7 +150,7 @@ export function AdminEmployeeDetail() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-5">
             {/* Contact */}
             <div className="p-5 rounded-xl border border-border bg-card">
@@ -296,7 +296,7 @@ function AddEmployeeModal({ open, onClose, onSuccess }: { open: boolean; onClose
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-card border-border max-w-md">
         <DialogHeader><DialogTitle>Add Employee</DialogTitle></DialogHeader>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2"><Label>First Name *</Label><Input value={form.firstName} onChange={(e) => update("firstName", e.target.value)} className="bg-input border-border" /></div>
           <div className="space-y-2"><Label>Last Name *</Label><Input value={form.lastName} onChange={(e) => update("lastName", e.target.value)} className="bg-input border-border" /></div>
           <div className="space-y-2"><Label>Phone</Label><Input value={form.phone} onChange={(e) => update("phone", e.target.value)} className="bg-input border-border" /></div>

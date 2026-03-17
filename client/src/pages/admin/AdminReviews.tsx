@@ -23,14 +23,14 @@ export default function AdminReviews() {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-5xl mx-auto">
+      <div className="p-3 sm:p-6 max-w-5xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-display font-bold">Review Requests</h1>
           <p className="text-muted-foreground text-sm">Automate post-service review requests to build your reputation.</p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
           <div className="p-5 rounded-xl border border-border bg-card">
             <div className="text-2xl font-display font-bold text-primary">{completedBookings.length}</div>
             <div className="text-xs text-muted-foreground mt-1">Completed Jobs</div>
@@ -142,7 +142,7 @@ export default function AdminReviews() {
           <p className="text-sm text-muted-foreground mb-3">
             Configure your review platform links to include in automated messages. Review requests are tracked and can be followed up automatically.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+          <div className="grid grid-cols-1 gap-2 text-sm">
             {["Google Business", "Yelp", "Facebook"].map((platform) => (
               <div key={platform} className="p-3 rounded-lg border border-border bg-card">
                 <div className="font-medium mb-1">{platform}</div>

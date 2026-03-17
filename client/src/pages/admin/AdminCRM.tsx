@@ -223,7 +223,7 @@ export function AdminCRMList() {
       <div className="flex flex-col" style={{ minHeight: "calc(100vh - 56px)" }}>
 
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/50">
+        <div className="flex items-center justify-between px-3 sm:px-6 py-4 border-b border-border/50">
           <div>
             <h1 className="text-xl font-display font-bold tracking-tight">Customers</h1>
             <p className="text-xs text-muted-foreground mt-0.5">{total.toLocaleString()} total clients</p>
@@ -234,7 +234,7 @@ export function AdminCRMList() {
         </div>
 
         {/* ── Filters ── */}
-        <div className="px-6 py-3 border-b border-border/40 flex items-center gap-3 flex-wrap">
+        <div className="px-3 sm:px-6 py-3 border-b border-border/40 flex items-center gap-2 flex-wrap overflow-x-auto">
           <div className="relative flex-1 min-w-52 max-w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input
@@ -282,7 +282,7 @@ export function AdminCRMList() {
               <thead>
                 <tr className="border-b border-border/40 bg-muted/20 sticky top-0 z-10">
                   {["Customer", "Contact", "Location", "Status", "Lifetime Value", "Last Service", "Source", ""].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-medium text-muted-foreground first:pl-6 last:w-8">{h}</th>
+                    <th key={h} className="text-left px-2 sm:px-4 py-3 text-xs font-medium text-muted-foreground whitespace-nowrap first:pl-3 sm:first:pl-6 last:w-8">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -474,12 +474,12 @@ export function AdminCRMDetail() {
           <span className="text-xs font-medium text-foreground">{fullName}</span>
         </div>
 
-        <div className="flex flex-1 min-h-0 overflow-hidden">
+        <div className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">
 
           {/* ─────────────────────────────────────────────
               LEFT SIDEBAR
           ───────────────────────────────────────────── */}
-          <aside className="w-72 flex-shrink-0 border-r border-border/40 overflow-y-auto flex flex-col">
+          <aside className="w-full lg:w-72 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border/40 overflow-y-auto flex flex-col">
 
             {/* Avatar + name */}
             <div className="px-6 pt-6 pb-5 border-b border-border/30 text-center">
@@ -601,7 +601,7 @@ export function AdminCRMDetail() {
           <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
 
             {/* Stat strip */}
-            <div className="grid grid-cols-4 border-b border-border/40 flex-shrink-0">
+            <div className="grid grid-cols-2 lg:grid-cols-4 border-b border-border/40 flex-shrink-0">
               {[
                 { label: "Total Spent",  value: `$${ltv.toLocaleString()}`,                              icon: DollarSign,  color: "text-primary",        ring: "bg-primary/10" },
                 { label: "Jobs",         value: bks.length,                                               icon: Wrench,      color: "text-emerald-400",    ring: "bg-emerald-500/10" },
@@ -621,7 +621,7 @@ export function AdminCRMDetail() {
             </div>
 
             {/* Tab bar */}
-            <div className="flex border-b border-border/40 px-5 bg-background/20 flex-shrink-0">
+            <div className="flex border-b border-border/40 px-3 sm:px-5 bg-background/20 flex-shrink-0 overflow-x-auto">
               {TABS.map(t => (
                 <button key={t.id} onClick={() => setTab(t.id)}
                   className={cn(
@@ -641,7 +641,7 @@ export function AdminCRMDetail() {
             </div>
 
             {/* Content area */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6">
 
               {/* ── OVERVIEW ── */}
               {tab === "overview" && (

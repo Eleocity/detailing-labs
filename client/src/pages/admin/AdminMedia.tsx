@@ -84,8 +84,8 @@ export default function AdminMedia() {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+      <div className="p-3 sm:p-6 max-w-6xl mx-auto">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
           <div>
             <h1 className="text-2xl font-display font-bold">Photo Gallery</h1>
             <p className="text-muted-foreground text-sm">Before/after and progress photos</p>
@@ -161,7 +161,7 @@ export default function AdminMedia() {
                 <p className="text-muted-foreground">No photos yet. Upload the first one!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {mediaItems.map((item) => (
                   <div key={item.id} className="group relative rounded-xl overflow-hidden border border-border bg-card aspect-square">
                     <img

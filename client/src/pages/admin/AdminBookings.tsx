@@ -55,7 +55,7 @@ export function AdminBookingsList() {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-3 sm:p-6 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-display font-bold">Bookings</h1>
@@ -97,7 +97,7 @@ export function AdminBookingsList() {
           ) : bookings.length === 0 ? (
             <div className="p-12 text-center text-muted-foreground">No bookings found.</div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto min-w-0"><div className="min-w-[600px]">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/30">
@@ -143,6 +143,7 @@ export function AdminBookingsList() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </div>
@@ -209,7 +210,7 @@ export function AdminBookingDetail() {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-5xl mx-auto">
+      <div className="p-3 sm:p-6 max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" size="sm" onClick={() => navigate("/admin/bookings")} className="text-muted-foreground">
@@ -248,13 +249,13 @@ export function AdminBookingDetail() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Main Details */}
           <div className="lg:col-span-2 space-y-5">
             {/* Customer */}
             <div className="p-5 rounded-xl border border-border bg-card">
               <h3 className="font-semibold mb-4 flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Customer</h3>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div><span className="text-muted-foreground">Name</span><div className="font-medium mt-0.5">{booking.customerFirstName} {booking.customerLastName}</div></div>
                 <div><span className="text-muted-foreground">Phone</span><div className="font-medium mt-0.5">{booking.customerPhone ?? "—"}</div></div>
                 <div><span className="text-muted-foreground">Email</span><div className="font-medium mt-0.5">{booking.customerEmail ?? "—"}</div></div>
@@ -265,7 +266,7 @@ export function AdminBookingDetail() {
             {/* Vehicle */}
             <div className="p-5 rounded-xl border border-border bg-card">
               <h3 className="font-semibold mb-4 flex items-center gap-2"><Car className="w-4 h-4 text-primary" /> Vehicle</h3>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div><span className="text-muted-foreground">Make / Model</span><div className="font-medium mt-0.5">{booking.vehicleYear} {booking.vehicleMake} {booking.vehicleModel}</div></div>
                 <div><span className="text-muted-foreground">Color</span><div className="font-medium mt-0.5">{booking.vehicleColor ?? "—"}</div></div>
                 <div><span className="text-muted-foreground">Type</span><div className="font-medium mt-0.5 capitalize">{booking.vehicleType ?? "—"}</div></div>
