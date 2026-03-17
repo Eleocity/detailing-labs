@@ -50,22 +50,50 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (loading) return <DashboardLayoutSkeleton />;
 
+  // Not logged in — redirect to login
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
+        <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full text-center">
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png"
             alt="Detailing Labs"
             className="h-20 w-auto object-contain"
           />
-          <div className="text-center">
-            <h1 className="text-2xl font-display font-bold mb-2">Admin Access Required</h1>
-            <p className="text-sm text-muted-foreground">Sign in to access the Detailing Labs admin dashboard.</p>
-          </div>
+          <h1 className="text-2xl font-display font-bold mb-1">Admin Access Required</h1>
+          <p className="text-sm text-muted-foreground">Sign in with your admin account to continue.</p>
           <Button onClick={() => { window.location.href = "/login?returnTo=/admin"; }} size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
-            Sign In to Admin
+            Sign In
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Logged in but not admin — show access denied
+  if (user.role !== "admin" && user.role !== "employee") {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center gap-6 p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center">
+            <svg className="w-8 h-8 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-xl font-display font-bold mb-2">Access Denied</h1>
+            <p className="text-sm text-muted-foreground">
+              Your account (<span className="text-foreground font-medium">{user.email}</span>) does not have admin access.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 w-full">
+            <Button onClick={() => { window.location.href = "/portal"; }} className="w-full bg-primary hover:bg-primary/90 font-semibold">
+              Go to Customer Portal
+            </Button>
+            <Button variant="outline" onClick={() => { window.location.href = "/"; }} className="w-full border-border">
+              Back to Home
+            </Button>
+          </div>
         </div>
       </div>
     );
