@@ -4,6 +4,7 @@ import { ChevronRight, CheckCircle2, Car, Droplets, Sparkles, Zap, Shield, Wrenc
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import SEO, { breadcrumbSchema, serviceSchema } from "@/components/SEO";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -160,6 +161,12 @@ export default function Services() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
+      <SEO
+        title="Auto Detailing Services"
+        description="Explore our full range of mobile auto detailing services — interior detail, exterior wash & wax, paint correction, ceramic coatings, and more. We come to you."
+        canonical="/services"
+        jsonLd={[serviceSchema("Mobile Auto Detailing", "Professional interior and exterior auto detailing services delivered to your location in Nashville, TN."), breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Services", url: "/services" }])]}
+      />
 
       {/* Hero */}
       <section className="pt-28 pb-16 bg-[oklch(0.06_0.004_280)] relative overflow-hidden">

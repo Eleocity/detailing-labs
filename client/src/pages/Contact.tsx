@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { trpc } from "@/lib/trpc";
+import SEO, { breadcrumbSchema } from "@/components/SEO";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -41,6 +42,12 @@ export default function Contact() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
+      <SEO
+        title="Contact Us"
+        description="Get in touch with Detailing Labs. Call, text, or send us a message. We're available 7 days a week and respond quickly."
+        canonical="/contact"
+        jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Contact", url: "/contact" }])}
+      />
 
       {/* Hero */}
       <section className="pt-28 pb-16 bg-[oklch(0.06_0.004_280)]">

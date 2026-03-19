@@ -4,6 +4,7 @@ import { ChevronRight, Shield, Award, MapPin, Sparkles, Users } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import SEO, { breadcrumbSchema } from "@/components/SEO";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -23,6 +24,12 @@ export default function About() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
+      <SEO
+        title="About Us — Our Story"
+        description="Detailing Labs was founded on one simple belief: your car deserves professional care without the hassle of a trip to the shop. Learn about our team and story."
+        canonical="/about"
+        jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "About", url: "/about" }])}
+      />
 
       {/* Hero */}
       <section className="pt-28 pb-20 bg-[oklch(0.06_0.004_280)] relative overflow-hidden">

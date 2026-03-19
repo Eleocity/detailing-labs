@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { trpc } from "@/lib/trpc";
+import SEO, { localBusinessSchema, breadcrumbSchema } from "@/components/SEO";
 
 function useContent(section: string) {
   const { data } = trpc.content.getSiteContent.useQuery({ section });
@@ -108,6 +109,12 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
+      <SEO
+        title="Premium Mobile Auto Detailing — Nashville, TN"
+        description="Detailing Labs brings professional auto detailing to your door. Interior, exterior, ceramic coatings & paint correction. Serving Nashville and surrounding areas."
+        canonical="/"
+        jsonLd={[localBusinessSchema, breadcrumbSchema([{ name: "Home", url: "/" }])]}
+      />
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="relative min-h-screen flex items-center overflow-hidden">

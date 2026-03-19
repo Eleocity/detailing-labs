@@ -4,6 +4,7 @@ import { ChevronRight, CheckCircle2, MapPin, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import SEO, { breadcrumbSchema } from "@/components/SEO";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -98,6 +99,12 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
+      <SEO
+        title="Detailing Packages & Pricing"
+        description="Transparent pricing on all our mobile detailing packages. From express washes to full ceramic coatings — no hidden fees. See packages and book online."
+        canonical="/pricing"
+        jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Pricing", url: "/pricing" }])}
+      />
 
       {/* Hero */}
       <section className="pt-28 pb-16 bg-[oklch(0.06_0.004_280)] relative overflow-hidden">

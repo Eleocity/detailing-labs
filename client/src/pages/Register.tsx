@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import SEO from "@/components/SEO";
 
 const registerSchema = z
   .object({
@@ -59,7 +60,13 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+
+      <SEO
+        title="Create Account"
+        description="Create your Detailing Labs account to manage bookings, track your ceramic coating, and access your garage."
+        canonical="/register"
+        noindex={true}
+      />      <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/">

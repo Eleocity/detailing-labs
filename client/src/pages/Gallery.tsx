@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { X, ZoomIn } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import SEO, { breadcrumbSchema } from "@/components/SEO";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -35,6 +36,12 @@ export default function Gallery() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
+      <SEO
+        title="Before & After Gallery"
+        description="See the results of our professional auto detailing work. Browse before and after photos of interior cleans, paint corrections, and ceramic coatings."
+        canonical="/gallery"
+        jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Gallery", url: "/gallery" }])}
+      />
 
       {/* Hero */}
       <section className="pt-28 pb-16 bg-[oklch(0.06_0.004_280)]">

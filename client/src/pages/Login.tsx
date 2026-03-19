@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import SEO from "@/components/SEO";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -52,7 +53,13 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+
+      <SEO
+        title="Sign In"
+        description="Sign in to your Detailing Labs account to manage bookings and access your customer portal."
+        canonical="/login"
+        noindex={true}
+      />      <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/">

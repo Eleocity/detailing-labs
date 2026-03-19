@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import SEO, { faqSchema, breadcrumbSchema } from "@/components/SEO";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { trpc } from "@/lib/trpc";
@@ -135,6 +136,15 @@ export default function FAQ() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEO
+        title="Frequently Asked Questions"
+        description="Answers to common questions about Detailing Labs mobile auto detailing — how it works, what's included, pricing, rescheduling, and more."
+        canonical="/faq"
+        jsonLd={[
+          faqSchema(faqs.flatMap(section => section.questions.map(q => ({ q: q.q, a: q.a })))),
+          breadcrumbSchema([{ name: "Home", url: "/" }, { name: "FAQ", url: "/faq" }]),
+        ]}
+      />
       <SiteHeader />
 
       {/* Hero */}

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
+import SEO from "@/components/SEO";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface BookingData {
@@ -890,6 +891,12 @@ export default function Booking() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Top nav bar */}
+      <SEO
+        title="Book Mobile Detailing"
+        description="Schedule your mobile auto detailing appointment online. Choose your service, pick a date, and we'll come to you. Takes less than 2 minutes."
+        canonical="/booking"
+        noindex={false}
+      />
       <div className="sticky top-0 z-50 flex items-center justify-between px-4 h-12 bg-background border-b border-border/60">
         <button onClick={goBack} className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft className="w-5 h-5" />

@@ -21,6 +21,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow, isPast, isFuture } from "date-fns";
+import SEO from "@/components/SEO";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const STATUS_PILL: Record<string, string> = {
@@ -459,7 +460,13 @@ function AuthPortal({ user }: { user: NonNullable<ReturnType<typeof useAuth>["us
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Portal header */}
+
+      <SEO
+        title="Customer Portal"
+        description="View your upcoming and past bookings, manage your vehicles, and track your ceramic coating warranty."
+        canonical="/portal"
+        noindex={false}
+      />      {/* Portal header */}
       <div className="border-b border-border/60 bg-background/95 sticky top-0 z-40 backdrop-blur">
         <div className="max-w-2xl mx-auto px-4">
           <div className="flex items-center justify-between py-4">
