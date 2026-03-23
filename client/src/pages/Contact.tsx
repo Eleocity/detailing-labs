@@ -50,13 +50,13 @@ export default function Contact() {
       />
 
       {/* Hero */}
-      <section className="pt-28 pb-16 bg-[oklch(0.06_0.004_280)]">
+      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.004_280)]">
         <div className="container text-center">
           <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
             <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">
               Get In Touch
             </motion.p>
-            <motion.h1 variants={fadeUp} className="text-5xl lg:text-6xl font-display font-bold mb-5">
+            <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-4">
               Contact Us
             </motion.h1>
             <motion.p variants={fadeUp} className="text-muted-foreground text-lg max-w-xl mx-auto">
@@ -66,7 +66,7 @@ export default function Contact() {
         </div>
       </section>
 
-      <section className="py-20">
+      <section className="py-12 sm:py-20">
         <div className="container">
           <div className="grid lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
             {/* Contact Info */}

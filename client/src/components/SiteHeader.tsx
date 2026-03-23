@@ -46,7 +46,7 @@ export default function SiteHeader() {
       scrolled ? "bg-[oklch(0.08_0.005_280/0.95)] backdrop-blur-md border-b border-[oklch(0.20_0.01_280)]" : "bg-transparent"
     }`}>
       <div className="container">
-        <div className="flex items-center justify-between h-24 lg:h-28">
+        <div className="flex items-center justify-between h-20 sm:h-24 lg:h-28">
 
           {/* Logo */}
           <Link href="/">
@@ -54,7 +54,7 @@ export default function SiteHeader() {
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png"
                 alt="Detailing Labs"
-                className="h-24 lg:h-28 w-auto object-contain"
+                className="h-20 sm:h-24 lg:h-28 w-auto object-contain"
               />
             </div>
           </Link>

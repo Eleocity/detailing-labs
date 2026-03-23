@@ -92,7 +92,7 @@ export default function Home() {
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: `linear-gradient(oklch(0.60 0.22 295) 1px,transparent 1px),linear-gradient(90deg,oklch(0.60 0.22 295) 1px,transparent 1px)`, backgroundSize: "60px 60px" }} />
 
-        <div className="container relative z-10 pt-24 pb-20">
+        <div className="container relative z-10 pt-20 pb-14 sm:pt-24 sm:pb-20">
           <div className="max-w-4xl">
             <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-6">
 
@@ -103,7 +103,7 @@ export default function Home() {
                 </span>
               </motion.div>
 
-              <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-display font-bold leading-[1.05] tracking-tight">
+              <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-7xl font-display font-bold leading-[1.05] tracking-tight">
                 {hero.headline ? (
                   <span dangerouslySetInnerHTML={{ __html: hero.headline }} />
                 ) : (
@@ -115,21 +115,21 @@ export default function Home() {
                 {hero.subheadline || "Detailing Labs brings showroom-quality results directly to you. Professional mobile detailing — at your home, office, or anywhere that works. No drop-off. No hassle."}
               </motion.p>
 
-              <motion.div variants={fadeUp} className="flex flex-wrap gap-4 pt-2">
+              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 pt-2 w-full sm:w-auto">
                 <Link href="/booking">
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12 text-base shadow-lg shadow-primary/25">
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12 text-base shadow-lg shadow-primary/25 w-full sm:w-auto">
                     {hero.cta_primary || "Book Your Detail"}
                     <ChevronRight className="w-5 h-5 ml-1" />
                   </Button>
                 </Link>
                 <Link href="/pricing">
-                  <Button size="lg" variant="outline" className="border-border hover:border-primary/50 hover:bg-primary/5 font-semibold px-8 h-12 text-base">
+                  <Button size="lg" variant="outline" className="border-border hover:border-primary/50 hover:bg-primary/5 font-semibold px-8 h-12 text-base w-full sm:w-auto">
                     {hero.cta_secondary || "View Packages"}
                   </Button>
                 </Link>
               </motion.div>
 
-              <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-5 pt-2">
+              <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-3 sm:gap-5 pt-2">
                 <div className="flex items-center gap-1">
                   {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
                   <span className="ml-2 text-sm text-muted-foreground">{hero.trust_reviews || "5.0 · 150+ five-star reviews"}</span>
@@ -155,7 +155,7 @@ export default function Home() {
 
       {/* ── STATS BAR ────────────────────────────────────────────────────── */}
       <section className="border-y border-border bg-[oklch(0.10_0.008_280)]">
-        <div className="container py-6">
+        <div className="container py-5 sm:py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
               { value: about.vehicles_detailed || "1,000+", label: "Vehicles Detailed" },
@@ -173,11 +173,11 @@ export default function Home() {
       </section>
 
       {/* ── SERVICES ─────────────────────────────────────────────────────── */}
-      <section className="py-24">
+      <section className="py-14 sm:py-24">
         <div className="container">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger} className="text-center mb-14">
             <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">What We Offer</motion.p>
-            <motion.h2 variants={fadeUp} className="text-4xl lg:text-5xl font-display font-bold">Premium Detailing Services</motion.h2>
+            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold">Premium Detailing Services</motion.h2>
             <motion.p variants={fadeUp} className="text-muted-foreground mt-4 max-w-xl mx-auto">
               Every service is performed by certified detailers using professional-grade products — delivered directly to your location.
             </motion.p>
@@ -238,12 +238,12 @@ export default function Home() {
       </section>
 
       {/* ── WHY CHOOSE US ────────────────────────────────────────────────── */}
-      <section className="py-24 bg-[oklch(0.06_0.004_280)]">
+      <section className="py-14 sm:py-24 bg-[oklch(0.06_0.004_280)]">
         <div className="container">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
               <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">Why Detailing Labs</motion.p>
-              <motion.h2 variants={fadeUp} className="text-4xl lg:text-5xl font-display font-bold mb-6">
+              <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold mb-5">
                 Convenience Without Compromising Quality
               </motion.h2>
               <motion.p variants={fadeUp} className="text-muted-foreground leading-relaxed mb-8">
@@ -303,14 +303,14 @@ export default function Home() {
       </section>
 
       {/* ── TESTIMONIALS ─────────────────────────────────────────────────── */}
-      <section className="py-24">
+      <section className="py-14 sm:py-24">
         <div className="container">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-14">
             <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">Client Reviews</motion.p>
-            <motion.h2 variants={fadeUp} className="text-4xl lg:text-5xl font-display font-bold">What Our Clients Say</motion.h2>
+            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold">What Our Clients Say</motion.h2>
           </motion.div>
 
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {testimonials.map(t => (
               <motion.div key={t.name} variants={fadeUp} className="p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-all">
                 <div className="flex gap-0.5 mb-4">
@@ -328,7 +328,7 @@ export default function Home() {
       </section>
 
       {/* ── SERVICE AREA ─────────────────────────────────────────────────── */}
-      <section className="py-16 bg-[oklch(0.06_0.004_280)]">
+      <section className="py-10 sm:py-16 bg-[oklch(0.06_0.004_280)]">
         <div className="container">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-7 rounded-2xl border border-border bg-card">
             <div className="flex items-center gap-4">
@@ -353,26 +353,26 @@ export default function Home() {
       </section>
 
       {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
-      <section className="py-24 relative overflow-hidden">
+      <section className="py-14 sm:py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_0%_50%,oklch(0.60_0.22_295/0.15),transparent)]" />
         <div className="container relative z-10 text-center">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.h2 variants={fadeUp} className="text-4xl lg:text-6xl font-display font-bold mb-6">
+            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl lg:text-6xl font-display font-bold mb-5">
               Ready for a Flawless Finish?
             </motion.h2>
             <motion.p variants={fadeUp} className="text-muted-foreground text-lg max-w-xl mx-auto mb-8">
               Book your detail online in minutes. We'll handle the rest — right at your door.
             </motion.p>
-            <motion.div variants={fadeUp} className="flex flex-wrap justify-center gap-4">
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 px-4 sm:px-0">
               <Link href="/booking">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-10 h-12 text-base shadow-lg shadow-primary/30">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12 text-base shadow-lg shadow-primary/30 w-full sm:w-auto">
                   Book Your Detail Now
                   <ChevronRight className="w-5 h-5 ml-1" />
                 </Button>
               </Link>
               <a href={phoneHref}>
-                <Button size="lg" variant="outline" className="border-border hover:border-primary/50 font-semibold px-8 h-12 text-base">
+                <Button size="lg" variant="outline" className="border-border hover:border-primary/50 font-semibold px-8 h-12 text-base w-full sm:w-auto">
                   <Phone className="w-4 h-4 mr-2" />
                   {phone}
                 </Button>

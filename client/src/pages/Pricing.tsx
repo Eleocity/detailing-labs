@@ -129,14 +129,14 @@ export default function Pricing() {
       />
 
       {/* Hero */}
-      <section className="pt-28 pb-16 bg-[oklch(0.06_0.004_280)] relative overflow-hidden">
+      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.004_280)] relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_30%_50%,oklch(0.60_0.22_295/0.06),transparent)]" />
         <div className="container relative z-10 text-center">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">
               Transparent Pricing
             </motion.p>
-            <motion.h1 variants={fadeUp} className="text-5xl lg:text-6xl font-display font-bold mb-5">
+            <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-4">
               Packages & Pricing
             </motion.h1>
             <motion.p variants={fadeUp} className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -147,7 +147,7 @@ export default function Pricing() {
       </section>
 
       {/* Service type selector */}
-      <section className="py-16">
+      <section className="py-10 sm:py-16">
         <div className="container">
           <div className={cn("transition-all duration-500", tab ? "max-w-5xl" : "max-w-2xl")} style={{ margin: "0 auto" }}>
 
@@ -157,7 +157,7 @@ export default function Pricing() {
               <button
                 onClick={() => setTab("detailing")}
                 className={cn(
-                  "group relative flex flex-col items-start gap-4 p-7 rounded-2xl border-2 text-left transition-all duration-300",
+                  "group relative flex flex-col items-start gap-4 p-5 sm:p-7 rounded-2xl border-2 text-left transition-all duration-300",
                   tab === "detailing"
                     ? "border-primary bg-primary/8 shadow-xl shadow-primary/15"
                     : "border-border bg-card hover:border-primary/50 hover:bg-primary/4"
@@ -192,7 +192,7 @@ export default function Pricing() {
               <button
                 onClick={() => setTab("ceramic")}
                 className={cn(
-                  "group relative flex flex-col items-start gap-4 p-7 rounded-2xl border-2 text-left transition-all duration-300",
+                  "group relative flex flex-col items-start gap-4 p-5 sm:p-7 rounded-2xl border-2 text-left transition-all duration-300",
                   tab === "ceramic"
                     ? "border-amber-500/60 bg-amber-500/6 shadow-xl shadow-amber-500/10"
                     : "border-border bg-card hover:border-amber-500/40 hover:bg-amber-500/3"
@@ -237,7 +237,7 @@ export default function Pricing() {
                   transition={{ duration: 0.3 }}
                 >
                   {/* Package grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
                     {packages.map((pkg) => {
                       const features: string[] = pkg.features ? JSON.parse(pkg.features) : [];
                       const hrs = Math.floor(pkg.duration / 60);
@@ -321,7 +321,7 @@ export default function Pricing() {
                       <h2 className="text-2xl font-display font-bold">Add-On Services</h2>
                       <p className="text-muted-foreground mt-2 text-sm">Select any of these during booking to enhance your package.</p>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                       {addOns.map((addon) => (
                         <div key={addon.name} className="p-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-all text-center">
                           <div className="text-xl font-display font-bold text-primary mb-1">
@@ -472,7 +472,7 @@ export default function Pricing() {
                 ? "Choose your package and book online in minutes. We'll confirm and come to you."
                 : "Start by selecting a service type above, or reach out and we'll help you decide."}
             </p>
-            <div className="flex items-center justify-center gap-3 flex-wrap">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 px-4 sm:px-0">
               {tab === "detailing" ? (
                 <Link href="/booking">
                   <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-10 h-12 text-base">
@@ -481,10 +481,10 @@ export default function Pricing() {
                 </Link>
               ) : (
                 <>
-                  <button onClick={() => setTab("detailing")} className="px-8 h-12 rounded-xl border-2 border-primary text-primary font-semibold text-base hover:bg-primary hover:text-primary-foreground transition-colors">
+                  <button onClick={() => setTab("detailing")} className="w-full sm:w-auto px-8 h-12 rounded-xl border-2 border-primary text-primary font-semibold text-sm sm:text-base hover:bg-primary hover:text-primary-foreground transition-colors">
                     View Detailing Packages
                   </button>
-                  <button onClick={() => setTab("ceramic")} className="px-8 h-12 rounded-xl border-2 border-amber-500/50 text-amber-500 font-semibold text-base hover:bg-amber-500/10 transition-colors">
+                  <button onClick={() => setTab("ceramic")} className="w-full sm:w-auto px-8 h-12 rounded-xl border-2 border-amber-500/50 text-amber-500 font-semibold text-sm sm:text-base hover:bg-amber-500/10 transition-colors">
                     Get Ceramic Quote
                   </button>
                 </>

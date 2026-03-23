@@ -32,7 +32,7 @@ export default function About() {
       />
 
       {/* Hero */}
-      <section className="pt-28 pb-20 bg-[oklch(0.06_0.004_280)] relative overflow-hidden">
+      <section className="pt-24 pb-12 sm:pt-28 sm:pb-20 bg-[oklch(0.06_0.004_280)] relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_80%_50%,oklch(0.60_0.22_295/0.07),transparent)]" />
         <div className="container relative z-10">
           <div className="max-w-3xl">
@@ -40,7 +40,7 @@ export default function About() {
               <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">
                 Our Story
               </motion.p>
-              <motion.h1 variants={fadeUp} className="text-5xl lg:text-6xl font-display font-bold mb-6">
+              <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-5">
                 Built for the Modern Car Enthusiast
               </motion.h1>
               <motion.p variants={fadeUp} className="text-muted-foreground text-lg leading-relaxed">
@@ -52,9 +52,9 @@ export default function About() {
       </section>
 
       {/* Story */}
-      <section className="py-20">
+      <section className="py-12 sm:py-20">
         <div className="container">
-          <div className="grid lg:grid-cols-2 gap-16 items-start">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
               <motion.h2 variants={fadeUp} className="text-3xl font-display font-bold mb-5">
                 Why We Started Detailing Labs
@@ -92,7 +92,7 @@ export default function About() {
       </section>
 
       {/* Values */}
-      <section className="py-20 bg-[oklch(0.06_0.004_280)]">
+      <section className="py-12 sm:py-20 bg-[oklch(0.06_0.004_280)]">
         <div className="container">
           <div className="text-center mb-12">
             <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">What We Stand For</p>
@@ -120,7 +120,7 @@ export default function About() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-12 sm:py-20">
         <div className="container text-center">
           <h2 className="text-3xl font-display font-bold mb-4">Experience the Detailing Labs Difference</h2>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">

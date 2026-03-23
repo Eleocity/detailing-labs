@@ -148,13 +148,13 @@ export default function FAQ() {
       <SiteHeader />
 
       {/* Hero */}
-      <section className="pt-28 pb-16 bg-[oklch(0.06_0.004_280)]">
+      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.004_280)]">
         <div className="container text-center">
           <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
             <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">
               Got Questions?
             </motion.p>
-            <motion.h1 variants={fadeUp} className="text-5xl lg:text-6xl font-display font-bold mb-5">
+            <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-4">
               Frequently Asked Questions
             </motion.h1>
             <motion.p variants={fadeUp} className="text-muted-foreground text-lg max-w-xl mx-auto">
@@ -165,7 +165,7 @@ export default function FAQ() {
       </section>
 
       {/* FAQ Sections */}
-      <section className="py-20">
+      <section className="py-12 sm:py-20">
         <div className="container max-w-3xl">
           <div className="space-y-12">
             {dynamicFaqs && dynamicFaqs.length > 0 ? (

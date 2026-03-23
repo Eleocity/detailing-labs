@@ -44,13 +44,13 @@ export default function Gallery() {
       />
 
       {/* Hero */}
-      <section className="pt-28 pb-16 bg-[oklch(0.06_0.004_280)]">
+      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.004_280)]">
         <div className="container text-center">
           <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
             <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">
               Our Work
             </motion.p>
-            <motion.h1 variants={fadeUp} className="text-5xl lg:text-6xl font-display font-bold mb-5">
+            <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-4">
               Photo Gallery
             </motion.h1>
             <motion.p variants={fadeUp} className="text-muted-foreground text-lg max-w-xl mx-auto">
@@ -96,7 +96,7 @@ export default function Gallery() {
                 <div className={`absolute inset-0 bg-gradient-to-br ${item.color}`} />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="text-4xl font-display font-bold text-white/20 mb-2">{item.category}</div>
+                    <div className="text-2xl sm:text-4xl font-display font-bold text-white/20 mb-2">{item.category}</div>
                     <div className="text-white/40 text-sm">Photo Placeholder</div>
                   </div>
                 </div>
@@ -155,7 +155,7 @@ export default function Gallery() {
               return (
                 <div className={`aspect-[4/3] rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center`}>
                   <div className="text-center text-white/40">
-                    <div className="text-5xl font-display font-bold mb-2">{item.category}</div>
+                    <div className="text-3xl sm:text-5xl font-display font-bold mb-2">{item.category}</div>
                     <div>{item.caption}</div>
                   </div>
                 </div>

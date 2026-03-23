@@ -169,14 +169,14 @@ export default function Services() {
       />
 
       {/* Hero */}
-      <section className="pt-28 pb-16 bg-[oklch(0.06_0.004_280)] relative overflow-hidden">
+      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.004_280)] relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_70%_50%,oklch(0.60_0.22_295/0.06),transparent)]" />
         <div className="container relative z-10 text-center">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">
               What We Offer
             </motion.p>
-            <motion.h1 variants={fadeUp} className="text-5xl lg:text-6xl font-display font-bold mb-5">
+            <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-4">
               Our Services
             </motion.h1>
             <motion.p variants={fadeUp} className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -187,7 +187,7 @@ export default function Services() {
       </section>
 
       {/* Packages CTA */}
-      <section className="py-20">
+      <section className="py-12 sm:py-20">
         <div className="container">
           <div className="max-w-3xl mx-auto">
             <motion.div
@@ -242,7 +242,7 @@ export default function Services() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-[oklch(0.06_0.004_280)]">
+      <section className="py-10 sm:py-16 bg-[oklch(0.06_0.004_280)]">
         <div className="container text-center">
           <h2 className="text-3xl font-display font-bold mb-4">Not Sure Which Service You Need?</h2>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
