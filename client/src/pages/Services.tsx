@@ -186,73 +186,57 @@ export default function Services() {
         </div>
       </section>
 
-      {/* Services Grid */}
+      {/* Packages CTA */}
       <section className="py-20">
         <div className="container">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {services.map((service, i) => (
-              <motion.div
-                key={service.title}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-60px" }}
-                variants={fadeUp}
-                transition={{ delay: i * 0.05 }}
-                className={`p-7 rounded-2xl border transition-all ${
-                  service.featured
-                    ? "border-primary/50 bg-primary/5 shadow-lg shadow-primary/10"
-                    : "border-border bg-card hover:border-primary/30"
-                }`}
-              >
-                <div className="flex items-start gap-5">
-                  <div
-                    className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      service.featured
-                        ? "bg-primary/20 border border-primary/40 text-primary"
-                        : "bg-primary/10 border border-primary/20 text-primary"
-                    }`}
-                  >
-                    {service.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3 className="font-display font-bold text-xl">{service.title}</h3>
-                      {service.featured && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 font-semibold">
-                          Most Popular
-                        </span>
-                      )}
+          <div className="max-w-3xl mx-auto">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-60px" }}
+              variants={stagger}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+            >
+              {/* Detailing card */}
+              <motion.div variants={fadeUp}>
+                <Link href="/pricing?tab=detailing">
+                  <div className="group flex flex-col gap-5 p-7 rounded-2xl border-2 border-border bg-card hover:border-primary/60 hover:bg-primary/4 transition-all cursor-pointer h-full">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <Sparkles className="w-6 h-6 text-primary" />
                     </div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="text-primary font-semibold">{service.price}</span>
-                      <span className="text-muted-foreground text-sm">·</span>
-                      <span className="text-muted-foreground text-sm">{service.duration}</span>
+                    <div className="flex-1">
+                      <h3 className="font-display font-bold text-xl mb-2">Detailing</h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        Interior, exterior, and full-detail packages. Transparent, upfront pricing — book online in minutes.
+                      </p>
                     </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                      {service.description}
-                    </p>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-5">
-                      {service.includes.map((item) => (
-                        <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                    <Link href="/book">
-                      <Button
-                        size="sm"
-                        className={service.featured ? "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold" : ""}
-                        variant={service.featured ? "default" : "outline"}
-                      >
-                        Book This Service
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </Button>
-                    </Link>
+                    <div className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+                      View packages <ChevronRight className="w-4 h-4" />
+                    </div>
                   </div>
-                </div>
+                </Link>
               </motion.div>
-            ))}
+
+              {/* Ceramic card */}
+              <motion.div variants={fadeUp}>
+                <Link href="/pricing?tab=ceramic">
+                  <div className="group flex flex-col gap-5 p-7 rounded-2xl border-2 border-border bg-card hover:border-amber-500/50 hover:bg-amber-500/3 transition-all cursor-pointer h-full">
+                    <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
+                      <Shield className="w-6 h-6 text-amber-500" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-display font-bold text-xl mb-2">Ceramic Coating</h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        Long-term paint protection custom-quoted to your vehicle. Call or email us for a no-pressure quote.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm font-semibold text-amber-500">
+                      Get a quote <ChevronRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </section>

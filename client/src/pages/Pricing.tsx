@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearch } from "wouter/use-browser-location";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -67,6 +68,12 @@ type Tab = "detailing" | "ceramic";
 
 export default function Pricing() {
   const [tab, setTab] = useState<Tab | null>(null);
+  const search = useSearch();
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const t = params.get("tab");
+    if (t === "detailing" || t === "ceramic") setTab(t);
+  }, [search]);
 
   const { data: dbPackages } = trpc.bookings.getPackages.useQuery();
   const { data: dbAddOns } = trpc.bookings.getAddOns.useQuery();
