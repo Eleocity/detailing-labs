@@ -205,58 +205,55 @@ async function seedDefaultContent() {
       await db.insert(siteContent).values(row);
     }
   }
-  // Seed packages if none exist
+  // Sync canonical packages (wipe & replace so the real menu always shows)
   const { packages, addOns } = await import("../../drizzle/schema");
-  const existingPkgs = await db.select().from(packages).limit(1);
-  if (existingPkgs.length === 0) {
-    await db.insert(packages).values([
-      {
-        name: "Exterior Decon & Shield",
-        description: "Total decontamination and 3-month hydrophobic protection.",
-        price: "129.00" as any,
-        duration: 120,
-        features: JSON.stringify(["Signature hand wash","Wheel & tire deep clean","Iron Remover treatment","Bug & Tar Removal","Hydrophobic Spray Wax (3-month protection)"]),
-        isPopular: false,
-        isActive: true,
-        sortOrder: 1,
-      },
-      {
-        name: "Interior Deep Refresh",
-        description: "Complete cabin sanitization and restoration.",
-        price: "129.00" as any,
-        duration: 120,
-        features: JSON.stringify(["Compressed air blowout","Deep vacuum (all surfaces)","Dash / console / door scrub","UV protectant treatment","Streak-free interior glass","Floor mat restoration"]),
-        isPopular: false,
-        isActive: true,
-        sortOrder: 2,
-      },
-      {
-        name: "Full Showroom Reset",
-        description: "Our most popular package — total vehicle transformation inside and out. Save up to $39 vs. booking separately.",
-        price: "229.00" as any,
-        duration: 240,
-        features: JSON.stringify(["Everything in Exterior Decon & Shield","Everything in Interior Deep Refresh","Best value — save up to $39","Like-new vehicle experience inside and out"]),
-        isPopular: true,
-        isActive: true,
-        sortOrder: 3,
-      },
-    ]);
-    console.log("[Seed] Packages seeded ✅");
-  }
 
-  const existingAddOns = await db.select().from(addOns).limit(1);
-  if (existingAddOns.length === 0) {
-    await db.insert(addOns).values([
-      { name: "Pet Hair Removal",                  description: "Starting at $49",                    price: "49.00" as any, duration: 30,  isActive: true, sortOrder: 1 },
-      { name: "Odor Elimination Treatment",        description: "Interior deodorizer treatment",       price: "49.00" as any, duration: 30,  isActive: true, sortOrder: 2 },
-      { name: "Engine Bay Detail",                 description: "Degreased & detailed engine bay",     price: "49.00" as any, duration: 45,  isActive: true, sortOrder: 3 },
-      { name: "Headlight Restoration",             description: "Restore clarity & UV protection",     price: "79.00" as any, duration: 45,  isActive: true, sortOrder: 4 },
-      { name: "Seat Extraction — Front Only",      description: "$50–$75 depending on condition",      price: "50.00" as any, duration: 60,  isActive: true, sortOrder: 5 },
-      { name: "Seat Extraction — Full Vehicle",    description: "$100–$150 all rows",                  price: "100.00" as any, duration: 105, isActive: true, sortOrder: 6 },
-      { name: "Seat Extraction — Per Seat (Spot)", description: "$25 per seat spot treatment",         price: "25.00" as any, duration: 20,  isActive: true, sortOrder: 7 },
-    ]);
-    console.log("[Seed] Add-ons seeded ✅");
-  }
+  await db.delete(packages);
+  await db.insert(packages).values([
+    {
+      name: "Exterior Decon & Shield",
+      description: "Total decontamination and 3-month hydrophobic protection.",
+      price: "129.00" as any,
+      duration: 120,
+      features: JSON.stringify(["Signature hand wash","Wheel & tire deep clean","Iron Remover treatment","Bug & Tar Removal","Hydrophobic Spray Wax (3-month protection)"]),
+      isPopular: false,
+      isActive: true,
+      sortOrder: 1,
+    },
+    {
+      name: "Interior Deep Refresh",
+      description: "Complete cabin sanitization and restoration.",
+      price: "129.00" as any,
+      duration: 120,
+      features: JSON.stringify(["Compressed air blowout","Deep vacuum (all surfaces)","Dash / console / door scrub","UV protectant treatment","Streak-free interior glass","Floor mat restoration"]),
+      isPopular: false,
+      isActive: true,
+      sortOrder: 2,
+    },
+    {
+      name: "Full Showroom Reset",
+      description: "Our most popular package — total vehicle transformation inside and out. Save up to $39 vs. booking separately.",
+      price: "229.00" as any,
+      duration: 240,
+      features: JSON.stringify(["Everything in Exterior Decon & Shield","Everything in Interior Deep Refresh","Best value — save up to $39","Like-new vehicle experience inside and out"]),
+      isPopular: true,
+      isActive: true,
+      sortOrder: 3,
+    },
+  ]);
+  console.log("[Seed] Packages synced ✅");
+
+  await db.delete(addOns);
+  await db.insert(addOns).values([
+    { name: "Pet Hair Removal",                  description: "Starting at $49",               price: "49.00"  as any, duration: 30,  isActive: true, sortOrder: 1 },
+    { name: "Odor Elimination Treatment",        description: "Interior deodorizer treatment",  price: "49.00"  as any, duration: 30,  isActive: true, sortOrder: 2 },
+    { name: "Engine Bay Detail",                 description: "Degreased & detailed engine bay",price: "49.00"  as any, duration: 45,  isActive: true, sortOrder: 3 },
+    { name: "Headlight Restoration",             description: "Restore clarity & UV protection",price: "79.00"  as any, duration: 45,  isActive: true, sortOrder: 4 },
+    { name: "Seat Extraction — Front Only",      description: "$50–$75 depending on condition", price: "50.00"  as any, duration: 60,  isActive: true, sortOrder: 5 },
+    { name: "Seat Extraction — Full Vehicle",    description: "$100–$150 all rows",             price: "100.00" as any, duration: 105, isActive: true, sortOrder: 6 },
+    { name: "Seat Extraction — Per Seat (Spot)", description: "$25 per seat spot treatment",    price: "25.00"  as any, duration: 20,  isActive: true, sortOrder: 7 },
+  ]);
+  console.log("[Seed] Add-ons synced ✅");
 
   console.log("[Seed] Default site content seeded ✅");
 }
