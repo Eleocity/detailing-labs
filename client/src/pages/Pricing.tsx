@@ -19,49 +19,85 @@ const fadeUp = {
 };
 const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
 
+// Vehicle pricing tiers shown on package cards
+const VEHICLE_TIERS: Record<string, { label: string; price: number }[]> = {
+  "Exterior Decon & Shield": [
+    { label: "Sedan / Coupe",        price: 129 },
+    { label: "Small SUV / Truck",    price: 149 },
+    { label: "Large SUV / Minivan",  price: 199 },
+  ],
+  "Interior Deep Refresh": [
+    { label: "Sedan / Coupe",        price: 129 },
+    { label: "Small SUV / Truck",    price: 149 },
+    { label: "Large SUV / Minivan",  price: 199 },
+  ],
+  "Full Showroom Reset": [
+    { label: "Sedan / Coupe",        price: 229 },
+    { label: "Small SUV / Truck",    price: 269 },
+    { label: "Large SUV / Minivan",  price: 359 },
+  ],
+};
+
 // Fallback packages (used if DB is empty / not yet configured)
 const FALLBACK_PACKAGES = [
   {
-    id: 0,
-    name: "Essential",
-    price: "99",
+    id: 1,
+    name: "Exterior Decon & Shield",
+    price: "129",
     duration: 120,
-    description: "Perfect for regular maintenance. Keeps your vehicle clean and protected between full details.",
-    features: JSON.stringify(["Exterior hand wash & dry", "Wheel & tire cleaning", "Window cleaning (exterior)", "Interior vacuum", "Dashboard & console wipe-down", "Door jamb cleaning"]),
+    description: "Total decontamination and 3-month hydrophobic protection. From $129.",
+    features: JSON.stringify([
+      "Signature hand wash",
+      "Wheel & tire deep clean",
+      "Iron Remover treatment",
+      "Bug & Tar Removal",
+      "Hydrophobic Spray Wax (3-month protection)",
+    ]),
     isPopular: false,
     isActive: true,
   },
   {
-    id: 0,
-    name: "Premium",
-    price: "199",
+    id: 2,
+    name: "Interior Deep Refresh",
+    price: "129",
+    duration: 120,
+    description: "Complete cabin sanitization and restoration. From $129.",
+    features: JSON.stringify([
+      "Compressed air blowout",
+      "Deep vacuum (all surfaces)",
+      "Dash / console / door scrub",
+      "UV protectant treatment",
+      "Streak-free interior glass",
+      "Floor mat restoration",
+    ]),
+    isPopular: false,
+    isActive: true,
+  },
+  {
+    id: 3,
+    name: "Full Showroom Reset",
+    price: "229",
     duration: 240,
-    description: "Our most popular package. A thorough detail inside and out for a showroom-ready finish.",
-    features: JSON.stringify(["Everything in Essential", "Clay bar treatment", "Hand-applied paint sealant", "Interior deep clean", "Leather conditioning", "Odor elimination", "Tire dressing"]),
+    description: "Our most popular package — total vehicle transformation inside and out. From $229.",
+    features: JSON.stringify([
+      "Everything in Exterior Decon & Shield",
+      "Everything in Interior Deep Refresh",
+      "Best value — save up to $39 vs. booking separately",
+      "Like-new vehicle experience inside and out",
+    ]),
     isPopular: true,
-    isActive: true,
-  },
-  {
-    id: 0,
-    name: "Signature",
-    price: "349",
-    duration: 360,
-    description: "The ultimate detailing experience. No corner left untouched — your vehicle restored to its finest.",
-    features: JSON.stringify(["Everything in Premium", "Paint decontamination", "Engine bay detail", "Headlight restoration", "Fabric protection treatment", "Premium carnauba wax", "Detailed photo report"]),
-    isPopular: false,
     isActive: true,
   },
 ];
 
 const FALLBACK_ADDONS = [
-  { name: "Headlight Restoration", price: "59" },
-  { name: "Engine Bay Detail", price: "79" },
-  { name: "Ozone Odor Treatment", price: "69" },
-  { name: "Pet Hair Removal", price: "49" },
-  { name: "Fabric Protection", price: "49" },
-  { name: "Rain-X Treatment", price: "29" },
-  { name: "Paint Sealant Upgrade", price: "39" },
-  { name: "Tire Shine & Dressing", price: "19" },
+  { name: "Pet Hair Removal",                    price: "49",  description: "Starting at $49" },
+  { name: "Odor Elimination Treatment",          price: "49",  description: "Interior deodorizer treatment" },
+  { name: "Engine Bay Detail",                   price: "49",  description: "Degreased & detailed engine bay" },
+  { name: "Headlight Restoration",               price: "79",  description: "Restore clarity & UV protection" },
+  { name: "Seat Extraction — Front Only",        price: "50",  description: "$50–$75 depending on condition" },
+  { name: "Seat Extraction — Full Vehicle",      price: "100", description: "$100–$150 all rows" },
+  { name: "Seat Extraction — Per Seat (Spot)",   price: "25",  description: "$25 per seat spot treatment" },
 ];
 
 type Tab = "detailing" | "ceramic";
@@ -233,10 +269,22 @@ export default function Pricing() {
                             <p className="text-muted-foreground text-xs">{durationStr}</p>
                           </div>
 
-                          <div className="mb-4">
-                            <span className="text-4xl font-display font-bold">${Number(pkg.price).toLocaleString()}</span>
-                            <span className="text-muted-foreground text-sm ml-2">starting</span>
-                          </div>
+                          {/* Vehicle tier pricing */}
+                          {VEHICLE_TIERS[pkg.name] ? (
+                            <div className="mb-5 space-y-1.5">
+                              {VEHICLE_TIERS[pkg.name].map(tier => (
+                                <div key={tier.label} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
+                                  <span className="text-sm text-muted-foreground">{tier.label}</span>
+                                  <span className="font-display font-bold text-foreground">${tier.price}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="mb-4">
+                              <span className="text-4xl font-display font-bold">${Number(pkg.price).toLocaleString()}</span>
+                              <span className="text-muted-foreground text-sm ml-2">starting</span>
+                            </div>
+                          )}
 
                           <p className="text-muted-foreground text-sm leading-relaxed mb-5">{pkg.description}</p>
 
@@ -276,8 +324,13 @@ export default function Pricing() {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {addOns.map((addon) => (
                         <div key={addon.name} className="p-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-all text-center">
-                          <div className="text-xl font-display font-bold text-primary mb-1">${Number(addon.price).toLocaleString()}</div>
-                          <div className="text-xs text-muted-foreground">{addon.name}</div>
+                          <div className="text-xl font-display font-bold text-primary mb-1">
+                            {(addon as any).description?.includes("–") ? (addon as any).description?.split(" ")?.[0] + "+" : `$${Number(addon.price).toLocaleString()}`}
+                          </div>
+                          <div className="text-sm font-medium text-foreground mb-0.5">{addon.name}</div>
+                          {(addon as any).description && (
+                            <div className="text-[11px] text-muted-foreground leading-tight">{(addon as any).description}</div>
+                          )}
                         </div>
                       ))}
                     </div>
