@@ -354,7 +354,7 @@ export default function Pricing() {
                     <p className="text-muted-foreground text-sm mb-5">Reach out and we'll get back to you within a few hours.</p>
                     <div className="flex flex-col gap-3">
                       <a
-                        href="tel:+16155550000"
+                        href="tel:+12625550190"
                         className="flex items-center gap-4 p-4 rounded-xl border-2 border-primary/30 bg-primary/5 hover:border-primary hover:bg-primary/8 transition-all group"
                       >
                         <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">

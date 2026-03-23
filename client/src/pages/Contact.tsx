@@ -77,9 +77,9 @@ export default function Contact() {
 
               <motion.div variants={fadeUp} className="space-y-4 mb-8">
                 {[
-                  { icon: <Phone className="w-5 h-5" />, label: "Phone", value: contact.phone || "(555) 000-0000", href: `tel:${(contact.phone || "5550000000").replace(/\D/g, "")}` },
-                  { icon: <Mail className="w-5 h-5" />, label: "Email", value: contact.email || "hello@detailinglabs.com", href: `mailto:${contact.email || "hello@detailinglabs.com"}` },
-                  { icon: <MapPin className="w-5 h-5" />, label: "Service Area", value: contact.address || "Greater Metro Area — Mobile Service", href: null },
+                  { icon: <Phone className="w-5 h-5" />, label: "Phone", value: contact.phone || "(262) 555-0190", href: `tel:${(contact.phone || "2625550190").replace(/\D/g, "")}` },
+                  { icon: <Mail className="w-5 h-5" />, label: "Email", value: contact.email || "hello@detailinglabswi.com", href: `mailto:${contact.email || "hello@detailinglabswi.com"}` },
+                  { icon: <MapPin className="w-5 h-5" />, label: "Service Area", value: contact.address || "Greater Milwaukee & Waukesha Area", href: null },
                   { icon: <Clock className="w-5 h-5" />, label: "Weekday Hours", value: contact.hours_weekday || "Mon–Fri: 7:00 AM – 7:00 PM", href: null },
                   { icon: <Clock className="w-5 h-5" />, label: "Weekend Hours", value: contact.hours_weekend || "Sat–Sun: 8:00 AM – 5:00 PM", href: null },
                 ].map((item) => (

@@ -72,7 +72,7 @@ export default function Home() {
   const about = useContent("about");
   const contact = useContent("contact");
 
-  const phone     = contact.phone     || "(555) 000-0000";
+  const phone     = contact.phone     || "(262) 555-0190";
   const phoneHref = `tel:${phone.replace(/\D/g, "")}`;
 
   return (
@@ -99,7 +99,7 @@ export default function Home() {
               <motion.div variants={fadeUp}>
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-semibold tracking-widest uppercase">
                   <Sparkles className="w-3 h-3" />
-                  {hero.badge || "Premium Mobile Detailing"}
+                  {hero.badge || "Premium Mobile Detailing — Wisconsin"}
                 </span>
               </motion.div>
 
@@ -112,7 +112,7 @@ export default function Home() {
               </motion.h1>
 
               <motion.p variants={fadeUp} className="text-lg sm:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-                {hero.subheadline || "Detailing Labs brings showroom-quality results directly to you. Professional mobile detailing at your home, office, or anywhere that works — no drop-off required."}
+                {hero.subheadline || "Detailing Labs brings showroom-quality results directly to you. Professional mobile detailing — at your home, office, or anywhere that works. No drop-off. No hassle."}
               </motion.p>
 
               <motion.div variants={fadeUp} className="flex flex-wrap gap-4 pt-2">
@@ -132,7 +132,7 @@ export default function Home() {
               <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-5 pt-2">
                 <div className="flex items-center gap-1">
                   {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
-                  <span className="ml-2 text-sm text-muted-foreground">{hero.trust_reviews || "5.0 · 200+ reviews"}</span>
+                  <span className="ml-2 text-sm text-muted-foreground">{hero.trust_reviews || "5.0 · 150+ five-star reviews"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -158,9 +158,9 @@ export default function Home() {
         <div className="container py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { value: about.vehicles_detailed || "2,500+", label: "Vehicles Detailed" },
+              { value: about.vehicles_detailed || "1,000+", label: "Vehicles Detailed" },
               { value: "5.0★",                               label: "Average Rating" },
-              { value: about.years_experience || "8+",       label: "Years in Business" },
+              { value: about.years_experience || "5+",       label: "Years in Business" },
               { value: about.satisfaction_rate || "99%",     label: "Satisfaction Rate" },
             ].map(stat => (
               <div key={stat.label}>
@@ -247,7 +247,7 @@ export default function Home() {
                 Convenience Without Compromising Quality
               </motion.h2>
               <motion.p variants={fadeUp} className="text-muted-foreground leading-relaxed mb-8">
-                {about.body || "We built Detailing Labs around one principle: your time is valuable. That's why we bring everything to you — the equipment, the expertise, and the premium products — so you can enjoy a flawlessly detailed vehicle without disrupting your day."}
+                {about.body || "We built Detailing Labs around one principle: your time is valuable. We bring the equipment, the expertise, and the premium products directly to you — so you can enjoy a showroom-quality vehicle without disrupting your day."}
               </motion.p>
               <motion.div variants={stagger} className="space-y-4">
                 {whyUs.map(item => (

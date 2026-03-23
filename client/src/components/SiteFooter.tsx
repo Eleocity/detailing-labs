@@ -9,9 +9,9 @@ export default function SiteFooter() {
     if (contactContent) for (const row of contactContent) map[row.key] = row.value ?? "";
     return map;
   })();
-  const phone = contact.phone || "(555) 000-0000";
-  const email = contact.email || "hello@detailinglabs.com";
-  const address = contact.address || "Greater Metro Area";
+  const phone = contact.phone || "(262) 555-0190";
+  const email = contact.email || "hello@detailinglabswi.com";
+  const address = contact.address || "Greater Milwaukee & Waukesha, WI";
 
   return (
     <footer className="bg-[oklch(0.06_0.004_280)] border-t border-border">

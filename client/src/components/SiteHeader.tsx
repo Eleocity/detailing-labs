@@ -26,7 +26,7 @@ export default function SiteHeader() {
   const { user, logout } = useAuth();
 
   const { data: contactContent } = trpc.content.getSiteContent.useQuery({ section: "contact" });
-  const phone = contactContent?.find((r) => r.key === "phone")?.value || "(555) 000-0000";
+  const phone = contactContent?.find((r) => r.key === "phone")?.value || "(262) 555-0190";
   const phoneHref = `tel:${phone.replace(/\D/g, "")}`;
 
   useEffect(() => {

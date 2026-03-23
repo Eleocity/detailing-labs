@@ -141,9 +141,10 @@ async function startServer() {
 
   // Auto-run migrations in background after server is bound
   runMigrations()
-    .then(({ applied, log }) => {
+    .then(async ({ applied, log }) => {
       log.forEach((l) => console.log(`[Migrate] ${l}`));
       console.log(`[Migrate] Complete — ${applied} applied`);
+      await seedDefaultContent().catch((e: any) => console.error("[Seed] Failed:", e?.message));
     })
     .catch((err: any) => {
       console.error("[Migrate] Background migration failed (non-fatal):", err?.message ?? err);
@@ -154,3 +155,55 @@ startServer().catch((err) => {
   console.error("[Fatal] Server failed to start:", err);
   process.exit(1);
 });
+
+async function seedDefaultContent() {
+  const db = await (await import("../db")).getDb();
+  if (!db) return;
+
+  const { siteContent } = await import("../../drizzle/schema");
+  const { eq, and } = await import("drizzle-orm");
+
+  const defaults: { section: string; key: string; value: string }[] = [
+    // Hero
+    { section: "hero", key: "badge",             value: "Premium Mobile Detailing — Wisconsin" },
+    { section: "hero", key: "headline",           value: "Your Vehicle.\nPerfected.\nAt Your Door." },
+    { section: "hero", key: "subheadline",        value: "Detailing Labs brings showroom-quality results directly to you. Professional mobile detailing at your home, office, or anywhere that works — no drop-off. No hassle." },
+    { section: "hero", key: "cta_primary",        value: "Book Your Detail" },
+    { section: "hero", key: "cta_secondary",      value: "View Packages" },
+    { section: "hero", key: "trust_reviews",      value: "5.0 · 150+ five-star reviews" },
+    { section: "hero", key: "trust_certified",    value: "Fully insured & certified" },
+    { section: "hero", key: "trust_availability", value: "Same-week availability" },
+    // About
+    { section: "about", key: "headline",          value: "Built on Passion for Paint" },
+    { section: "about", key: "body",              value: "We built Detailing Labs around one principle: your time is valuable. We bring the equipment, the expertise, and the premium products directly to you — so you can enjoy a showroom-quality vehicle without disrupting your day." },
+    { section: "about", key: "years_experience",  value: "5+" },
+    { section: "about", key: "vehicles_detailed", value: "1,000+" },
+    { section: "about", key: "satisfaction_rate", value: "99%" },
+    { section: "about", key: "service_areas",     value: "10+" },
+    // Contact
+    { section: "contact", key: "phone",           value: "(262) 555-0190" },
+    { section: "contact", key: "email",           value: "hello@detailinglabswi.com" },
+    { section: "contact", key: "address",         value: "Greater Milwaukee & Waukesha, WI" },
+    { section: "contact", key: "hours_weekday",   value: "Mon–Fri: 7:00 AM – 7:00 PM" },
+    { section: "contact", key: "hours_weekend",   value: "Sat–Sun: 8:00 AM – 5:00 PM" },
+    // Business
+    { section: "business", key: "name",                   value: "Detailing Labs" },
+    { section: "business", key: "tagline",                value: "Premium Mobile Auto Detailing" },
+    { section: "business", key: "tax_rate",               value: "0.055" },
+    { section: "business", key: "travel_fee_base",        value: "0" },
+    { section: "business", key: "service_radius_miles",   value: "40" },
+    { section: "business", key: "booking_advance_hours",  value: "24" },
+  ];
+
+  for (const row of defaults) {
+    const existing = await db
+      .select()
+      .from(siteContent)
+      .where(and(eq(siteContent.section, row.section), eq(siteContent.key, row.key)))
+      .limit(1);
+    if (existing.length === 0) {
+      await db.insert(siteContent).values(row);
+    }
+  }
+  console.log("[Seed] Default site content seeded ✅");
+}
