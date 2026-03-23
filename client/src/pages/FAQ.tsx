@@ -15,82 +15,112 @@ const fadeUp = {
 
 const faqs = [
   {
-    category: "Mobile Service",
+    category: "Service Area & Location",
     questions: [
       {
-        q: "Do you come to me?",
-        a: "Yes — that's the core of what we do. Detailing Labs is a fully mobile service. We bring our professional equipment, products, and expertise directly to your home, office, or any location that works for you. No drop-off required.",
-      },
-      {
         q: "What areas do you service?",
-        a: "We service the Greater Metro Area and surrounding communities. When you book online, you'll enter your ZIP code and we'll confirm availability in your area. Travel fees may apply for locations outside our primary service zone.",
+        a: "We provide mobile detailing service throughout Southeast Wisconsin. If you're outside our normal service area, a travel fee may apply.",
       },
       {
-        q: "Do I need to provide water or power?",
-        a: "No. Our mobile units are fully self-contained with their own water supply and power generation. We don't need access to your home's utilities, though having a nearby outlet available can be helpful for extended services.",
+        q: "Do you come to my home or workplace?",
+        a: "Yes. We're fully mobile and can service your vehicle at your home, workplace, or another approved location.",
       },
       {
-        q: "Where should I park my vehicle for the appointment?",
-        a: "Ideally, park in a shaded area such as a garage, covered parking, or shaded driveway. We can work in most conditions, but shade helps us achieve the best results and protects the products during application.",
+        q: "Do you need access to water or electricity?",
+        a: "No. Our mobile setup includes our own water tank and generator, so we can detail in most locations without needing water or power access.",
       },
     ],
   },
   {
-    category: "Booking & Scheduling",
+    category: "Appointments & Scheduling",
     questions: [
       {
         q: "How do I book an appointment?",
-        a: "You can book online 24/7 through our booking system at detailinglabs.com/book. Choose your service, select a date and time, enter your vehicle and location details, and submit. We'll confirm your appointment within a few hours.",
+        a: "You can book directly through our website by selecting your package, vehicle size, and preferred appointment time.",
       },
       {
-        q: "How far in advance should I book?",
-        a: "We recommend booking at least 3–5 days in advance to secure your preferred date and time. For ceramic coating packages, we suggest booking 1–2 weeks ahead as these require a full day and limited slots are available.",
+        q: "How long does a detail take?",
+        a: "Service time depends on the package, vehicle size, and condition. Most appointments take between 2 and 6 hours.",
       },
       {
-        q: "How long does detailing take?",
-        a: "Service duration depends on the package and your vehicle's size and condition. An Essential Detail takes about 2 hours, a Premium Detail takes 3–4 hours, and a Signature Full Detail takes 5–6 hours. Ceramic coating packages require a full day.",
+        q: "Do I need to be there during the appointment?",
+        a: "Not always. As long as we can access the vehicle, many customers do not need to be present for the full appointment.",
       },
       {
         q: "Can I reschedule or cancel my appointment?",
-        a: "Yes. You can reschedule or cancel through your customer portal or by contacting us directly. We ask for at least 24 hours' notice for rescheduling and 48 hours for cancellations to avoid any fees.",
+        a: "Yes. Please give us at least 24 hours' notice for rescheduling and 48 hours for cancellations to avoid any fees.",
       },
     ],
   },
   {
-    category: "Services & Results",
+    category: "Our Packages",
     questions: [
       {
-        q: "What happens if the weather is bad?",
-        a: "Light rain won't stop us — we can work in covered areas. However, if weather conditions are severe or unsafe, we'll proactively reach out to reschedule your appointment at no charge. We monitor forecasts and will always communicate with you in advance.",
+        q: "What's included in the Exterior Decon & Shield?",
+        a: "This package includes a signature hand wash, wheel and tire deep clean, iron remover treatment, bug and tar removal, and a hydrophobic spray wax for up to 3 months of protection.",
       },
+      {
+        q: "What's included in the Interior Deep Refresh?",
+        a: "This service includes a compressed air blowout, deep vacuum, dash, console, and door panel scrub, UV protectant, streak-free glass cleaning, and floor mat restoration.",
+      },
+      {
+        q: "What is the Full Showroom Reset?",
+        a: "The Full Showroom Reset is our best-value package that combines both our Exterior Decon & Shield and Interior Deep Refresh for a complete inside-and-out transformation.",
+      },
+      {
+        q: "Do you charge more for larger vehicles?",
+        a: "Yes. Pricing varies by vehicle size because larger vehicles take more time, labor, and product to properly detail.",
+      },
+    ],
+  },
+  {
+    category: "Add-Ons & Specialty Services",
+    questions: [
+      {
+        q: "Can you remove pet hair?",
+        a: "Yes. Pet hair removal is available as a specialty add-on starting at $49. Heavily embedded hair may require additional time.",
+      },
+      {
+        q: "Do you offer stain removal or extraction?",
+        a: "Yes. We offer extraction services for front seats, full interiors, and individual spot treatments depending on the condition of the vehicle.",
+      },
+      {
+        q: "Can you get rid of bad smells in my car?",
+        a: "We offer an odor elimination treatment designed to reduce many common interior odors. Results can vary depending on the source and severity.",
+      },
+      {
+        q: "Do you detail engine bays?",
+        a: "Yes. Engine bay detailing is available as an add-on and is done carefully on accessible surfaces.",
+      },
+      {
+        q: "Do you restore cloudy headlights?",
+        a: "Yes. Headlight restoration is available as an add-on and helps improve the look and clarity of oxidized headlights.",
+      },
+    ],
+  },
+  {
+    category: "Results & Maintenance",
+    questions: [
+      {
+        q: "How often should I have my vehicle detailed?",
+        a: "For most daily drivers, we recommend professional detailing every 1 to 3 months to keep the vehicle clean, protected, and easier to maintain.",
+      },
+      {
+        q: "What happens if my vehicle is extra dirty?",
+        a: "Vehicles with excessive buildup, heavy pet hair, staining, sand, salt, or unusually difficult conditions may require extra time or additional charges. We'll communicate that clearly before starting.",
+      },
+    ],
+  },
+  {
+    category: "Ceramic Coating",
+    questions: [
       {
         q: "Do you offer ceramic coatings?",
-        a: "Yes. Our Ceramic Coating Package includes full paint decontamination, 1-stage paint correction, and professional ceramic coating application. This is our most comprehensive protection service and comes with a 2-year warranty.",
+        a: "Yes. Ceramic coating pricing is custom-quoted based on your vehicle's size and paint condition. Contact us for a no-pressure quote.",
       },
       {
-        q: "Will detailing remove scratches?",
-        a: "Light surface scratches and swirl marks can often be reduced or eliminated through paint correction, which is included in our Signature and Ceramic Coating packages. Deep scratches that penetrate the clear coat require paint repair, which is outside the scope of detailing.",
-      },
-      {
-        q: "How long will the results last?",
-        a: "Results vary by service. A standard wax or sealant typically lasts 1–3 months. Our paint sealant upgrade lasts 6+ months. Ceramic coatings provide 2+ years of protection. Regular maintenance details help extend the life of any treatment.",
-      },
-    ],
-  },
-  {
-    category: "Pricing & Payment",
-    questions: [
-      {
-        q: "Are your prices fixed or do they vary?",
-        a: "Our listed prices are starting rates. Final pricing may vary based on vehicle size (trucks and SUVs may cost more than sedans), vehicle condition, and selected add-ons. We'll confirm your exact quote before your appointment.",
-      },
-      {
-        q: "Is there a travel fee?",
-        a: "There is no travel fee for locations within our primary service area. A travel fee may apply for locations in our extended service area. You'll see any applicable fees clearly during the booking process.",
-      },
-      {
-        q: "What payment methods do you accept?",
-        a: "We accept all major credit and debit cards, as well as cash. Payment is collected after the service is completed to your satisfaction. Online payment options will be available soon.",
+        q: "How long does ceramic coating last?",
+        a: "Professional ceramic coatings typically last 2 years or more with proper maintenance. We recommend an annual inspection and maintenance detail to maximize protection.",
       },
     ],
   },
