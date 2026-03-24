@@ -39,6 +39,14 @@ export function AdminInvoicesList() {
     onSuccess: (d) => { toast.success(`Invoice sent to ${d.sentTo}`); refetch(); },
     onError: (err) => toast.error(err.message),
   });
+  const createLink = trpc.payments.createPaymentLink.useMutation({
+    onSuccess: (d) => { toast.success("Payment link created"); window.open(d.paymentUrl, "_blank"); refetch(); },
+    onError: (err) => toast.error(err.message),
+  });
+  const markPaidReceipt = trpc.invoices.markPaidAndReceipt.useMutation({
+    onSuccess: () => { toast.success("Marked paid + receipt sent"); refetch(); },
+    onError: (err) => toast.error(err.message),
+  });
   const deleteInv = trpc.invoices.delete.useMutation({
     onSuccess: () => { toast.success("Invoice deleted"); refetch(); },
     onError: (err) => toast.error(err.message),
@@ -138,7 +146,7 @@ export function AdminInvoicesList() {
                           </Link>
                           {inv.status !== "paid" && (
                             <Button size="sm" variant="ghost" className="text-xs h-7 px-2 text-emerald-400 hover:text-emerald-300"
-                              onClick={() => updateStatus.mutate({ id: inv.id, status: "paid" })}>
+                              onClick={() => { if (confirm("Mark paid and send receipt to customer?")) updateStatus.mutate({ id: inv.id, status: "paid" }); }}>
                               Mark Paid
                             </Button>
                           )}
@@ -194,6 +202,14 @@ export function AdminInvoiceDetail() {
   });
   const sendInvoice = trpc.invoices.send.useMutation({
     onSuccess: (d) => { toast.success(`Invoice sent to ${d.sentTo}`); refetch(); },
+    onError: (err) => toast.error(err.message),
+  });
+  const createLink = trpc.payments.createPaymentLink.useMutation({
+    onSuccess: (d) => { toast.success("Payment link created"); window.open(d.paymentUrl, "_blank"); refetch(); },
+    onError: (err) => toast.error(err.message),
+  });
+  const markPaidReceipt = trpc.invoices.markPaidAndReceipt.useMutation({
+    onSuccess: () => { toast.success("Marked paid + receipt sent"); refetch(); },
     onError: (err) => toast.error(err.message),
   });
   const update = trpc.invoices.update.useMutation({
@@ -264,8 +280,9 @@ export function AdminInvoiceDetail() {
           <div className="flex items-center gap-2 flex-wrap">
             {invoice.status !== "paid" && (
               <Button size="sm" className="bg-emerald-600 hover:bg-emerald-500 text-white gap-1.5"
-                onClick={() => updateStatus.mutate({ id: invoice.id, status: "paid" })}>
-                <CheckCircle2 className="w-3.5 h-3.5" /> Mark Paid
+                onClick={() => markPaidReceipt.mutate({ id: invoice.id })}
+                disabled={markPaidReceipt.isPending}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> Mark Paid + Send Receipt
               </Button>
             )}
             {(invoice.status === "draft" || invoice.status === "sent") && (
@@ -275,6 +292,11 @@ export function AdminInvoiceDetail() {
                 <Send className="w-3.5 h-3.5" /> {invoice.status === "sent" ? "Resend Invoice" : "Send Invoice"}
               </Button>
             )}
+            <Button size="sm" variant="outline" className="gap-1.5 text-violet-400 border-violet-500/30"
+              onClick={() => createLink.mutate({ invoiceId: invoice.id })}
+              disabled={createLink.isPending}>
+              <DollarSign className="w-3.5 h-3.5" /> Square Checkout
+            </Button>
             {invoice.status === "paid" && (
               <Button size="sm" variant="outline" className="gap-1.5"
                 onClick={() => updateStatus.mutate({ id: invoice.id, status: "draft" })}>
@@ -456,12 +478,24 @@ export function AdminInvoiceDetail() {
             <div className="rounded-xl border border-border bg-card p-5">
               <h3 className="font-semibold text-sm mb-3">Change Status</h3>
               <div className="space-y-2">
-                <Button size="sm" className="w-full gap-1.5 bg-blue-600 hover:bg-blue-500 text-white mb-3"
+                <Button size="sm" className="w-full gap-1.5 bg-blue-600 hover:bg-blue-500 text-white mb-2"
               onClick={() => sendInvoice.mutate({ id: invoice.id })}
               disabled={sendInvoice.isPending}>
               <Send className="w-3.5 h-3.5" />
               {invoice.status === "sent" ? "Resend to Customer" : "Send to Customer"}
             </Button>
+            <Button size="sm" variant="outline" className="w-full gap-1.5 text-violet-400 border-violet-500/30 mb-3"
+              onClick={() => createLink.mutate({ invoiceId: invoice.id })}
+              disabled={createLink.isPending}>
+              <DollarSign className="w-3.5 h-3.5" /> Create Square Payment Link
+            </Button>
+            {invoice.status !== "paid" && (
+              <Button size="sm" className="w-full gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white mb-3"
+                onClick={() => markPaidReceipt.mutate({ id: invoice.id })}
+                disabled={markPaidReceipt.isPending}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> Mark Paid + Receipt
+              </Button>
+            )}
             {(["draft", "sent", "paid", "overdue", "cancelled"] as const).map(s => (
                   <button key={s}
                     onClick={() => updateStatus.mutate({ id: invoice.id, status: s })}

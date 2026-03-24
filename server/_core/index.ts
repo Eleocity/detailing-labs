@@ -95,6 +95,63 @@ async function startServer() {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+  // ── Square webhook ───────────────────────────────────────────────────────
+  app.post("/api/webhooks/square", express.raw({ type: "application/json" }), async (req, res) => {
+    // Respond immediately — Square requires a fast 200
+    res.status(200).json({ ok: true });
+    try {
+      const bodyStr = req.body instanceof Buffer ? req.body.toString("utf8") : JSON.stringify(req.body);
+      const event = JSON.parse(bodyStr);
+      if (event.type !== "payment.completed") return;
+
+      const { getDb } = await import("../db");
+      const db = await getDb();
+      if (!db) return;
+
+      const { invoices: invTable, bookings: bkTable, siteContent: scTable } = await import("../../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const { sendEmail, receiptEmail } = await import("../email");
+
+      const orderId: string | undefined = event.data?.object?.payment?.order_id;
+      if (!orderId) return;
+
+      // Find the invoice whose notes contain this order id
+      const allInv = await db.select().from(invTable).limit(500);
+      const inv = allInv.find((i: any) => i.notes?.includes(orderId));
+      if (!inv || inv.status === "paid") return;
+
+      // Mark paid
+      await db.update(invTable).set({ status: "paid", paidAt: new Date() } as any).where(eq(invTable.id, inv.id));
+      console.log(`[Square] Invoice ${inv.invoiceNumber} marked paid via webhook`);
+
+      // Send receipt
+      if (!inv.bookingId) return;
+      const [booking] = await db.select().from(bkTable).where(eq(bkTable.id, inv.bookingId)).limit(1);
+      if (!booking?.customerEmail) return;
+
+      const rows = await db.select().from(scTable).where(eq(scTable.section, "contact")).limit(20);
+      const phone    = rows.find((r: any) => r.key === "phone")?.value    || "(262) 555-0190";
+      const bizEmail = rows.find((r: any) => r.key === "email")?.value    || "hello@detailinglabswi.com";
+      const lineItems: { name: string; qty: number; price: number }[] = inv.lineItems ? JSON.parse(inv.lineItems) : [];
+
+      const receipt = receiptEmail({
+        invoiceNumber:     inv.invoiceNumber,
+        customerFirstName: booking.customerFirstName,
+        packageName:       booking.packageName ?? "Mobile Detailing",
+        serviceAddress:    [booking.serviceAddress, booking.serviceCity, booking.serviceState].filter(Boolean).join(", "),
+        lineItems,
+        totalAmount:       Number(inv.totalAmount),
+        paidAt:            new Date(),
+        phone,
+        businessEmail:     bizEmail,
+      });
+      await sendEmail({ to: booking.customerEmail, ...receipt });
+      console.log(`[Square] Receipt sent to ${booking.customerEmail}`);
+    } catch (err: any) {
+      console.error("[Square webhook error]", err?.message);
+    }
+  });
+
   // ── Force HTTPS in production ──
   // Railway terminates TLS at the edge and sets x-forwarded-proto
   app.use((req, res, next) => {

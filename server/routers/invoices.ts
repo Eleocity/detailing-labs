@@ -2,7 +2,7 @@ import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { protectedProcedure, router } from "../_core/trpc";
-import { sendEmail, invoiceEmail } from "../email";
+import { sendEmail, invoiceEmailV2, receiptEmail } from "../email";
 import { getDb } from "../db";
 import { invoices, bookings, siteContent } from "../../drizzle/schema";
 
@@ -145,7 +145,11 @@ export const invoicesRouter = router({
 
       const lineItems: { name: string; qty: number; price: number }[] = inv.lineItems ? JSON.parse(inv.lineItems) : [];
 
-      const content = invoiceEmail({
+      // Check for existing Square payment link in notes
+      const paymentUrlMatch = inv.notes?.match(/Square payment link: (https:\/\/[^\s\n]+)/);
+      const paymentUrl = paymentUrlMatch?.[1] ?? null;
+
+      const content = invoiceEmailV2({
         invoiceNumber:   inv.invoiceNumber,
         customerFirstName: booking?.customerFirstName ?? "there",
         packageName:     booking?.packageName ?? "Mobile Detailing",
@@ -156,9 +160,10 @@ export const invoicesRouter = router({
         travelFee:   Number(inv.travelFee ?? 0),
         taxAmount:   Number(inv.taxAmount ?? 0),
         totalAmount: Number(inv.totalAmount),
-        notes:       inv.notes ?? null,
+        notes:       inv.notes?.replace(/Square payment link:.*$/m, "").trim() ?? null,
         phone,
         businessEmail: bizEmail,
+        paymentUrl,
       });
 
       const sent = await sendEmail({ to: customerEmail, ...content });
@@ -168,6 +173,45 @@ export const invoicesRouter = router({
       await db.update(invoices).set({ status: "sent" }).where(eq(invoices.id, input.id));
 
       return { success: true, sentTo: customerEmail };
+    }),
+
+  // ── Mark paid + send receipt ─────────────────────────────────────────────
+  markPaidAndReceipt: protectedProcedure
+    .input(z.object({ id: z.number().int() }))
+    .mutation(async ({ input, ctx }) => {
+      adminOnly(ctx.user.role);
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+
+      const [inv] = await db.select().from(invoices).where(eq(invoices.id, input.id)).limit(1);
+      if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found" });
+
+      await db.update(invoices).set({ status: "paid", paidAt: new Date() } as any).where(eq(invoices.id, inv.id));
+
+      // Send receipt to customer
+      if (inv.bookingId) {
+        const [booking] = await db.select().from(bookings).where(eq(bookings.id, inv.bookingId)).limit(1);
+        const contactRows = await db.select().from(siteContent).where(eq(siteContent.section, "contact")).limit(20);
+        const phone    = contactRows.find(r => r.key === "phone")?.value    || "(262) 555-0190";
+        const bizEmail = contactRows.find(r => r.key === "email")?.value    || "hello@detailinglabswi.com";
+        const lineItems: { name: string; qty: number; price: number }[] = inv.lineItems ? JSON.parse(inv.lineItems) : [];
+
+        if (booking?.customerEmail) {
+          const receipt = receiptEmail({
+            invoiceNumber:     inv.invoiceNumber,
+            customerFirstName: booking.customerFirstName,
+            packageName:       booking.packageName ?? "Mobile Detailing",
+            serviceAddress:    [booking.serviceAddress, booking.serviceCity, booking.serviceState].filter(Boolean).join(", "),
+            lineItems,
+            totalAmount:       Number(inv.totalAmount),
+            paidAt:            new Date(),
+            phone,
+            businessEmail:     bizEmail,
+          });
+          sendEmail({ to: booking.customerEmail, ...receipt }).catch(console.error);
+        }
+      }
+      return { success: true };
     }),
 
   // ── Delete invoice ───────────────────────────────────────────────────────

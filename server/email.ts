@@ -350,3 +350,223 @@ export function invoiceEmail(params: {
 </html>`,
   };
 }
+
+const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png";
+
+function emailBase(headerExtra: string, body: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+</head>
+<body style="margin:0;padding:0;background:#0a0a12;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;-webkit-text-size-adjust:100%">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#0a0a12;padding:32px 16px">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%">
+
+        <!-- LOGO HEADER -->
+        <tr><td style="background:#0d0d1a;border-radius:16px 16px 0 0;border:1px solid #1e1e3a;border-bottom:none;padding:28px 40px;text-align:center">
+          <img src="${LOGO_URL}" alt="Detailing Labs" width="140" style="height:auto;display:block;margin:0 auto">
+        </td></tr>
+
+        <!-- PURPLE ACCENT BAR -->
+        <tr><td style="height:3px;background:linear-gradient(90deg,#5b21b6,#7c3aed,#8b5cf6);border-left:1px solid #1e1e3a;border-right:1px solid #1e1e3a"></td></tr>
+
+        ${headerExtra}
+
+        <!-- BODY -->
+        <tr><td style="background:#0d0d1a;padding:0 40px 32px;border:1px solid #1e1e3a;border-top:none;border-bottom:none">
+          ${body}
+        </td></tr>
+
+        <!-- FOOTER -->
+        <tr><td style="background:#080810;border-radius:0 0 16px 16px;border:1px solid #1e1e3a;border-top:1px solid #1a1a30;padding:20px 40px;text-align:center">
+          <p style="margin:0 0 4px;color:#4a4a6a;font-size:12px">© ${new Date().getFullYear()} Detailing Labs · Sturtevant, WI</p>
+          <p style="margin:0"><a href="https://detailinglabswi.com" style="color:#6d28d9;font-size:12px;text-decoration:none">detailinglabswi.com</a></p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+export function invoiceEmailV2(params: {
+  invoiceNumber: string;
+  customerFirstName: string;
+  packageName: string;
+  appointmentDate: Date;
+  serviceAddress: string;
+  lineItems: { name: string; qty: number; price: number }[];
+  subtotal: number;
+  travelFee: number;
+  taxAmount: number;
+  totalAmount: number;
+  notes?: string | null;
+  phone: string;
+  businessEmail: string;
+  paymentUrl?: string | null;
+}): { subject: string; html: string; text: string } {
+  const dateStr = params.appointmentDate.toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+  });
+
+  const lineRows = params.lineItems.map(item => `
+    <tr>
+      <td style="padding:12px 0;color:#c8c8e8;font-size:14px;border-bottom:1px solid #1a1a30">${item.name}</td>
+      <td style="padding:12px 0;color:#6b6b8a;font-size:14px;text-align:center;border-bottom:1px solid #1a1a30">${item.qty}</td>
+      <td style="padding:12px 0;color:#c8c8e8;font-size:14px;text-align:right;font-weight:600;border-bottom:1px solid #1a1a30">$${item.price.toFixed(2)}</td>
+    </tr>`).join("");
+
+  const header = `
+    <tr><td style="background:#0d0d1a;padding:32px 40px 0;border:1px solid #1e1e3a;border-top:none;border-bottom:none">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+          <td>
+            <p style="margin:0 0 4px;color:#7c3aed;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase">Invoice</p>
+            <p style="margin:0;color:#f0f0ff;font-size:26px;font-weight:800;letter-spacing:-0.5px">${params.invoiceNumber}</p>
+          </td>
+          <td style="text-align:right;vertical-align:top">
+            <p style="margin:0;color:#6b6b8a;font-size:12px">${dateStr}</p>
+          </td>
+        </tr>
+      </table>
+      <div style="height:1px;background:#1a1a30;margin:20px 0 0"></div>
+    </td></tr>`;
+
+  const body = `
+    <p style="margin:24px 0 8px;color:#a0a0c0;font-size:14px">Hi <strong style="color:#e0e0ff">${params.customerFirstName}</strong>, here is your invoice from Detailing Labs.</p>
+    <p style="margin:0 0 24px;color:#6b6b8a;font-size:13px">${params.serviceAddress}</p>
+
+    <!-- Line items table -->
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse">
+      <thead>
+        <tr>
+          <th style="padding:8px 0;color:#4a4a6a;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-align:left;border-bottom:2px solid #1e1e3a">Description</th>
+          <th style="padding:8px 0;color:#4a4a6a;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-align:center;border-bottom:2px solid #1e1e3a;width:50px">Qty</th>
+          <th style="padding:8px 0;color:#4a4a6a;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-align:right;border-bottom:2px solid #1e1e3a;width:80px">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${lineRows}
+        ${params.travelFee > 0 ? `<tr><td style="padding:12px 0;color:#c8c8e8;font-size:14px;border-bottom:1px solid #1a1a30">Travel Fee</td><td style="padding:12px 0;color:#6b6b8a;font-size:14px;text-align:center;border-bottom:1px solid #1a1a30">1</td><td style="padding:12px 0;color:#c8c8e8;font-size:14px;text-align:right;font-weight:600;border-bottom:1px solid #1a1a30">$${params.travelFee.toFixed(2)}</td></tr>` : ""}
+        ${params.taxAmount > 0 ? `<tr><td style="padding:12px 0;color:#c8c8e8;font-size:14px;border-bottom:1px solid #1a1a30">Tax</td><td style="padding:12px 0;color:#6b6b8a;font-size:14px;text-align:center;border-bottom:1px solid #1a1a30">1</td><td style="padding:12px 0;color:#c8c8e8;font-size:14px;text-align:right;font-weight:600;border-bottom:1px solid #1a1a30">$${params.taxAmount.toFixed(2)}</td></tr>` : ""}
+      </tbody>
+    </table>
+
+    <!-- Total -->
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-top:4px">
+      <tr>
+        <td style="padding:16px 20px;background:#13133a;border-radius:10px">
+          <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+            <tr>
+              <td style="color:#a0a0c0;font-size:14px;font-weight:700">Total Due</td>
+              <td style="text-align:right;color:#a78bfa;font-size:24px;font-weight:800">$${params.totalAmount.toFixed(2)}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    ${params.notes ? `<p style="margin:20px 0 0;padding:16px;background:#0f0f20;border-left:3px solid #5b21b6;border-radius:0 8px 8px 0;color:#8080a0;font-size:13px;line-height:1.6">${params.notes}</p>` : ""}
+
+    ${params.paymentUrl ? `
+    <!-- Pay Now button -->
+    <table cellpadding="0" cellspacing="0" role="presentation" style="margin:28px auto 0">
+      <tr><td style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border-radius:10px">
+        <a href="${params.paymentUrl}" style="display:inline-block;padding:16px 48px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;letter-spacing:0.3px">
+          Pay $${params.totalAmount.toFixed(2)} Now →
+        </a>
+      </td></tr>
+    </table>
+    <p style="text-align:center;margin:12px 0 0;color:#4a4a6a;font-size:12px">Secure payment powered by Square</p>
+    ` : ""}
+
+    <!-- Divider -->
+    <div style="height:1px;background:#1a1a30;margin:28px 0"></div>
+
+    <!-- Contact -->
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+      <tr>
+        <td style="color:#4a4a6a;font-size:13px">
+          Questions? <a href="tel:${params.phone.replace(/\D/g, "")}" style="color:#7c3aed;text-decoration:none">${params.phone}</a>
+          &nbsp;·&nbsp;
+          <a href="mailto:${params.businessEmail}" style="color:#7c3aed;text-decoration:none">${params.businessEmail}</a>
+        </td>
+      </tr>
+    </table>`;
+
+  const text = `Hi ${params.customerFirstName},\n\nHere is your invoice from Detailing Labs.\n\nInvoice #: ${params.invoiceNumber}\nDate: ${dateStr}\nLocation: ${params.serviceAddress}\n\n${params.lineItems.map(i => `${i.name} — $${i.price.toFixed(2)}`).join("\n")}${params.travelFee > 0 ? `\nTravel Fee — $${params.travelFee.toFixed(2)}` : ""}${params.taxAmount > 0 ? `\nTax — $${params.taxAmount.toFixed(2)}` : ""}\n\nTotal: $${params.totalAmount.toFixed(2)}\n${params.paymentUrl ? `\nPay online: ${params.paymentUrl}\n` : ""}\n${params.notes ? `Notes: ${params.notes}\n` : ""}\nQuestions? ${params.phone} · ${params.businessEmail}\n\n— Detailing Labs`;
+
+  return { subject: `Invoice ${params.invoiceNumber} — $${params.totalAmount.toFixed(2)} | Detailing Labs`, html: emailBase(header, body), text };
+}
+
+export function receiptEmail(params: {
+  invoiceNumber: string;
+  customerFirstName: string;
+  packageName: string;
+  serviceAddress: string;
+  lineItems: { name: string; qty: number; price: number }[];
+  totalAmount: number;
+  paidAt: Date;
+  phone: string;
+  businessEmail: string;
+}): { subject: string; html: string; text: string } {
+  const paidStr = params.paidAt.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+
+  const lineRows = params.lineItems.map(item => `
+    <tr>
+      <td style="padding:10px 0;color:#c8c8e8;font-size:14px;border-bottom:1px solid #1a1a30">${item.name}</td>
+      <td style="padding:10px 0;color:#c8c8e8;font-size:14px;text-align:right;font-weight:600;border-bottom:1px solid #1a1a30">$${item.price.toFixed(2)}</td>
+    </tr>`).join("");
+
+  const header = `
+    <tr><td style="background:#0d0d1a;padding:32px 40px 0;border:1px solid #1e1e3a;border-top:none;border-bottom:none">
+      <table cellpadding="0" cellspacing="0" role="presentation" style="margin:0 auto;text-align:center;width:100%">
+        <tr><td style="text-align:center">
+          <div style="display:inline-block;background:#14532d;border:1px solid #166534;border-radius:50%;width:52px;height:52px;line-height:52px;font-size:26px;margin-bottom:12px">✓</div>
+          <p style="margin:0 0 4px;color:#4ade80;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Payment Received</p>
+          <p style="margin:0;color:#f0f0ff;font-size:28px;font-weight:800">$${params.totalAmount.toFixed(2)}</p>
+          <p style="margin:4px 0 0;color:#6b6b8a;font-size:13px">${paidStr}</p>
+        </td></tr>
+      </table>
+      <div style="height:1px;background:#1a1a30;margin:24px 0 0"></div>
+    </td></tr>`;
+
+  const body = `
+    <p style="margin:24px 0 4px;color:#a0a0c0;font-size:14px">Hi <strong style="color:#e0e0ff">${params.customerFirstName}</strong>, thank you — payment confirmed.</p>
+    <p style="margin:0 0 24px;color:#6b6b8a;font-size:13px">Invoice <span style="color:#7c3aed;font-family:monospace">${params.invoiceNumber}</span> · ${params.serviceAddress}</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse">
+      <tbody>${lineRows}</tbody>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-top:4px">
+      <tr>
+        <td style="padding:16px 20px;background:#0a1f0f;border:1px solid #166534;border-radius:10px">
+          <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+            <tr>
+              <td style="color:#4ade80;font-size:14px;font-weight:700">Paid</td>
+              <td style="text-align:right;color:#4ade80;font-size:24px;font-weight:800">$${params.totalAmount.toFixed(2)}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <div style="height:1px;background:#1a1a30;margin:28px 0"></div>
+    <p style="margin:0;color:#4a4a6a;font-size:13px">
+      Questions? <a href="tel:${params.phone.replace(/\D/g, "")}" style="color:#7c3aed;text-decoration:none">${params.phone}</a>
+      &nbsp;·&nbsp;
+      <a href="mailto:${params.businessEmail}" style="color:#7c3aed;text-decoration:none">${params.businessEmail}</a>
+    </p>`;
+
+  return {
+    subject: `Receipt — $${params.totalAmount.toFixed(2)} paid | Detailing Labs`,
+    html: emailBase(header, body),
+    text: `Hi ${params.customerFirstName},\n\nPayment confirmed. Thank you!\n\nInvoice #: ${params.invoiceNumber}\nPaid: ${paidStr}\nAmount: $${params.totalAmount.toFixed(2)}\nLocation: ${params.serviceAddress}\n\n${params.lineItems.map(i => `${i.name} — $${i.price.toFixed(2)}`).join("\n")}\n\nQuestions? ${params.phone} · ${params.businessEmail}\n\n— Detailing Labs`,
+  };
+}

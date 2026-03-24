@@ -5,6 +5,7 @@ import { bookingsRouter } from "./routers/bookings";
 import { crmRouter } from "./routers/crm";
 import { employeesRouter } from "./routers/employees";
 import { invoicesRouter } from "./routers/invoices";
+import { paymentsRouter } from "./routers/payments";
 import { mediaRouter } from "./routers/media";
 import { contentRouter } from "./routers/content";
 import { usersRouter } from "./routers/users";
@@ -17,6 +18,7 @@ export const appRouter = router({
   crm: crmRouter,
   employees: employeesRouter,
   invoices: invoicesRouter,
+  payments: paymentsRouter,
   media: mediaRouter,
   content: contentRouter,
   users: usersRouter,
