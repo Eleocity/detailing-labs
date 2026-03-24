@@ -112,6 +112,27 @@ const faqs = [
     ],
   },
   {
+    category: "Payment & Booking",
+    questions: [
+      {
+        q: "How do I pay?",
+        a: "Payment is collected on-site after the service is complete and you've inspected the work. We accept cash, Venmo, Zelle, and all major credit and debit cards.",
+      },
+      {
+        q: "Do I pay upfront or after?",
+        a: "We collect payment after the job is done and you're satisfied with the results. We don't require a deposit for standard detailing appointments.",
+      },
+      {
+        q: "Is there a cancellation fee?",
+        a: "No fee if you cancel or reschedule at least 24 hours in advance. Late cancellations or no-shows may be subject to a fee.",
+      },
+      {
+        q: "Do you offer any discounts or packages?",
+        a: "We offer savings when you bundle our interior and exterior services together with the Full Showroom Reset. We may also offer seasonal promotions — follow us on social or ask when you book.",
+      },
+    ],
+  },
+  {
     category: "Ceramic Coating",
     questions: [
       {

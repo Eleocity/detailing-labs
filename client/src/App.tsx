@@ -48,6 +48,9 @@ const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 
+const Blog     = lazy(() => import("./pages/Blog"));
+const BlogPost  = lazy(() => import("./pages/Blog").then(m => ({ default: m.BlogPost })));
+
 // Location pages
 const LocationPageRacine        = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageRacine })));
 const LocationPageKenosha       = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageKenosha })));
@@ -113,6 +116,10 @@ function Router() {
 
         {/* Invite */}
         <Route path="/accept-invite" component={AcceptInvite} />
+
+        {/* Blog */}
+        <Route path="/blog" component={Blog} />
+        <Route path="/blog/:slug" component={BlogPost} />
 
         {/* Location pages */}
         <Route path="/mobile-detailing-racine-wi"         component={LocationPageRacine} />

@@ -3,9 +3,10 @@ import { TRPCError } from "@trpc/server";
 import { eq, desc, and, gte, lte, like, or, sql } from "drizzle-orm";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
+import { sendEmail, bookingConfirmationEmail } from "../email";
 import {
   bookings, customers, vehicles, services, packages, addOns,
-  bookingAssignments, bookingStatusHistory, invoices, notifications, employees
+  bookingAssignments, bookingStatusHistory, invoices, notifications, employees, siteContent
 } from "../../drizzle/schema";
 // notifyOwner removed — Manus notification service not available on Railway.
 // New bookings are visible in the Admin → Bookings dashboard.
@@ -156,6 +157,32 @@ export const bookingsRouter = router({
 
       // Owner notification: visible in Admin → Bookings dashboard.
       // (Manus push notification service not used on Railway)
+
+      // Send confirmation email to customer
+      if (input.customerEmail && newBooking) {
+        const { data: contactRows } = await (async () => {
+          try {
+            const rows = await db.select().from(siteContent).where(eq(siteContent.section, "contact")).limit(20);
+            return { data: rows };
+          } catch { return { data: [] }; }
+        })();
+        const phone = contactRows.find((r: any) => r.key === "phone")?.value || "(262) 555-0190";
+        const emailContent = bookingConfirmationEmail({
+          bookingNumber,
+          customerFirstName: input.customerFirstName,
+          customerLastName:  input.customerLastName,
+          packageName:       input.packageName ?? null,
+          appointmentDate:   new Date(input.appointmentDate),
+          serviceAddress:    input.serviceAddress,
+          serviceCity:       input.serviceCity ?? null,
+          serviceState:      input.serviceState ?? null,
+          totalAmount:       input.totalAmount?.toString() ?? null,
+          phone,
+        });
+        sendEmail({ to: input.customerEmail, ...emailContent }).catch((e: any) =>
+          console.error("[Email] Confirmation failed:", e?.message)
+        );
+      }
 
       return { bookingNumber, bookingId: newBooking?.id };
     }),

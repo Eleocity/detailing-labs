@@ -158,3 +158,95 @@ export function inviteEmail(inviteUrl: string, inviterName: string, role: string
 </html>`,
   };
 }
+
+export function bookingConfirmationEmail(booking: {
+  bookingNumber: string;
+  customerFirstName: string;
+  customerLastName: string;
+  packageName?: string | null;
+  appointmentDate: Date;
+  serviceAddress: string;
+  serviceCity?: string | null;
+  serviceState?: string | null;
+  totalAmount?: string | null;
+  phone: string;
+}): { subject: string; html: string; text: string } {
+  const dateStr = booking.appointmentDate.toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+  });
+  const timeStr = booking.appointmentDate.toLocaleTimeString("en-US", {
+    hour: "numeric", minute: "2-digit",
+  });
+  const address = [booking.serviceAddress, booking.serviceCity, booking.serviceState].filter(Boolean).join(", ");
+  const total = booking.totalAmount ? `$${Number(booking.totalAmount).toFixed(2)}` : null;
+
+  return {
+    subject: `Booking Confirmed — ${booking.bookingNumber} | Detailing Labs`,
+    text: `Hi ${booking.customerFirstName},\n\nYour booking is confirmed. Here are your details:\n\nBooking #: ${booking.bookingNumber}\nService: ${booking.packageName ?? "Mobile Detailing"}\nDate: ${dateStr} at ${timeStr}\nLocation: ${address}\n${total ? `Total: ${total}\n` : ""}\nQuestions? Call or text us at ${booking.phone}.\n\nWe'll show up ready — no water or power hookup needed from you.\n\n— Detailing Labs`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0d0d14;font-family:Inter,Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0d0d14;padding:40px 20px">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1a2e;border-radius:12px;overflow:hidden;border:1px solid #2a2a4a">
+        <!-- Header -->
+        <tr><td style="background:#7c3aed;padding:28px 40px;text-align:center">
+          <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px">Detailing Labs</p>
+          <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:13px">Professional Mobile Detailing — Racine County, WI</p>
+        </td></tr>
+        <!-- Confirmation badge -->
+        <tr><td style="padding:32px 40px 0;text-align:center">
+          <div style="display:inline-block;background:#16a34a20;border:1px solid #16a34a40;border-radius:100px;padding:8px 20px;margin-bottom:20px">
+            <span style="color:#4ade80;font-size:13px;font-weight:600">✓ Booking Confirmed</span>
+          </div>
+          <p style="margin:0 0 4px;color:#e2e8f0;font-size:22px;font-weight:700">You're all set, ${booking.customerFirstName}.</p>
+          <p style="margin:0;color:#94a3b8;font-size:14px">We'll see you on ${dateStr}.</p>
+        </td></tr>
+        <!-- Details -->
+        <tr><td style="padding:28px 40px">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:10px;overflow:hidden;border:1px solid #2a2a4a">
+            ${[
+              ["Booking #", `<span style="font-family:monospace;font-size:13px">${booking.bookingNumber}</span>`],
+              ["Service", booking.packageName ?? "Mobile Detailing"],
+              ["Date", dateStr],
+              ["Time", timeStr],
+              ["Location", address],
+              ...(total ? [["Total", `<strong style="color:#a78bfa">${total}</strong>`]] : []),
+            ].map(([label, value], i) => `
+              <tr style="${i > 0 ? "border-top:1px solid #1e293b" : ""}">
+                <td style="padding:14px 20px;color:#64748b;font-size:13px;width:120px;vertical-align:top">${label}</td>
+                <td style="padding:14px 20px;color:#e2e8f0;font-size:13px;font-weight:500">${value}</td>
+              </tr>`).join("")}
+          </table>
+        </td></tr>
+        <!-- What to expect -->
+        <tr><td style="padding:0 40px 28px">
+          <p style="margin:0 0 12px;color:#e2e8f0;font-size:15px;font-weight:600">What to expect</p>
+          <ul style="margin:0;padding:0 0 0 20px;color:#94a3b8;font-size:14px;line-height:1.8">
+            <li>We'll arrive at your location with all equipment — no water or power hookup needed from you.</li>
+            <li>Make sure the vehicle is accessible at the address you provided.</li>
+            <li>You don't need to be present for the full appointment.</li>
+          </ul>
+        </td></tr>
+        <!-- Questions -->
+        <tr><td style="padding:0 40px 32px">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e1b4b;border-radius:10px;border:1px solid #3730a3;padding:20px">
+            <tr><td style="padding:16px 20px">
+              <p style="margin:0 0 4px;color:#c4b5fd;font-size:13px;font-weight:600">Need to reschedule or have questions?</p>
+              <p style="margin:0;color:#a5b4fc;font-size:13px">Call or text us at <a href="tel:${booking.phone.replace(/\D/g, "")}" style="color:#818cf8;text-decoration:none">${booking.phone}</a> and we'll take care of you.</p>
+            </td></tr>
+          </table>
+        </td></tr>
+        <!-- Footer -->
+        <tr><td style="padding:20px 40px;background:#111827;text-align:center">
+          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Detailing Labs · Sturtevant, WI · <a href="https://detailinglabswi.com" style="color:#6d28d9;text-decoration:none">detailinglabswi.com</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+  };
+}

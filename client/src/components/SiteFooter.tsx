@@ -86,6 +86,7 @@ export default function SiteFooter() {
                 { href: "/gallery", label: "Photo Gallery" },
                 { href: "/about", label: "About Us" },
                 { href: "/faq", label: "FAQ" },
+                { href: "/blog", label: "Detailing Blog" },
                 { href: "/portal", label: "Customer Portal" },
               ].map((link) => (
                 <li key={link.href}>

@@ -109,6 +109,14 @@ type Tab = "detailing" | "ceramic";
 
 export default function Pricing() {
   const [tab, setTab] = useState<Tab | null>(null);
+  const [vehicleSize, setVehicleSize] = useState<"sedan" | "suv" | "large">("sedan");
+
+  const VEHICLE_SIZE_LABELS: Record<string, string> = {
+    sedan: "Sedan / Coupe",
+    suv:   "Small SUV / Truck",
+    large: "Large SUV / Minivan",
+  };
+  const VEHICLE_SIZE_INDEX: Record<string, number> = { sedan: 0, suv: 1, large: 2 };
   const search = useSearch();
   useEffect(() => {
     const params = new URLSearchParams(search);
@@ -247,6 +255,22 @@ export default function Pricing() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                 >
+                  {/* Vehicle size selector */}
+                  <div className="mb-7">
+                    <p className="text-sm font-semibold text-foreground mb-3">Your Vehicle Size</p>
+                    <div className="flex rounded-xl border border-border overflow-hidden w-full">
+                      {(["sedan", "suv", "large"] as const).map((size) => (
+                        <button key={size} onClick={() => setVehicleSize(size)}
+                          className={cn(
+                            "flex-1 py-2.5 text-xs font-semibold transition-colors border-r border-border last:border-r-0",
+                            vehicleSize === size ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                          )}>
+                          {VEHICLE_SIZE_LABELS[size]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Package grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
                     {packages.map((pkg) => {
@@ -279,22 +303,22 @@ export default function Pricing() {
                             <h3 className="font-display font-bold text-xl mb-0.5">{pkg.name}</h3>
                           </div>
 
-                          {/* Vehicle tier pricing */}
-                          {VEHICLE_TIERS[pkg.name] ? (
-                            <div className="mb-5 space-y-1.5">
-                              {VEHICLE_TIERS[pkg.name].map(tier => (
-                                <div key={tier.label} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
-                                  <span className="text-sm text-muted-foreground">{tier.label}</span>
-                                  <span className="font-display font-bold text-foreground">${tier.price}</span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="mb-4">
-                              <span className="text-4xl font-display font-bold">${Number(pkg.price).toLocaleString()}</span>
-                              <span className="text-muted-foreground text-sm ml-2">starting</span>
-                            </div>
-                          )}
+                          {/* Single price for selected vehicle size */}
+                          <div className="mb-5">
+                            {VEHICLE_TIERS[pkg.name] ? (
+                              <div className="flex items-end gap-2">
+                                <span className="text-4xl font-display font-bold text-foreground">
+                                  ${VEHICLE_TIERS[pkg.name][VEHICLE_SIZE_INDEX[vehicleSize]]?.price ?? Number(pkg.price)}
+                                </span>
+                                <span className="text-muted-foreground text-sm mb-1.5">{VEHICLE_SIZE_LABELS[vehicleSize]}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-end gap-2">
+                                <span className="text-4xl font-display font-bold">${Number(pkg.price).toLocaleString()}</span>
+                                <span className="text-muted-foreground text-sm mb-1.5">starting</span>
+                              </div>
+                            )}
+                          </div>
 
                           <p className="text-muted-foreground text-sm leading-relaxed mb-5">{pkg.description}</p>
 

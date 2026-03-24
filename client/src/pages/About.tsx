@@ -1,23 +1,20 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ChevronRight, Shield, Award, MapPin, Sparkles, Users } from "lucide-react";
+import { ChevronRight, Shield, MapPin, Sparkles, CheckCircle2, Zap, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import SEO, { breadcrumbSchema } from "@/components/SEO";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.55 } },
-};
+const fadeUp = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55 } } };
 const stagger = { visible: { transition: { staggerChildren: 0.10 } } };
 
 const values = [
-  { icon: <Shield className="w-6 h-6" />, title: "Uncompromising Quality", desc: "We use only professional-grade products and proven techniques. Every vehicle gets the same meticulous attention to detail." },
-  { icon: <MapPin className="w-6 h-6" />, title: "True Mobile Service", desc: "We built our business around your convenience. Our fully equipped mobile units bring the detail shop to your door." },
-  { icon: <Award className="w-6 h-6" />, title: "Certified Expertise", desc: "Our detailers are trained and certified. We stay current with the latest techniques, products, and industry standards." },
-  { icon: <Sparkles className="w-6 h-6" />, title: "Passion for Perfection", desc: "Detailing isn't just a job for us — it's a craft. We take pride in every vehicle we touch and every result we deliver." },
-  { icon: <Users className="w-6 h-6" />, title: "Client-First Approach", desc: "Your satisfaction drives everything we do. We communicate clearly, show up on time, and stand behind our work." },
+  { icon: <Zap className="w-5 h-5" />,      title: "Self-Contained Operation",   desc: "We bring our own water tank and generator. We don't need access to your utilities — we show up and get to work." },
+  { icon: <Shield className="w-5 h-5" />,   title: "Professional Products",      desc: "We use the same products professionals trust on high-end vehicles. Not whatever's cheapest." },
+  { icon: <Star className="w-5 h-5" />,     title: "No Shortcuts",               desc: "We don't rush jobs. Every vehicle gets the same level of care regardless of size or service level." },
+  { icon: <MapPin className="w-5 h-5" />,   title: "Local and Committed",        desc: "We're based in Sturtevant and focused on Southeast Wisconsin. This is our home market — we're building a reputation here." },
+  { icon: <Sparkles className="w-5 h-5" />, title: "Honest Pricing",             desc: "What you see on the pricing page is what you pay. We quote before we start, and we don't add surprise charges." },
 ];
 
 export default function About() {
@@ -26,7 +23,7 @@ export default function About() {
       <SiteHeader />
       <SEO
         title="About Detailing Labs — Mobile Detailing in Southeast Wisconsin"
-        description="Detailing Labs is a mobile detailing company based in Southeast Wisconsin, serving Racine County, Kenosha, and surrounding areas. Learn about our team and approach."
+        description="Detailing Labs is a mobile detailing company based in Sturtevant, WI serving Racine County and surrounding areas. Learn about who we are and how we work."
         canonical="/about"
         jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "About", url: "/about" }])}
       />
@@ -38,13 +35,13 @@ export default function About() {
           <div className="max-w-3xl">
             <motion.div initial="hidden" animate="visible" variants={stagger}>
               <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">
-                Our Story
+                Based in Sturtevant, WI
               </motion.p>
-              <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-5">
-                Built for the Modern Car Enthusiast
+              <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-5 leading-tight">
+                A Mobile Detailing Service<br />Built for Wisconsin.
               </motion.h1>
               <motion.p variants={fadeUp} className="text-muted-foreground text-lg leading-relaxed">
-                Detailing Labs was founded with a simple mission: deliver premium auto detailing results without the hassle of a traditional shop. We believe your vehicle deserves expert care, and you deserve the convenience of having it done at your door.
+                We started Detailing Labs because getting a truly professional detail in Southeast Wisconsin shouldn't require a trip to a shop, a half-day of waiting, and hoping they do good work. We built the alternative.
               </motion.p>
             </motion.div>
           </div>
@@ -54,30 +51,44 @@ export default function About() {
       {/* Story */}
       <section className="py-12 sm:py-20">
         <div className="container">
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start max-w-5xl mx-auto">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-              <motion.h2 variants={fadeUp} className="text-3xl font-display font-bold mb-5">
-                Why We Started Detailing Labs
+              <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl font-display font-bold mb-6">
+                Why We Started This
               </motion.h2>
-              <motion.div variants={fadeUp} className="space-y-4 text-muted-foreground leading-relaxed">
+              <motion.div variants={fadeUp} className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
-                  We started Detailing Labs because we saw a gap in the market. Traditional detailing shops required drop-offs, long wait times, and inconvenient scheduling. Car enthusiasts deserved better — and so did everyday drivers who simply wanted their vehicle to look its best.
+                  The idea behind Detailing Labs is straightforward. Too many mobile detailers show up with a bucket and a pressure washer and call it professional. Too many shops rush through jobs and charge accordingly. We wanted to offer something different — a proper, professional-grade detail that comes to you.
                 </p>
                 <p>
-                  By building a fully mobile operation, we eliminated the friction. Our team arrives at your location with everything needed to perform a world-class detail — professional-grade equipment, premium products, and the expertise to use them correctly.
+                  We're based in Sturtevant and serve Racine County, Kenosha County, and surrounding areas. We operate a fully self-contained mobile setup — our own water supply, our own power, professional equipment on every job. You don't need to do anything except tell us where to show up.
                 </p>
                 <p>
-                  We serve clients at their homes, offices, apartment complexes, and anywhere else that works for them. Our goal is simple: make premium detailing accessible, convenient, and consistently excellent.
+                  We've been doing this in Wisconsin for 3 years. We're not a franchise. We're not a side gig. This is our business and our reputation is built one vehicle at a time.
                 </p>
+              </motion.div>
+
+              <motion.div variants={fadeUp} className="mt-8 flex flex-col sm:flex-row gap-3">
+                <Link href="/booking">
+                  <Button className="bg-primary hover:bg-primary/90 font-semibold px-7 w-full sm:w-auto">
+                    Book a Service <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+                <Link href="/contact">
+                  <Button variant="outline" className="border-border hover:border-primary/50 px-7 w-full sm:w-auto">
+                    Get In Touch
+                  </Button>
+                </Link>
               </motion.div>
             </motion.div>
 
+            {/* Stats */}
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="space-y-4">
               <motion.div variants={fadeUp} className="grid grid-cols-2 gap-4">
                 {[
-                  { value: "500+", label: "Vehicles Detailed" },
+                  { value: "100+", label: "Vehicles Detailed" },
                   { value: "5.0★", label: "Average Rating" },
-                  { value: "3+", label: "Years Experience" },
+                  { value: "3 yrs", label: "In SE Wisconsin" },
                   { value: "100%", label: "Mobile Service" },
                 ].map((stat) => (
                   <div key={stat.label} className="p-5 rounded-xl border border-border bg-card text-center">
@@ -86,32 +97,35 @@ export default function About() {
                   </div>
                 ))}
               </motion.div>
+
+              <motion.div variants={fadeUp} className="p-5 rounded-xl border border-border bg-card">
+                <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">Service Area</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {["Sturtevant", "Racine", "Kenosha", "Mount Pleasant", "Caledonia", "Oak Creek", "Burlington", "Franksville"].map(t => (
+                    <span key={t} className="text-xs px-2.5 py-1 rounded-full border border-border bg-background text-muted-foreground">{t}</span>
+                  ))}
+                </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Values */}
+      {/* How we work */}
       <section className="py-12 sm:py-20 bg-[oklch(0.06_0.004_280)]">
         <div className="container">
           <div className="text-center mb-12">
-            <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">What We Stand For</p>
-            <h2 className="text-3xl font-display font-bold">Our Values</h2>
+            <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">How We Operate</p>
+            <h2 className="text-2xl sm:text-3xl font-display font-bold">What Makes Us Different</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
             {values.map((v) => (
-              <motion.div
-                key={v.title}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
-                className="p-6 rounded-xl border border-border bg-card hover:border-primary/30 transition-all"
-              >
-                <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4">
+              <motion.div key={v.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+                className="p-6 rounded-xl border border-border bg-card hover:border-primary/30 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4">
                   {v.icon}
                 </div>
-                <h3 className="font-display font-semibold text-lg mb-2">{v.title}</h3>
+                <h3 className="font-display font-semibold text-base mb-2">{v.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">{v.desc}</p>
               </motion.div>
             ))}
@@ -119,26 +133,43 @@ export default function About() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* What to expect */}
       <section className="py-12 sm:py-20">
-        <div className="container text-center">
-          <h2 className="text-3xl font-display font-bold mb-4">Experience the Detailing Labs Difference</h2>
-          <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-            Book your first detail and see why our clients keep coming back. We're confident you'll love the results.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/book">
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8">
-                Book Now
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </Link>
-            <Link href="/contact">
-              <Button variant="outline" className="border-border hover:border-primary/50 px-8">
-                Get In Touch
-              </Button>
-            </Link>
+        <div className="container max-w-3xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl font-display font-bold mb-8 text-center">What to Expect When You Book</h2>
+          <div className="space-y-4">
+            {[
+              { step: "1", title: "Book online", desc: "Choose your package, enter your address, and pick a date. Takes under two minutes." },
+              { step: "2", title: "We confirm",  desc: "You'll get a booking confirmation by email with your appointment details and our contact number." },
+              { step: "3", title: "We show up",  desc: "We arrive at your location with all equipment. No water or power hookup needed from you." },
+              { step: "4", title: "We deliver",  desc: "We complete the service and you inspect the work. Payment is collected on-site when you're satisfied." },
+            ].map(item => (
+              <div key={item.step} className="flex items-start gap-4 p-5 rounded-xl border border-border bg-card">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                  {item.step}
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-1">{item.title}</h4>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-12 sm:py-16 bg-[oklch(0.06_0.004_280)]">
+        <div className="container text-center">
+          <h2 className="text-2xl sm:text-3xl font-display font-bold mb-4">Ready to See the Difference?</h2>
+          <p className="text-muted-foreground mb-8 max-w-lg mx-auto text-sm">
+            Book online and we'll handle everything from there. Same-week availability on most dates.
+          </p>
+          <Link href="/booking">
+            <Button className="bg-primary hover:bg-primary/90 font-semibold px-10 h-12">
+              Book Your Detail <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </Link>
         </div>
       </section>
 
