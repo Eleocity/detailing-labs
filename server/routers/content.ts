@@ -177,4 +177,36 @@ export const contentRouter = router({
       await db.update(addOns).set({ isActive: false }).where(eq(addOns.id, input.id));
       return { success: true };
     }),
+
+  // ── Public: Contact form ────────────────────────────────────────────────
+  sendContactForm: publicProcedure
+    .input(z.object({
+      name:    z.string().min(1).max(100),
+      email:   z.string().email(),
+      phone:   z.string().optional(),
+      message: z.string().min(5).max(2000),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      // Get owner email from site content
+      let ownerEmail = "hello@detailinglabswi.com";
+      if (db) {
+        const rows = await db.select().from(siteContent).where(eq(siteContent.section, "contact")).limit(20);
+        ownerEmail = rows.find(r => r.key === "email")?.value || ownerEmail;
+      }
+
+      const { sendEmail, contactFormEmail } = await import("../email");
+      const content = contactFormEmail({ ...input, ownerEmail });
+
+      // Send to owner (reply-to set to submitter's email)
+      const sent = await sendEmail({
+        to: ownerEmail,
+        subject: content.subject,
+        html: content.html,
+        text: content.text,
+      });
+
+      if (!sent) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to send — please try again or call us directly." });
+      return { success: true };
+    }),
 });

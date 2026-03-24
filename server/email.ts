@@ -570,3 +570,46 @@ export function receiptEmail(params: {
     text: `Hi ${params.customerFirstName},\n\nPayment confirmed. Thank you!\n\nInvoice #: ${params.invoiceNumber}\nPaid: ${paidStr}\nAmount: $${params.totalAmount.toFixed(2)}\nLocation: ${params.serviceAddress}\n\n${params.lineItems.map(i => `${i.name} — $${i.price.toFixed(2)}`).join("\n")}\n\nQuestions? ${params.phone} · ${params.businessEmail}\n\n— Detailing Labs`,
   };
 }
+
+export function contactFormEmail(params: {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+  ownerEmail: string;
+}): { subject: string; html: string; text: string } {
+  return {
+    subject: `New Contact Form — ${params.name} | Detailing Labs`,
+    text: `New message from your website contact form.\n\nName: ${params.name}\nEmail: ${params.email}${params.phone ? `\nPhone: ${params.phone}` : ""}\n\nMessage:\n${params.message}\n\nReply to: ${params.email}`,
+    html: emailBase(
+      `<tr><td style="background:#0d0d1a;padding:28px 40px 0;border:1px solid #1e1e3a;border-top:none;border-bottom:none">
+        <p style="margin:0 0 4px;color:#7c3aed;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase">Contact Form</p>
+        <p style="margin:0;color:#f0f0ff;font-size:22px;font-weight:800">New Message</p>
+        <div style="height:1px;background:#1a1a30;margin:20px 0 0"></div>
+      </td></tr>`,
+      `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-top:24px;border-collapse:collapse">
+        ${[
+          ["Name",    params.name],
+          ["Email",   `<a href="mailto:${params.email}" style="color:#7c3aed;text-decoration:none">${params.email}</a>`],
+          ...(params.phone ? [["Phone", `<a href="tel:${params.phone.replace(/\D/g,"")}" style="color:#7c3aed;text-decoration:none">${params.phone}</a>`]] : []),
+        ].map(([label, value]) => `
+          <tr>
+            <td style="padding:10px 0;color:#4a4a6a;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;width:80px;vertical-align:top;border-bottom:1px solid #1a1a30">${label}</td>
+            <td style="padding:10px 0 10px 16px;color:#c8c8e8;font-size:14px;border-bottom:1px solid #1a1a30">${value}</td>
+          </tr>`).join("")}
+      </table>
+      <div style="margin-top:20px;padding:20px;background:#0f0f20;border-left:3px solid #5b21b6;border-radius:0 8px 8px 0">
+        <p style="margin:0 0 8px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Message</p>
+        <p style="margin:0;color:#a0a0c0;font-size:14px;line-height:1.7;white-space:pre-wrap">${params.message}</p>
+      </div>
+      <div style="height:1px;background:#1a1a30;margin:24px 0"></div>
+      <table cellpadding="0" cellspacing="0" role="presentation">
+        <tr><td style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border-radius:8px">
+          <a href="mailto:${params.email}" style="display:inline-block;padding:12px 28px;color:#fff;font-size:14px;font-weight:700;text-decoration:none">
+            Reply to ${params.name} →
+          </a>
+        </td></tr>
+      </table>`
+    ),
+  };
+}

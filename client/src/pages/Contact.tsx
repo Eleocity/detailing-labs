@@ -26,17 +26,26 @@ export default function Contact() {
     return map;
   })();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const sendForm = trpc.content.sendContactForm.useMutation({
+    onSuccess: () => {
+      toast.success("Message sent! We'll get back to you soon.");
+      setForm({ name: "", email: "", phone: "", message: "" });
+      setSending(false);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to send. Please call us directly.");
+      setSending(false);
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) {
       toast.error("Please fill in all required fields.");
       return;
     }
     setSending(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setSending(false);
-    toast.success("Message sent! We'll get back to you within 24 hours.");
-    setForm({ name: "", email: "", phone: "", message: "" });
+    sendForm.mutate({ name: form.name, email: form.email, phone: form.phone || undefined, message: form.message });
   };
 
   return (
