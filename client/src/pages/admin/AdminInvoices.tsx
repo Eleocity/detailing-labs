@@ -35,6 +35,10 @@ export function AdminInvoicesList() {
     onSuccess: () => { toast.success("Invoice updated"); refetch(); },
     onError: (err) => toast.error(err.message),
   });
+  const sendInvoice = trpc.invoices.send.useMutation({
+    onSuccess: (d) => { toast.success(`Invoice sent to ${d.sentTo}`); refetch(); },
+    onError: (err) => toast.error(err.message),
+  });
   const deleteInv = trpc.invoices.delete.useMutation({
     onSuccess: () => { toast.success("Invoice deleted"); refetch(); },
     onError: (err) => toast.error(err.message),
@@ -138,10 +142,10 @@ export function AdminInvoicesList() {
                               Mark Paid
                             </Button>
                           )}
-                          {inv.status === "draft" && (
+                          {(inv.status === "draft" || inv.status === "sent") && (
                             <Button size="sm" variant="ghost" className="text-xs h-7 px-2 text-blue-400 hover:text-blue-300"
-                              onClick={() => updateStatus.mutate({ id: inv.id, status: "sent" })}>
-                              Send
+                              onClick={() => sendInvoice.mutate({ id: inv.id })}>
+                              {inv.status === "sent" ? "Resend" : "Send"}
                             </Button>
                           )}
                           <Button size="sm" variant="ghost" className="text-xs h-7 px-2 text-red-400 hover:text-red-300"
@@ -186,6 +190,10 @@ export function AdminInvoiceDetail() {
 
   const updateStatus = trpc.invoices.updateStatus.useMutation({
     onSuccess: () => { toast.success("Status updated"); refetch(); },
+    onError: (err) => toast.error(err.message),
+  });
+  const sendInvoice = trpc.invoices.send.useMutation({
+    onSuccess: (d) => { toast.success(`Invoice sent to ${d.sentTo}`); refetch(); },
     onError: (err) => toast.error(err.message),
   });
   const update = trpc.invoices.update.useMutation({
@@ -260,10 +268,11 @@ export function AdminInvoiceDetail() {
                 <CheckCircle2 className="w-3.5 h-3.5" /> Mark Paid
               </Button>
             )}
-            {invoice.status === "draft" && (
+            {(invoice.status === "draft" || invoice.status === "sent") && (
               <Button size="sm" variant="outline" className="gap-1.5 text-blue-400 border-blue-500/30"
-                onClick={() => updateStatus.mutate({ id: invoice.id, status: "sent" })}>
-                <Send className="w-3.5 h-3.5" /> Mark Sent
+                onClick={() => sendInvoice.mutate({ id: invoice.id })}
+                disabled={sendInvoice.isPending}>
+                <Send className="w-3.5 h-3.5" /> {invoice.status === "sent" ? "Resend Invoice" : "Send Invoice"}
               </Button>
             )}
             {invoice.status === "paid" && (
@@ -447,7 +456,13 @@ export function AdminInvoiceDetail() {
             <div className="rounded-xl border border-border bg-card p-5">
               <h3 className="font-semibold text-sm mb-3">Change Status</h3>
               <div className="space-y-2">
-                {(["draft", "sent", "paid", "overdue", "cancelled"] as const).map(s => (
+                <Button size="sm" className="w-full gap-1.5 bg-blue-600 hover:bg-blue-500 text-white mb-3"
+              onClick={() => sendInvoice.mutate({ id: invoice.id })}
+              disabled={sendInvoice.isPending}>
+              <Send className="w-3.5 h-3.5" />
+              {invoice.status === "sent" ? "Resend to Customer" : "Send to Customer"}
+            </Button>
+            {(["draft", "sent", "paid", "overdue", "cancelled"] as const).map(s => (
                   <button key={s}
                     onClick={() => updateStatus.mutate({ id: invoice.id, status: s })}
                     disabled={invoice.status === s}

@@ -2,8 +2,9 @@ import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { protectedProcedure, router } from "../_core/trpc";
+import { sendEmail, invoiceEmail } from "../email";
 import { getDb } from "../db";
-import { invoices, bookings } from "../../drizzle/schema";
+import { invoices, bookings, siteContent } from "../../drizzle/schema";
 
 function adminOnly(role: string) {
   if (role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Admin only" });
@@ -115,6 +116,58 @@ export const invoicesRouter = router({
         totalAmount: totalAmount.toFixed(2) as any,
       }).where(eq(invoices.id, input.id));
       return { success: true };
+    }),
+
+  // ── Send invoice email to customer ──────────────────────────────────────
+  send: protectedProcedure
+    .input(z.object({ id: z.number().int() }))
+    .mutation(async ({ input, ctx }) => {
+      adminOnly(ctx.user.role);
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      const [inv] = await db.select().from(invoices).where(eq(invoices.id, input.id)).limit(1);
+      if (!inv) throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found" });
+
+      let booking = null;
+      if (inv.bookingId) {
+        const [b] = await db.select().from(bookings).where(eq(bookings.id, inv.bookingId)).limit(1);
+        booking = b ?? null;
+      }
+
+      const customerEmail = booking?.customerEmail;
+      if (!customerEmail) throw new TRPCError({ code: "BAD_REQUEST", message: "No customer email on file for this booking" });
+
+      // Get business contact info
+      const contactRows = await db.select().from(siteContent).where(eq(siteContent.section, "contact")).limit(20);
+      const phone = contactRows.find(r => r.key === "phone")?.value || "(262) 555-0190";
+      const bizEmail = contactRows.find(r => r.key === "email")?.value || "hello@detailinglabswi.com";
+
+      const lineItems: { name: string; qty: number; price: number }[] = inv.lineItems ? JSON.parse(inv.lineItems) : [];
+
+      const content = invoiceEmail({
+        invoiceNumber:   inv.invoiceNumber,
+        customerFirstName: booking?.customerFirstName ?? "there",
+        packageName:     booking?.packageName ?? "Mobile Detailing",
+        appointmentDate: booking?.appointmentDate ? new Date(booking.appointmentDate) : new Date(inv.createdAt),
+        serviceAddress:  [booking?.serviceAddress, booking?.serviceCity, booking?.serviceState].filter(Boolean).join(", ") || "Your location",
+        lineItems,
+        subtotal:    Number(inv.subtotal),
+        travelFee:   Number(inv.travelFee ?? 0),
+        taxAmount:   Number(inv.taxAmount ?? 0),
+        totalAmount: Number(inv.totalAmount),
+        notes:       inv.notes ?? null,
+        phone,
+        businessEmail: bizEmail,
+      });
+
+      const sent = await sendEmail({ to: customerEmail, ...content });
+      if (!sent) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to send email — check SENDGRID_API_KEY" });
+
+      // Mark as sent
+      await db.update(invoices).set({ status: "sent" }).where(eq(invoices.id, input.id));
+
+      return { success: true, sentTo: customerEmail };
     }),
 
   // ── Delete invoice ───────────────────────────────────────────────────────

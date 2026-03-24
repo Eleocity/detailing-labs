@@ -250,3 +250,103 @@ export function bookingConfirmationEmail(booking: {
 </html>`,
   };
 }
+
+export function invoiceEmail(params: {
+  invoiceNumber: string;
+  customerFirstName: string;
+  packageName: string;
+  appointmentDate: Date;
+  serviceAddress: string;
+  lineItems: { name: string; qty: number; price: number }[];
+  subtotal: number;
+  travelFee: number;
+  taxAmount: number;
+  totalAmount: number;
+  notes?: string | null;
+  phone: string;
+  businessEmail: string;
+}): { subject: string; html: string; text: string } {
+  const dateStr = params.appointmentDate.toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+  });
+
+  const lineRows = params.lineItems.map(item =>
+    `<tr style="border-top:1px solid #1e293b">
+      <td style="padding:12px 20px;color:#e2e8f0;font-size:13px">${item.name}</td>
+      <td style="padding:12px 20px;color:#94a3b8;font-size:13px;text-align:center">${item.qty}</td>
+      <td style="padding:12px 20px;color:#e2e8f0;font-size:13px;text-align:right;font-weight:600">$${item.price.toFixed(2)}</td>
+    </tr>`
+  ).join("");
+
+  const textLines = params.lineItems.map(i => `  ${i.name} x${i.qty} — $${i.price.toFixed(2)}`).join("\n");
+
+  return {
+    subject: `Invoice ${params.invoiceNumber} — Detailing Labs`,
+    text: `Hi ${params.customerFirstName},\n\nHere is your invoice from Detailing Labs.\n\nInvoice #: ${params.invoiceNumber}\nDate of Service: ${dateStr}\nLocation: ${params.serviceAddress}\n\nItems:\n${textLines}\n\nSubtotal: $${params.subtotal.toFixed(2)}${params.travelFee > 0 ? `\nTravel Fee: $${params.travelFee.toFixed(2)}` : ""}${params.taxAmount > 0 ? `\nTax: $${params.taxAmount.toFixed(2)}` : ""}\nTotal: $${params.totalAmount.toFixed(2)}\n${params.notes ? `\nNotes: ${params.notes}\n` : ""}\nQuestions? Call or text us at ${params.phone} or email ${params.businessEmail}.\n\nThank you for choosing Detailing Labs.\n— Detailing Labs`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0d0d14;font-family:Inter,Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0d0d14;padding:40px 20px">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1a2e;border-radius:12px;overflow:hidden;border:1px solid #2a2a4a">
+        <!-- Header -->
+        <tr><td style="background:#7c3aed;padding:28px 40px">
+          <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px">Detailing Labs</p>
+          <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:13px">Professional Mobile Detailing — Racine County, WI</p>
+        </td></tr>
+        <!-- Title row -->
+        <tr><td style="padding:32px 40px 0">
+          <p style="margin:0 0 4px;color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:600">Invoice</p>
+          <p style="margin:0 0 4px;color:#e2e8f0;font-size:24px;font-weight:700">${params.invoiceNumber}</p>
+          <p style="margin:0;color:#64748b;font-size:13px">${dateStr} · ${params.serviceAddress}</p>
+        </td></tr>
+        <!-- Line items -->
+        <tr><td style="padding:24px 40px 0">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:10px;overflow:hidden;border:1px solid #2a2a4a">
+            <tr style="background:#1e293b">
+              <th style="padding:10px 20px;text-align:left;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Description</th>
+              <th style="padding:10px 20px;text-align:center;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;width:50px">Qty</th>
+              <th style="padding:10px 20px;text-align:right;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;width:80px">Price</th>
+            </tr>
+            ${lineRows}
+            ${params.travelFee > 0 ? `<tr style="border-top:1px solid #1e293b"><td style="padding:12px 20px;color:#94a3b8;font-size:13px">Travel Fee</td><td style="padding:12px 20px;color:#94a3b8;font-size:13px;text-align:center">1</td><td style="padding:12px 20px;color:#e2e8f0;font-size:13px;text-align:right;font-weight:600">$${params.travelFee.toFixed(2)}</td></tr>` : ""}
+            ${params.taxAmount > 0 ? `<tr style="border-top:1px solid #1e293b"><td style="padding:12px 20px;color:#94a3b8;font-size:13px">Tax</td><td style="padding:12px 20px;color:#94a3b8;font-size:13px;text-align:center">1</td><td style="padding:12px 20px;color:#e2e8f0;font-size:13px;text-align:right;font-weight:600">$${params.taxAmount.toFixed(2)}</td></tr>` : ""}
+            <!-- Total row -->
+            <tr style="border-top:2px solid #2a2a4a;background:#1e293b">
+              <td colspan="2" style="padding:16px 20px;color:#e2e8f0;font-size:14px;font-weight:700">Total</td>
+              <td style="padding:16px 20px;text-align:right;color:#a78bfa;font-size:18px;font-weight:800">$${params.totalAmount.toFixed(2)}</td>
+            </tr>
+          </table>
+        </td></tr>
+        ${params.notes ? `
+        <!-- Notes -->
+        <tr><td style="padding:20px 40px 0">
+          <div style="background:#0f172a;border:1px solid #2a2a4a;border-radius:10px;padding:16px 20px">
+            <p style="margin:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Notes</p>
+            <p style="margin:0;color:#94a3b8;font-size:13px;line-height:1.6">${params.notes}</p>
+          </div>
+        </td></tr>` : ""}
+        <!-- Contact -->
+        <tr><td style="padding:24px 40px">
+          <div style="background:#1e1b4b;border:1px solid #3730a3;border-radius:10px;padding:16px 20px">
+            <p style="margin:0 0 4px;color:#c4b5fd;font-size:13px;font-weight:600">Questions about this invoice?</p>
+            <p style="margin:0;color:#a5b4fc;font-size:13px">
+              Call or text <a href="tel:${params.phone.replace(/\D/g, "")}" style="color:#818cf8;text-decoration:none">${params.phone}</a>
+              &nbsp;·&nbsp;
+              <a href="mailto:${params.businessEmail}" style="color:#818cf8;text-decoration:none">${params.businessEmail}</a>
+            </p>
+          </div>
+        </td></tr>
+        <!-- Footer -->
+        <tr><td style="padding:20px 40px;background:#111827;text-align:center">
+          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Detailing Labs · Sturtevant, WI · <a href="https://detailinglabswi.com" style="color:#6d28d9;text-decoration:none">detailinglabswi.com</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+  };
+}
