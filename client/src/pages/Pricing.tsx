@@ -109,7 +109,7 @@ type Tab = "detailing" | "ceramic" | "fleet";
 
 export default function Pricing() {
   const [tab, setTab] = useState<Tab | null>(null);
-  const [vehicleSize, setVehicleSize] = useState<"sedan" | "suv" | "large">("sedan");
+  const [vehicleSize, setVehicleSize] = useState<"sedan" | "suv" | "large" | null>(null);
 
   const VEHICLE_SIZE_LABELS: Record<string, string> = {
     sedan: "Sedan / Coupe",
@@ -117,6 +117,7 @@ export default function Pricing() {
     large: "Large SUV / Minivan",
   };
   const VEHICLE_SIZE_INDEX: Record<string, number> = { sedan: 0, suv: 1, large: 2 };
+  const vehicleSizeSelected = vehicleSize !== null;
   const search = useSearch();
   useEffect(() => {
     const params = new URLSearchParams(search);
@@ -309,12 +310,12 @@ export default function Pricing() {
                             "flex flex-col items-center justify-center gap-0.5 py-3 px-2 rounded-xl border-2 transition-all text-center",
                             vehicleSize === opt.id
                               ? "border-primary bg-primary/10 shadow-sm shadow-primary/20"
-                              : "border-border bg-background hover:border-primary/40"
+                              : "border-border bg-background hover:border-primary/50 hover:bg-primary/4"
                           )}>
-                          <span className={cn("text-sm font-bold leading-tight", vehicleSize === opt.id ? "text-primary" : "text-foreground")}>
+                          <span className={cn("text-sm font-bold leading-tight", vehicleSize === opt.id ? "text-primary" : "text-muted-foreground")}>
                             {opt.label}
                           </span>
-                          <span className={cn("text-[11px] leading-tight", vehicleSize === opt.id ? "text-primary/80" : "text-muted-foreground")}>
+                          <span className={cn("text-[11px] leading-tight", vehicleSize === opt.id ? "text-primary/70" : "text-muted-foreground/60")}>
                             {opt.sub}
                           </span>
                         </button>
@@ -325,7 +326,19 @@ export default function Pricing() {
                     </p>
                   </div>
 
-                  {/* Package grid */}
+                  {/* Package grid — only shown after vehicle size is selected */}
+                  {!vehicleSizeSelected ? (
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center mb-4">
+                        <ChevronRight className="w-7 h-7 text-primary/60 rotate-90" />
+                      </div>
+                      <p className="font-display font-bold text-lg mb-2">Select your vehicle size above</p>
+                      <p className="text-muted-foreground text-sm max-w-xs">
+                        We want to make sure you see the right price for your vehicle before you book.
+                      </p>
+                    </div>
+                  ) : (
+                  <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
                     {packages.map((pkg) => {
                       const features: string[] = pkg.features ? JSON.parse(pkg.features) : [];
@@ -362,9 +375,9 @@ export default function Pricing() {
                             {VEHICLE_TIERS[pkg.name] ? (
                               <div className="flex items-end gap-2">
                                 <span className="text-4xl font-display font-bold text-foreground">
-                                  ${VEHICLE_TIERS[pkg.name][VEHICLE_SIZE_INDEX[vehicleSize]]?.price ?? Number(pkg.price)}
+                                  ${vehicleSize ? (VEHICLE_TIERS[pkg.name][VEHICLE_SIZE_INDEX[vehicleSize]]?.price ?? Number(pkg.price)) : Number(pkg.price)}
                                 </span>
-                                <span className="text-muted-foreground text-sm mb-1.5">{VEHICLE_SIZE_LABELS[vehicleSize]}</span>
+                                <span className="text-muted-foreground text-sm mb-1.5">{vehicleSize ? VEHICLE_SIZE_LABELS[vehicleSize] : ""}</span>
                               </div>
                             ) : (
                               <div className="flex items-end gap-2">
@@ -437,10 +450,12 @@ export default function Pricing() {
                       <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-semibold text-sm mb-1">Pricing Notes</p>
-                        <p className="text-muted-foreground text-sm">Prices shown are starting rates. Final pricing may vary based on vehicle size and condition. We confirm your exact quote before the appointment.</p>
+                        <p className="text-muted-foreground text-sm">Prices shown are for the selected vehicle size. Final price confirmed before your appointment.</p>
                       </div>
                     </div>
                   </div>
+                  </>
+                  )} {/* end vehicleSizeSelected */}
                 </motion.div>
               )}
 
