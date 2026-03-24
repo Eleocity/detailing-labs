@@ -167,8 +167,8 @@ export default function FAQ() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEO
-        title="Frequently Asked Questions"
-        description="Answers to common questions about Detailing Labs mobile auto detailing — how it works, what's included, pricing, rescheduling, and more."
+        title="FAQs — Mobile Detailing in Racine County, WI | Detailing Labs"
+        description="Common questions about Detailing Labs mobile detailing in Southeast Wisconsin — service area, packages, pricing, and what to expect."
         canonical="/faq"
         jsonLd={[
           faqSchema(faqs.flatMap(section => section.questions.map(q => ({ q: q.q, a: q.a })))),

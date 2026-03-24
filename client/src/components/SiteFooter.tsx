@@ -63,7 +63,7 @@ export default function SiteFooter() {
           <div>
             <h4 className="font-display font-semibold text-foreground mb-4">Services</h4>
             <ul className="space-y-2">
-              {["Interior Detail", "Exterior Detail", "Full Detail", "Paint Decontamination", "Ceramic Coating", "Maintenance Detail"].map((s) => (
+              {["Exterior Decon & Shield", "Interior Deep Refresh", "Full Showroom Reset", "Add-On Services", "Add-On Services", "Book an Appointment"].map((s) => (
                 <li key={s}>
                   <Link href="/services">
                     <span className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1 group">

@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 
 const SITE_NAME = "Detailing Labs";
 const SITE_URL = "https://detailinglabswi.com";
-const DEFAULT_DESCRIPTION = "Premium mobile auto detailing in the Nashville area. We come to you — home, office, or anywhere you park. Book online in minutes.";
+const DEFAULT_DESCRIPTION = "Detailing Labs is a professional mobile detailing service in Southeast Wisconsin. Serving Racine County, Kenosha, and surrounding areas. We bring everything — book online.";
 const DEFAULT_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png";
 
 interface SEOProps {
@@ -73,14 +73,14 @@ export const localBusinessSchema = {
   "servesCuisine": undefined,
   "address": {
     "@type": "PostalAddress",
-    "addressLocality": "Nashville",
-    "addressRegion": "TN",
+    "addressLocality": "Sturtevant",
+    "addressRegion": "WI",
     "addressCountry": "US",
   },
   "geo": {
     "@type": "GeoCoordinates",
-    "latitude": 36.1627,
-    "longitude": -86.7816,
+    "latitude": 42.7261,
+    "longitude": -87.7829,
   },
   "openingHoursSpecification": [
     { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "07:00", "closes": "19:00" },
@@ -88,7 +88,7 @@ export const localBusinessSchema = {
   ],
   "areaServed": {
     "@type": "GeoCircle",
-    "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 36.1627, "longitude": -86.7816 },
+    "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 42.7261, "longitude": -86.7816 },
     "geoRadius": "50000",
   },
   "hasOfferCatalog": {
@@ -126,7 +126,7 @@ export const serviceSchema = (name: string, description: string, price?: string)
   "name": name,
   "description": description,
   ...(price ? { "offers": { "@type": "Offer", "price": price, "priceCurrency": "USD" } } : {}),
-  "areaServed": { "@type": "City", "name": "Nashville, TN" },
+  "areaServed": { "@type": "State", "name": "Southeast Wisconsin" },
 });
 
 export const breadcrumbSchema = (items: { name: string; url: string }[]) => ({

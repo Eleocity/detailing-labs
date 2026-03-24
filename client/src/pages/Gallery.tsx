@@ -37,8 +37,9 @@ export default function Gallery() {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <SEO
-        title="Before & After Gallery"
-        description="See the results of our professional auto detailing work. Browse before and after photos of interior cleans, paint corrections, and ceramic coatings."
+        title="Before & After Gallery | Detailing Labs — Racine County, WI"
+        description="Real before and after photos from Detailing Labs mobile detailing jobs in Southeast Wisconsin. Interior details, exterior decon, and ceramic coatings."
+
         canonical="/gallery"
         jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Gallery", url: "/gallery" }])}
       />

@@ -126,9 +126,9 @@ function AddCustomerDialog({ open, onClose, onSuccess }: { open: boolean; onClos
         <div className="grid grid-cols-2 gap-3 py-1">
           <div className="space-y-1"><Label className="text-xs">First Name *</Label><Input value={form.firstName} onChange={f("firstName")} placeholder="First" className="h-9 bg-background/50 border-border/50" /></div>
           <div className="space-y-1"><Label className="text-xs">Last Name *</Label><Input value={form.lastName} onChange={f("lastName")} placeholder="Last" className="h-9 bg-background/50 border-border/50" /></div>
-          <div className="space-y-1"><Label className="text-xs">Phone</Label><Input value={form.phone} onChange={f("phone")} placeholder="(615) 000-0000" className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="space-y-1"><Label className="text-xs">Phone</Label><Input value={form.phone} onChange={f("phone")} placeholder="(262) 000-0000" className="h-9 bg-background/50 border-border/50" /></div>
           <div className="space-y-1"><Label className="text-xs">Email</Label><Input value={form.email} onChange={f("email")} placeholder="email@example.com" className="h-9 bg-background/50 border-border/50" /></div>
-          <div className="space-y-1"><Label className="text-xs">City</Label><Input value={form.city} onChange={f("city")} placeholder="Nashville" className="h-9 bg-background/50 border-border/50" /></div>
+          <div className="space-y-1"><Label className="text-xs">City</Label><Input value={form.city} onChange={f("city")} placeholder="Sturtevant" className="h-9 bg-background/50 border-border/50" /></div>
           <div className="space-y-1"><Label className="text-xs">State</Label><Input value={form.state} onChange={f("state")} placeholder="TN" className="h-9 bg-background/50 border-border/50" /></div>
           <div className="space-y-1">
             <Label className="text-xs">Lead Source</Label>

@@ -122,8 +122,8 @@ export default function Pricing() {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <SEO
-        title="Detailing Packages & Pricing"
-        description="Transparent pricing on all our mobile detailing packages. Or get a custom quote for ceramic coating. No hidden fees."
+        title="Detailing Packages & Pricing | Racine County, WI"
+        description="Transparent pricing on all our mobile detailing packages in Southeast Wisconsin. Interior, exterior, and full-service from $129. Ceramic coating quoted on request."
         canonical="/pricing"
         jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Pricing", url: "/pricing" }])}
       />

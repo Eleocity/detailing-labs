@@ -43,8 +43,8 @@ export default function Contact() {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <SEO
-        title="Contact Us"
-        description="Get in touch with Detailing Labs. Call, text, or send us a message. We're available 7 days a week and respond quickly."
+        title="Contact Detailing Labs — Racine County, WI"
+        description="Contact Detailing Labs — professional mobile detailing in Southeast Wisconsin. Call, text, or message us. We serve Racine County, Kenosha, and surrounding areas."
         canonical="/contact"
         jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Contact", url: "/contact" }])}
       />

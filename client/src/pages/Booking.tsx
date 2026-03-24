@@ -924,7 +924,7 @@ function StepContact({ data, onUpdate, onSubmit, isPending }: {
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs font-medium">Phone <span className="text-destructive">*</span></Label>
-          <Input placeholder="(615) 000-0000" value={data.phone} onChange={(e) => onUpdate({ phone: e.target.value })} type="tel" className="bg-input border-border" />
+          <Input placeholder="(262) 000-0000" value={data.phone} onChange={(e) => onUpdate({ phone: e.target.value })} type="tel" className="bg-input border-border" />
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs font-medium">Email <span className="text-muted-foreground font-normal">(confirmation)</span></Label>

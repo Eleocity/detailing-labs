@@ -25,8 +25,8 @@ export default function About() {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <SEO
-        title="About Us — Our Story"
-        description="Detailing Labs was founded on one simple belief: your car deserves professional care without the hassle of a trip to the shop. Learn about our team and story."
+        title="About Detailing Labs — Mobile Detailing in Southeast Wisconsin"
+        description="Detailing Labs is a mobile detailing company based in Southeast Wisconsin, serving Racine County, Kenosha, and surrounding areas. Learn about our team and approach."
         canonical="/about"
         jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "About", url: "/about" }])}
       />

@@ -162,10 +162,10 @@ export default function Services() {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <SEO
-        title="Auto Detailing Services"
-        description="Explore our full range of mobile auto detailing services — interior detail, exterior wash & wax, paint correction, ceramic coatings, and more. We come to you."
+        title="Auto Detailing Services — Racine County, WI"
+        description="Professional mobile detailing services in Southeast Wisconsin. Interior, exterior, and full-service packages serving Racine County, Kenosha, and surrounding areas."
         canonical="/services"
-        jsonLd={[serviceSchema("Mobile Auto Detailing", "Professional interior and exterior auto detailing services delivered to your location in Nashville, TN."), breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Services", url: "/services" }])]}
+        jsonLd={[serviceSchema("Mobile Auto Detailing", "Professional interior and exterior auto detailing services delivered to your location in Racine County, WI."), breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Services", url: "/services" }])]}
       />
 
       {/* Hero */}
