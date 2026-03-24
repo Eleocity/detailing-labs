@@ -252,6 +252,16 @@ async function seedDefaultContent() {
       isActive: true,
       sortOrder: 3,
     },
+    {
+      name: "The Ultimate Bundle",
+      description: "The most complete service we offer — graphene spray coating, steam cleaning, extraction if needed, plus our full interior and exterior treatment.",
+      price: "449.00" as any,
+      duration: 360,
+      features: JSON.stringify(["Everything in Full Showroom Reset","Graphene spray coating","Steam cleaning","Extraction if needed","Our most comprehensive single-visit service"]),
+      isPopular: false,
+      isActive: true,
+      sortOrder: 4,
+    },
   ]);
   console.log("[Seed] Packages synced ✅");
 

@@ -397,6 +397,11 @@ function StepPackage({ data, onSelect, breadcrumb }: { data: BookingData; onSele
       { label: "Small SUV / Truck",   price: 269 },
       { label: "Large SUV / Minivan", price: 359 },
     ],
+    "The Ultimate Bundle": [
+      { label: "Sedan / Coupe",       price: 449 },
+      { label: "Small SUV / Truck",   price: 529 },
+      { label: "Large SUV / Minivan", price: 649 },
+    ],
   };
 
   return (
