@@ -146,7 +146,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
-                  {hero.trust_availability || "Mon–Sat, 7am–7pm"}
+                  {hero.trust_availability || "Mon–Sat, 9am–5pm"}
                 </div>
               </motion.div>
             </motion.div>
@@ -164,9 +164,9 @@ export default function Home() {
         <div className="container py-5 sm:py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { value: about.vehicles_detailed || "1,000+", label: "Vehicles Detailed" },
+              { value: about.vehicles_detailed || "100+", label: "Vehicles Detailed" },
               { value: "5.0★",                              label: "Average Rating" },
-              { value: about.years_experience   || "5+",   label: "Years in SE Wisconsin" },
+              { value: about.years_experience   || "3+",   label: "Years in SE Wisconsin" },
               { value: "Mon–Sat",                           label: "7am – 7pm" },
             ].map(stat => (
               <div key={stat.label}>

@@ -22,24 +22,24 @@ const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
 // Vehicle pricing tiers shown on package cards
 const VEHICLE_TIERS: Record<string, { label: string; price: number }[]> = {
   "Exterior Decon & Shield": [
-    { label: "Sedan / Coupe",        price: 129 },
-    { label: "Small SUV / Truck",    price: 149 },
-    { label: "Large SUV / Minivan",  price: 199 },
+    { label: "Sedan / Coupe",        price: 129.99 },
+    { label: "Small SUV / Truck",    price: 149.99 },
+    { label: "Large SUV / Minivan",  price: 199.99 },
   ],
   "Interior Deep Refresh": [
-    { label: "Sedan / Coupe",        price: 129 },
-    { label: "Small SUV / Truck",    price: 149 },
-    { label: "Large SUV / Minivan",  price: 199 },
+    { label: "Sedan / Coupe",        price: 129.99 },
+    { label: "Small SUV / Truck",    price: 149.99 },
+    { label: "Large SUV / Minivan",  price: 199.99 },
   ],
   "Full Showroom Reset": [
-    { label: "Sedan / Coupe",        price: 229 },
-    { label: "Small SUV / Truck",    price: 269 },
-    { label: "Large SUV / Minivan",  price: 359 },
+    { label: "Sedan / Coupe",        price: 229.99 },
+    { label: "Small SUV / Truck",    price: 269.99 },
+    { label: "Large SUV / Minivan",  price: 359.99 },
   ],
   "The Ultimate Bundle": [
-    { label: "Sedan / Coupe",        price: 449 },
-    { label: "Small SUV / Truck",    price: 529 },
-    { label: "Large SUV / Minivan",  price: 649 },
+    { label: "Sedan / Coupe",        price: 449.99 },
+    { label: "Small SUV / Truck",    price: 529.99 },
+    { label: "Large SUV / Minivan",  price: 649.99 },
   ],
 };
 
@@ -48,7 +48,7 @@ const FALLBACK_PACKAGES = [
   {
     id: 1,
     name: "Exterior Decon & Shield",
-    price: "129",
+    price: "129.99",
     duration: 120,
     description: "Total decontamination and 3-month hydrophobic protection. From $129.",
     features: JSON.stringify([
@@ -64,7 +64,7 @@ const FALLBACK_PACKAGES = [
   {
     id: 2,
     name: "Interior Deep Refresh",
-    price: "129",
+    price: "129.99",
     duration: 120,
     description: "Complete cabin sanitization and restoration. From $129.",
     features: JSON.stringify([
@@ -81,7 +81,7 @@ const FALLBACK_PACKAGES = [
   {
     id: 3,
     name: "Full Showroom Reset",
-    price: "229",
+    price: "229.99",
     duration: 240,
     description: "Our most popular package — total vehicle transformation inside and out. From $229.",
     features: JSON.stringify([
@@ -96,13 +96,13 @@ const FALLBACK_PACKAGES = [
 ];
 
 const FALLBACK_ADDONS = [
-  { name: "Pet Hair Removal",                    price: "49",  description: "Starting at $49" },
-  { name: "Odor Elimination Treatment",          price: "49",  description: "Interior deodorizer treatment" },
-  { name: "Engine Bay Detail",                   price: "49",  description: "Degreased & detailed engine bay" },
-  { name: "Headlight Restoration",               price: "79",  description: "Restore clarity & UV protection" },
-  { name: "Seat Extraction — Front Only",        price: "50",  description: "$50–$75 depending on condition" },
-  { name: "Seat Extraction — Full Vehicle",      price: "100", description: "$100–$150 all rows" },
-  { name: "Seat Extraction — Per Seat (Spot)",   price: "25",  description: "$25 per seat spot treatment" },
+  { name: "Pet Hair Removal",                    price: "49.99",  description: "Starting at $49" },
+  { name: "Odor Elimination Treatment",          price: "49.99",  description: "Interior deodorizer treatment" },
+  { name: "Engine Bay Detail",                   price: "49.99",  description: "Degreased & detailed engine bay" },
+  { name: "Headlight Restoration",               price: "99.99",  description: "Restore clarity & UV protection" },
+  { name: "Seat Extraction — Front Only",        price: "49.99",  description: "$50–$75 depending on condition" },
+  { name: "Seat Extraction — Full Vehicle",      price: "99.99", description: "$100–$150 all rows" },
+  { name: "Seat Extraction — Per Seat (Spot)",   price: "24.99",  description: "$25 per seat spot treatment" },
 ];
 
 type Tab = "detailing" | "ceramic";
@@ -277,7 +277,6 @@ export default function Pricing() {
 
                           <div className="mb-4">
                             <h3 className="font-display font-bold text-xl mb-0.5">{pkg.name}</h3>
-                            <p className="text-muted-foreground text-xs">{durationStr}</p>
                           </div>
 
                           {/* Vehicle tier pricing */}

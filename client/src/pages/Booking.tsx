@@ -383,24 +383,24 @@ function StepPackage({ data, onSelect, breadcrumb }: { data: BookingData; onSele
 
   const VEHICLE_PRICING: Record<string, { label: string; price: number }[]> = {
     "Exterior Decon & Shield": [
-      { label: "Sedan / Coupe",       price: 129 },
-      { label: "Small SUV / Truck",   price: 149 },
-      { label: "Large SUV / Minivan", price: 199 },
+      { label: "Sedan / Coupe",       price: 129.99 },
+      { label: "Small SUV / Truck",   price: 149.99 },
+      { label: "Large SUV / Minivan", price: 199.99 },
     ],
     "Interior Deep Refresh": [
-      { label: "Sedan / Coupe",       price: 129 },
-      { label: "Small SUV / Truck",   price: 149 },
-      { label: "Large SUV / Minivan", price: 199 },
+      { label: "Sedan / Coupe",       price: 129.99 },
+      { label: "Small SUV / Truck",   price: 149.99 },
+      { label: "Large SUV / Minivan", price: 199.99 },
     ],
     "Full Showroom Reset": [
-      { label: "Sedan / Coupe",       price: 229 },
-      { label: "Small SUV / Truck",   price: 269 },
-      { label: "Large SUV / Minivan", price: 359 },
+      { label: "Sedan / Coupe",       price: 229.99 },
+      { label: "Small SUV / Truck",   price: 269.99 },
+      { label: "Large SUV / Minivan", price: 359.99 },
     ],
     "The Ultimate Bundle": [
-      { label: "Sedan / Coupe",       price: 449 },
-      { label: "Small SUV / Truck",   price: 529 },
-      { label: "Large SUV / Minivan", price: 649 },
+      { label: "Sedan / Coupe",       price: 449.99 },
+      { label: "Small SUV / Truck",   price: 529.99 },
+      { label: "Large SUV / Minivan", price: 649.99 },
     ],
   };
 
@@ -436,10 +436,7 @@ function StepPackage({ data, onSelect, breadcrumb }: { data: BookingData; onSele
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white">Best Value</span>
                         )}
                       </div>
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {hrs}h{mins > 0 ? ` ${mins}m` : ""}
-                      </span>
+  
                     </div>
                     <div className={cn(
                       "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all",
