@@ -95,6 +95,18 @@ async function startServer() {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+  // ── Force HTTPS in production ──
+  // Railway terminates TLS at the edge and sets x-forwarded-proto
+  app.use((req, res, next) => {
+    if (
+      process.env.NODE_ENV === "production" &&
+      req.headers["x-forwarded-proto"] === "http"
+    ) {
+      return res.redirect(301, `https://${req.headers.host}${req.url}`);
+    }
+    next();
+  });
+
   // ── Manual migration trigger (secured by MIGRATE_SECRET env var) ──
   app.all("/api/migrate", async (req, res) => {
     const secret = process.env.MIGRATE_SECRET;
