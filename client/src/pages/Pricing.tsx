@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight, CheckCircle2, MapPin, Info,
-  Sparkles, Shield, Phone, Mail, ArrowRight,
+  Sparkles, Shield, Phone, Mail, ArrowRight, Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
@@ -105,7 +105,7 @@ const FALLBACK_ADDONS = [
   { name: "Seat Extraction — Per Seat (Spot)",   price: "24.99",  description: "$25 per seat spot treatment" },
 ];
 
-type Tab = "detailing" | "ceramic";
+type Tab = "detailing" | "ceramic" | "fleet";
 
 export default function Pricing() {
   const [tab, setTab] = useState<Tab | null>(null);
@@ -171,7 +171,7 @@ export default function Pricing() {
           <div className={cn("transition-all duration-500", tab ? "max-w-5xl" : "max-w-2xl")} style={{ margin: "0 auto" }}>
 
             {/* Tab selector cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
               {/* Detailing */}
               <button
                 onClick={() => setTab("detailing")}
@@ -241,6 +241,41 @@ export default function Pricing() {
                   Get a quote <ArrowRight className="w-4 h-4" />
                 </div>
               </button>
+
+              {/* Fleet */}
+              <button
+                onClick={() => setTab("fleet")}
+                className={cn(
+                  "group relative flex flex-col items-start gap-4 p-5 sm:p-7 rounded-2xl border-2 text-left transition-all duration-300 sm:col-span-2 lg:col-span-1",
+                  tab === "fleet"
+                    ? "border-sky-500/60 bg-sky-500/6 shadow-xl shadow-sky-500/10"
+                    : "border-border bg-card hover:border-sky-500/40 hover:bg-sky-500/3"
+                )}
+              >
+                {tab === "fleet" && (
+                  <div className="absolute top-4 right-4 w-6 h-6 rounded-full bg-sky-500 flex items-center justify-center">
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                <div className={cn(
+                  "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
+                  tab === "fleet" ? "bg-sky-500/20" : "bg-muted group-hover:bg-sky-500/10"
+                )}>
+                  <Zap className={cn("w-6 h-6", tab === "fleet" ? "text-sky-500" : "text-muted-foreground group-hover:text-sky-500")} />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-xl mb-2">Fleet Services</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Multiple vehicles? We offer fleet programs for businesses, dealerships, and property managers. Custom pricing and scheduling.
+                  </p>
+                </div>
+                <div className={cn(
+                  "flex items-center gap-1.5 text-sm font-semibold mt-auto transition-colors",
+                  tab === "fleet" ? "text-sky-500" : "text-muted-foreground group-hover:text-sky-500"
+                )}>
+                  Get a quote <ArrowRight className="w-4 h-4" />
+                </div>
+              </button>
             </div>
 
             {/* Tab content */}
@@ -265,24 +300,23 @@ export default function Pricing() {
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       {([
-                        { id: "sedan", label: "Sedan / Coupe",       emoji: "🚗" },
-                        { id: "suv",   label: "Small SUV / Truck",   emoji: "🚙" },
-                        { id: "large", label: "Large SUV / Minivan", emoji: "🚐" },
+                        { id: "sedan", label: "Sedan", sub: "Coupe" },
+                        { id: "suv",   label: "SUV",   sub: "Small / Truck" },
+                        { id: "large", label: "SUV",   sub: "Large / Minivan" },
                       ] as const).map((opt) => (
                         <button key={opt.id} onClick={() => setVehicleSize(opt.id)}
                           className={cn(
-                            "flex flex-col items-center gap-2 py-3 px-2 rounded-xl border-2 transition-all text-center",
+                            "flex flex-col items-center justify-center gap-0.5 py-3 px-2 rounded-xl border-2 transition-all text-center",
                             vehicleSize === opt.id
                               ? "border-primary bg-primary/10 shadow-sm shadow-primary/20"
                               : "border-border bg-background hover:border-primary/40"
                           )}>
-                          <span className="text-2xl">{opt.emoji}</span>
-                          <span className={cn("text-[11px] font-semibold leading-tight", vehicleSize === opt.id ? "text-primary" : "text-muted-foreground")}>
+                          <span className={cn("text-sm font-bold leading-tight", vehicleSize === opt.id ? "text-primary" : "text-foreground")}>
                             {opt.label}
                           </span>
-                          {vehicleSize === opt.id && (
-                            <span className="text-[10px] font-bold text-primary">Selected ✓</span>
-                          )}
+                          <span className={cn("text-[11px] leading-tight", vehicleSize === opt.id ? "text-primary/80" : "text-muted-foreground")}>
+                            {opt.sub}
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -509,13 +543,106 @@ export default function Pricing() {
                 </motion.div>
               )}
 
+              {/* ── FLEET ── */}
+              {tab === "fleet" && (
+                <motion.div
+                  key="fleet"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="max-w-2xl mx-auto"
+                >
+                  <div className="rounded-2xl border border-sky-500/25 bg-sky-500/5 p-8 mb-6 text-center">
+                    <div className="w-14 h-14 rounded-full bg-sky-500/15 flex items-center justify-center mx-auto mb-5">
+                      <Zap className="w-7 h-7 text-sky-500" />
+                    </div>
+                    <h2 className="text-2xl font-display font-bold mb-3">Fleet & Business Programs</h2>
+                    <p className="text-muted-foreground leading-relaxed mb-2">
+                      We work with businesses, dealerships, property managers, and anyone running multiple vehicles. Fleet pricing is custom-built around your vehicle count, service frequency, and scheduling needs.
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      We'll put together a program that works for your operation — recurring service, on-site detailing at your facility, or flexible scheduling around your fleet's availability.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-border bg-card p-6 mb-6">
+                    <h3 className="font-display font-bold mb-4">What Fleet Programs Typically Include</h3>
+                    <ul className="space-y-2.5">
+                      {[
+                        "Custom pricing based on vehicle count and service frequency",
+                        "Flexible scheduling — we work around your operation",
+                        "On-site service at your facility or lot",
+                        "Interior, exterior, or full-service depending on your needs",
+                        "Consistent quality across every vehicle in your fleet",
+                        "Priority scheduling for regular clients",
+                      ].map((f) => (
+                        <li key={f} className="flex items-start gap-2.5 text-sm">
+                          <CheckCircle2 className="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" />
+                          <span className="text-muted-foreground">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-2xl border border-border bg-card p-6 mb-4">
+                    <h3 className="font-display font-bold mb-1">Get Your Fleet Quote</h3>
+                    <p className="text-muted-foreground text-sm mb-5">Tell us about your fleet and we'll get back to you with a program that fits.</p>
+                    <div className="flex flex-col gap-3">
+                      <a
+                        href={phoneHref}
+                        className="flex items-center gap-4 p-4 rounded-xl border-2 border-sky-500/30 bg-sky-500/5 hover:border-sky-500 hover:bg-sky-500/8 transition-all group"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-sky-500/15 flex items-center justify-center flex-shrink-0">
+                          <Phone className="w-5 h-5 text-sky-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-foreground">{phone}</p>
+                          <p className="text-muted-foreground text-xs">Call or text — we'll discuss your fleet needs directly</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-sky-500 transition-colors flex-shrink-0" />
+                      </a>
+                      <a
+                        href={emailHref}
+                        className="flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-sky-500/40 hover:bg-muted/30 transition-all group"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                          <Mail className="w-5 h-5 text-muted-foreground group-hover:text-sky-500 transition-colors" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-foreground">{email}</p>
+                          <p className="text-muted-foreground text-xs">Send us your vehicle count and we'll build a quote</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-sky-500 transition-colors flex-shrink-0" />
+                      </a>
+                      <Link href="/contact">
+                        <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-sky-500/40 hover:bg-muted/30 transition-all group cursor-pointer">
+                          <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                            <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-sky-500 transition-colors" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm text-foreground">Contact Form</p>
+                            <p className="text-muted-foreground text-xs">Fill out our contact form with your fleet details</p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-sky-500 transition-colors flex-shrink-0" />
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+
+                  <p className="text-center text-xs text-muted-foreground">
+                    Just need a single vehicle? <button onClick={() => setTab("detailing")} className="text-primary hover:underline font-medium">View our detailing packages →</button>
+                  </p>
+                </motion.div>
+              )}
+
             </AnimatePresence>
           </div>
         </div>
       </section>
 
       {/* Bottom CTA — only when no tab selected or detailing tab */}
-      {tab !== "ceramic" && (
+      {tab !== "ceramic" && tab !== "fleet" && (
         <section className="py-16 bg-[oklch(0.06_0.004_280)]">
           <div className="container text-center">
             <h2 className="text-3xl font-display font-bold mb-4">
