@@ -362,67 +362,108 @@ function StepVehicleType({ data, onSelect, breadcrumb }: { data: BookingData; on
 // ─── Step: Package ────────────────────────────────────────────────────────────
 function StepPackage({ data, onSelect, breadcrumb }: { data: BookingData; onSelect: (pkg: any) => void; breadcrumb: string[] }) {
   const { data: packages, isLoading } = trpc.bookings.getPackages.useQuery();
-  const [expanded, setExpanded] = useState<number | null>(null);
+
+  const VEHICLE_PRICING: Record<string, { label: string; price: number }[]> = {
+    "Exterior Decon & Shield": [
+      { label: "Sedan / Coupe",       price: 129 },
+      { label: "Small SUV / Truck",   price: 149 },
+      { label: "Large SUV / Minivan", price: 199 },
+    ],
+    "Interior Deep Refresh": [
+      { label: "Sedan / Coupe",       price: 129 },
+      { label: "Small SUV / Truck",   price: 149 },
+      { label: "Large SUV / Minivan", price: 199 },
+    ],
+    "Full Showroom Reset": [
+      { label: "Sedan / Coupe",       price: 229 },
+      { label: "Small SUV / Truck",   price: 269 },
+      { label: "Large SUV / Minivan", price: 359 },
+    ],
+  };
 
   return (
     <div>
-      <PageTitle title="Select Service" />
-      <Breadcrumb items={breadcrumb} />
+      <PageTitle title="Choose Your Service" />
       {isLoading ? <Spinner /> : (
-        <div className="px-4 py-3 flex flex-col gap-3">
+        <div className="px-4 py-4 flex flex-col gap-3">
           {(packages ?? []).map((pkg) => {
             const features: string[] = pkg.features ? JSON.parse(pkg.features) : [];
             const isSel = data.packageId === pkg.id;
-            const isExp = expanded === pkg.id;
             const hrs = Math.floor(pkg.duration / 60);
             const mins = pkg.duration % 60;
+            const tiers = VEHICLE_PRICING[pkg.name];
+            const basePrice = tiers ? tiers[0].price : Number(pkg.price);
+
             return (
-              <div key={pkg.id}
-                className={cn("rounded-2xl border overflow-hidden shadow-sm transition-all", isSel ? "border-primary bg-primary/5" : "border-border bg-card")}>
-                {/* Header row */}
-                <div className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-muted/40 flex items-center justify-center flex-shrink-0 text-2xl">🚗</div>
+              <button
+                key={pkg.id}
+                onClick={() => onSelect(pkg)}
+                className={cn(
+                  "w-full text-left rounded-2xl border-2 overflow-hidden transition-all active:scale-[0.99]",
+                  isSel ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"
+                )}
+              >
+                <div className="p-5">
+                  {/* Top row: name + check */}
+                  <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-primary mb-0.5">{pkg.name}</p>
-                      <p className="text-xs text-muted-foreground">${Number(pkg.price).toFixed(2)} · {hrs}h{mins > 0 ? ` ${mins}m` : ""}</p>
-                      {pkg.description && (
-                        <p className={cn("text-xs text-muted-foreground mt-1 leading-relaxed", !isExp && "line-clamp-2")}>{pkg.description}</p>
-                      )}
-                      {pkg.description && pkg.description.length > 80 && (
-                        <button onClick={() => setExpanded(isExp ? null : pkg.id)} className="text-xs text-primary font-semibold mt-1">
-                          {isExp ? "Show Less" : "Show More"}
-                        </button>
-                      )}
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <span className="font-display font-bold text-base text-foreground">{pkg.name}</span>
+                        {pkg.isPopular && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white">Best Value</span>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {hrs}h{mins > 0 ? ` ${mins}m` : ""}
+                      </span>
                     </div>
-                    {/* Qty controls */}
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <button onClick={() => isSel && onSelect(null)}
-                        className="w-8 h-8 rounded-full border-2 border-border flex items-center justify-center text-muted-foreground hover:border-destructive hover:text-destructive transition-colors">
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="text-sm font-bold w-4 text-center">{isSel ? "1" : "0"}</span>
-                      <button onClick={() => onSelect(pkg)}
-                        className="w-8 h-8 rounded-full border-2 border-primary flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
+                    <div className={cn(
+                      "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all",
+                      isSel ? "bg-primary border-primary" : "border-border"
+                    )}>
+                      {isSel && <Check className="w-3.5 h-3.5 text-white" />}
                     </div>
                   </div>
+
+                  {/* Description */}
+                  {pkg.description && (
+                    <p className="text-xs text-muted-foreground leading-relaxed mb-3">{pkg.description}</p>
+                  )}
+
+                  {/* Pricing by vehicle size */}
+                  {tiers ? (
+                    <div className="space-y-1 mb-3">
+                      {tiers.map(t => (
+                        <div key={t.label} className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">{t.label}</span>
+                          <span className="font-semibold text-foreground">${t.price}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-lg font-display font-bold text-primary mb-3">
+                      From ${basePrice}
+                    </div>
+                  )}
+
+                  {/* Feature chips */}
+                  {features.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-3 border-t border-border/50">
+                      {features.slice(0, 4).map(f => (
+                        <span key={f} className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <Check className="w-2.5 h-2.5 text-primary flex-shrink-0" />{f}
+                        </span>
+                      ))}
+                      {features.length > 4 && (
+                        <span className="text-[11px] text-primary">+{features.length - 4} more</span>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
+              </button>
             );
           })}
-        </div>
-      )}
-
-      {/* Sticky add button */}
-      {data.packageId && data.packagePrice && (
-        <div className="sticky bottom-0 bg-background/95 backdrop-blur border-t border-border/60 p-4">
-          <button
-            onClick={() => { /* advance handled by parent */ }}
-            className="w-full bg-primary/80 hover:bg-primary text-white font-semibold py-3.5 rounded-2xl text-sm transition-colors">
-            Add 1 · ${data.packagePrice.toFixed(2)}
-          </button>
         </div>
       )}
     </div>
@@ -1001,10 +1042,10 @@ export default function Booking() {
       {/* Step content */}
       <AnimatePresence mode="wait">
         <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.18, ease: "easeOut" }} className="flex-1 flex flex-col">
-          {step === "location" && <StepLocation data={data} onUpdate={update} onNext={() => goTo("service_category")} />}
-          {step === "service_category" && <StepServiceCategory breadcrumb={["Services"]} onSelect={(pkg) => { update({ packageId: pkg.id, packageName: pkg.name, packagePrice: Number(pkg.price), packageDuration: pkg.duration }); goTo("vehicle_type"); }} />}
-          {step === "vehicle_type" && <StepVehicleType data={data} breadcrumb={breadcrumb.slice(0, 2)} onSelect={(v) => { update({ vehicleType: v }); goTo("package"); }} />}
-          {step === "package" && <StepPackage data={data} breadcrumb={breadcrumb} onSelect={(pkg) => { if (pkg) { update({ packageId: pkg.id, packageName: pkg.name, packagePrice: Number(pkg.price), packageDuration: pkg.duration }); goTo("addons"); } }} />}
+          {step === "location" && <StepLocation data={data} onUpdate={update} onNext={() => goTo("package")} />}
+          {step === "service_category" && null /* removed — packages shown directly */}
+          {step === "vehicle_type" && null /* removed — vehicle type collected in vehicle_info */}
+          {step === "package" && <StepPackage data={data} breadcrumb={[]} onSelect={(pkg) => { if (pkg) { update({ packageId: pkg.id, packageName: pkg.name, packagePrice: Number(pkg.price), packageDuration: pkg.duration }); goTo("addons"); } }} />}
           {step === "addons" && <StepAddOns data={data} onUpdate={update} onNext={() => goTo("schedule")} breadcrumb={breadcrumb} />}
           {step === "schedule" && <StepSchedule data={data} onUpdate={update} onNext={() => goTo("recurring")} />}
           {step === "recurring" && <StepRecurring data={data} onUpdate={update} onNext={() => goTo("vehicle_info")} onSkip={() => { update({ recurringInterval: "" }); goTo("vehicle_info"); }} />}
