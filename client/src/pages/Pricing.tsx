@@ -255,20 +255,40 @@ export default function Pricing() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {/* Vehicle size selector */}
-                  <div className="mb-7">
-                    <p className="text-sm font-semibold text-foreground mb-3">Your Vehicle Size</p>
-                    <div className="flex rounded-xl border border-border overflow-hidden w-full">
-                      {(["sedan", "suv", "large"] as const).map((size) => (
-                        <button key={size} onClick={() => setVehicleSize(size)}
+                  {/* Vehicle size selector — prominent */}
+                  <div className="mb-8 p-5 rounded-2xl border-2 border-primary/30 bg-primary/5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-bold">1</span>
+                      </div>
+                      <p className="font-display font-bold text-base text-foreground">What size is your vehicle?</p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {([
+                        { id: "sedan", label: "Sedan / Coupe",       emoji: "🚗" },
+                        { id: "suv",   label: "Small SUV / Truck",   emoji: "🚙" },
+                        { id: "large", label: "Large SUV / Minivan", emoji: "🚐" },
+                      ] as const).map((opt) => (
+                        <button key={opt.id} onClick={() => setVehicleSize(opt.id)}
                           className={cn(
-                            "flex-1 py-2.5 text-xs font-semibold transition-colors border-r border-border last:border-r-0",
-                            vehicleSize === size ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                            "flex flex-col items-center gap-2 py-3 px-2 rounded-xl border-2 transition-all text-center",
+                            vehicleSize === opt.id
+                              ? "border-primary bg-primary/10 shadow-sm shadow-primary/20"
+                              : "border-border bg-background hover:border-primary/40"
                           )}>
-                          {VEHICLE_SIZE_LABELS[size]}
+                          <span className="text-2xl">{opt.emoji}</span>
+                          <span className={cn("text-[11px] font-semibold leading-tight", vehicleSize === opt.id ? "text-primary" : "text-muted-foreground")}>
+                            {opt.label}
+                          </span>
+                          {vehicleSize === opt.id && (
+                            <span className="text-[10px] font-bold text-primary">Selected ✓</span>
+                          )}
                         </button>
                       ))}
                     </div>
+                    <p className="text-xs text-muted-foreground mt-3 text-center">
+                      Prices below update based on your selection.
+                    </p>
                   </div>
 
                   {/* Package grid */}
