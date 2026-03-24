@@ -154,93 +154,102 @@ function StickyBottom({ dateLabel, onNext, nextLabel = "Next", disabled = false,
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
 
 function LocationMap({ address, city, state, zip }: { address: string; city: string; state: string; zip: string }) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
+  const mapRef    = useRef<HTMLDivElement>(null);
+  const mapObj    = useRef<any>(null);
+  const markerObj = useRef<any>(null);
+  const [scriptState, setScriptState] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
-  // Load the Maps script once
+  // Load Google Maps script once
   useEffect(() => {
     if (!MAPS_KEY) return;
-    if ((window as any).__googleMapsLoaded) { setLoaded(true); return; }
-    if ((window as any).__googleMapsLoading) {
-      const check = setInterval(() => {
-        if ((window as any).__googleMapsLoaded) { setLoaded(true); clearInterval(check); }
-      }, 100);
-      return () => clearInterval(check);
+    const w = window as any;
+    if (w.__gmaps === "ready") { setScriptState("ready"); return; }
+    if (w.__gmaps === "loading") {
+      const t = setInterval(() => { if (w.__gmaps === "ready") { setScriptState("ready"); clearInterval(t); } }, 150);
+      return () => clearInterval(t);
     }
-    (window as any).__googleMapsLoading = true;
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&libraries=places,marker&v=weekly`;
-    script.async = true;
-    script.onload = () => { (window as any).__googleMapsLoaded = true; setLoaded(true); };
-    script.onerror = () => setError(true);
-    document.head.appendChild(script);
+    w.__gmaps = "loading";
+    setScriptState("loading");
+    const s = document.createElement("script");
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&v=weekly`;
+    s.async = true;
+    s.onload  = () => { w.__gmaps = "ready"; setScriptState("ready"); };
+    s.onerror = () => { w.__gmaps = "error"; setScriptState("error"); };
+    document.head.appendChild(s);
   }, []);
 
-  // Init map
+  // Init map after script is ready and ref is attached
   useEffect(() => {
-    if (!loaded || !mapRef.current) return;
+    if (scriptState !== "ready" || !mapRef.current) return;
+    if (mapObj.current) return; // already init'd
     const g = (window as any).google;
-    if (!g) return;
-    if (!mapInstanceRef.current) {
-      mapInstanceRef.current = new g.maps.Map(mapRef.current, {
-        center: { lat: 43.0389, lng: -87.9065 }, // Milwaukee default
-        zoom: 12,
-        disableDefaultUI: true,
-        gestureHandling: "cooperative",
-        styles: [
-          { elementType: "geometry", stylers: [{ color: "#1a1a2e" }] },
-          { elementType: "labels.text.fill", stylers: [{ color: "#8892a4" }] },
-          { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a2e" }] },
-          { featureType: "road", elementType: "geometry", stylers: [{ color: "#2d2d4e" }] },
-          { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212138" }] },
-          { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
-          { featureType: "poi", stylers: [{ visibility: "off" }] },
-        ],
-      });
-    }
-  }, [loaded]);
+    if (!g?.maps) return;
 
-  // Geocode and move marker when address changes
-  useEffect(() => {
-    if (!loaded || !mapInstanceRef.current) return;
-    const g = (window as any).google;
-    if (!g) return;
-    const query = [address, city, state, zip].filter(Boolean).join(", ");
-    if (!query.trim()) return;
-    const geocoder = new g.maps.Geocoder();
-    geocoder.geocode({ address: query }, (results: any, status: any) => {
-      if (status !== "OK" || !results?.[0]) return;
-      const loc = results[0].geometry.location;
-      mapInstanceRef.current!.setCenter(loc);
-      mapInstanceRef.current!.setZoom(15);
-      if (markerRef.current) markerRef.current.map = null;
-      markerRef.current = new g.maps.marker.AdvancedMarkerElement({
-        map: mapInstanceRef.current,
-        position: loc,
-      });
+    mapObj.current = new g.maps.Map(mapRef.current, {
+      center: { lat: 42.7261, lng: -87.7829 }, // Sturtevant / SE Wisconsin
+      zoom: 11,
+      mapId: "detailing_labs_booking",
+      disableDefaultUI: true,
+      gestureHandling: "cooperative",
     });
-  }, [loaded, address, city, state, zip]);
 
-  if (!MAPS_KEY || error) {
+    // Trigger resize so the map fills its container correctly
+    g.maps.event.trigger(mapObj.current, "resize");
+  }, [scriptState]);
+
+  // Geocode whenever address fields change (debounced)
+  useEffect(() => {
+    if (scriptState !== "ready" || !mapObj.current) return;
+    const g = (window as any).google;
+    if (!g?.maps) return;
+    const query = [address, city, state, zip].filter(Boolean).join(", ");
+    if (!query.trim() || !address) return;
+
+    const timer = setTimeout(() => {
+      new g.maps.Geocoder().geocode({ address: query }, (results: any, status: any) => {
+        if (status !== "OK" || !results?.[0] || !mapObj.current) return;
+        const loc = results[0].geometry.location;
+        mapObj.current.panTo(loc);
+        mapObj.current.setZoom(16);
+        // Drop a simple marker (Marker API works on all key types)
+        if (markerObj.current) markerObj.current.setMap(null);
+        markerObj.current = new g.maps.Marker({
+          map: mapObj.current,
+          position: loc,
+          animation: g.maps.Animation.DROP,
+        });
+      });
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [scriptState, address, city, state, zip]);
+
+  // No API key — show simple placeholder
+  if (!MAPS_KEY) {
     return (
-      <div className="mx-5 flex-1 min-h-[280px] rounded-2xl border border-border overflow-hidden relative bg-muted/10 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-2 text-muted-foreground/50">
-          <MapPin className="w-8 h-8" />
-          <p className="text-xs">{error ? "Map unavailable" : "Enter your address above"}</p>
-        </div>
+      <div className="mx-5 h-[260px] rounded-2xl border border-border bg-muted/10 flex flex-col items-center justify-center gap-2 text-muted-foreground/40">
+        <MapPin className="w-7 h-7" />
+        <p className="text-xs">Map preview unavailable</p>
       </div>
     );
   }
 
   return (
-    <div className="mx-5 flex-1 min-h-[280px] rounded-2xl border border-border overflow-hidden relative">
-      <div ref={mapRef} className="w-full h-full min-h-[280px]" />
-      {!loaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
+    <div className="mx-5 rounded-2xl border border-border overflow-hidden relative" style={{ height: 260 }}>
+      {/* Fixed pixel height so Google Maps can calculate dimensions */}
+      <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
+
+      {/* Loading spinner */}
+      {(scriptState === "idle" || scriptState === "loading") && (
+        <div className="absolute inset-0 bg-muted/20 flex items-center justify-center">
           <div className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        </div>
+      )}
+
+      {/* Error state */}
+      {scriptState === "error" && (
+        <div className="absolute inset-0 bg-muted/10 flex flex-col items-center justify-center gap-2 text-muted-foreground/40">
+          <MapPin className="w-7 h-7" />
+          <p className="text-xs">Map unavailable</p>
         </div>
       )}
     </div>
@@ -284,7 +293,7 @@ function StepLocation({ data, onUpdate, onNext }: { data: BookingData; onUpdate:
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs font-medium">State</Label>
-          <Input placeholder="TN" value={data.serviceState} onChange={(e) => onUpdate({ serviceState: e.target.value })} maxLength={2} className="bg-input border-border" />
+          <Input placeholder="WI" value={data.serviceState} onChange={(e) => onUpdate({ serviceState: e.target.value })} maxLength={2} className="bg-input border-border" />
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs font-medium">ZIP <span className="text-destructive">*</span></Label>
@@ -881,7 +890,7 @@ export default function Booking() {
   const [step, setStep] = useState<Step>("location");
   const [history, setHistory] = useState<Step[]>([]);
   const [data, setData] = useState<BookingData>({
-    serviceAddress: "", serviceCity: "", serviceState: "TN", serviceZip: "",
+    serviceAddress: "", serviceCity: "", serviceState: "WI", serviceZip: "",
     vehicleType: "",
     addOnQty: {},
     appointmentDate: "", appointmentTime: "",
