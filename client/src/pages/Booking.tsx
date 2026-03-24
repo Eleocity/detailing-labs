@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -149,6 +149,104 @@ function StickyBottom({ dateLabel, onNext, nextLabel = "Next", disabled = false,
   );
 }
 
+
+// ─── LocationMap ─────────────────────────────────────────────────────────────
+const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
+
+function LocationMap({ address, city, state, zip }: { address: string; city: string; state: string; zip: string }) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  // Load the Maps script once
+  useEffect(() => {
+    if (!MAPS_KEY) return;
+    if ((window as any).__googleMapsLoaded) { setLoaded(true); return; }
+    if ((window as any).__googleMapsLoading) {
+      const check = setInterval(() => {
+        if ((window as any).__googleMapsLoaded) { setLoaded(true); clearInterval(check); }
+      }, 100);
+      return () => clearInterval(check);
+    }
+    (window as any).__googleMapsLoading = true;
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&libraries=places,marker&v=weekly`;
+    script.async = true;
+    script.onload = () => { (window as any).__googleMapsLoaded = true; setLoaded(true); };
+    script.onerror = () => setError(true);
+    document.head.appendChild(script);
+  }, []);
+
+  // Init map
+  useEffect(() => {
+    if (!loaded || !mapRef.current) return;
+    const g = (window as any).google;
+    if (!g) return;
+    if (!mapInstanceRef.current) {
+      mapInstanceRef.current = new g.maps.Map(mapRef.current, {
+        center: { lat: 43.0389, lng: -87.9065 }, // Milwaukee default
+        zoom: 12,
+        disableDefaultUI: true,
+        gestureHandling: "cooperative",
+        styles: [
+          { elementType: "geometry", stylers: [{ color: "#1a1a2e" }] },
+          { elementType: "labels.text.fill", stylers: [{ color: "#8892a4" }] },
+          { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a2e" }] },
+          { featureType: "road", elementType: "geometry", stylers: [{ color: "#2d2d4e" }] },
+          { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212138" }] },
+          { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
+          { featureType: "poi", stylers: [{ visibility: "off" }] },
+        ],
+      });
+    }
+  }, [loaded]);
+
+  // Geocode and move marker when address changes
+  useEffect(() => {
+    if (!loaded || !mapInstanceRef.current) return;
+    const g = (window as any).google;
+    if (!g) return;
+    const query = [address, city, state, zip].filter(Boolean).join(", ");
+    if (!query.trim()) return;
+    const geocoder = new g.maps.Geocoder();
+    geocoder.geocode({ address: query }, (results: any, status: any) => {
+      if (status !== "OK" || !results?.[0]) return;
+      const loc = results[0].geometry.location;
+      mapInstanceRef.current!.setCenter(loc);
+      mapInstanceRef.current!.setZoom(15);
+      if (markerRef.current) markerRef.current.map = null;
+      markerRef.current = new g.maps.marker.AdvancedMarkerElement({
+        map: mapInstanceRef.current,
+        position: loc,
+      });
+    });
+  }, [loaded, address, city, state, zip]);
+
+  if (!MAPS_KEY || error) {
+    return (
+      <div className="mx-5 flex-1 min-h-[280px] rounded-2xl border border-border overflow-hidden relative bg-muted/10 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2 text-muted-foreground/50">
+          <MapPin className="w-8 h-8" />
+          <p className="text-xs">{error ? "Map unavailable" : "Enter your address above"}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-5 flex-1 min-h-[280px] rounded-2xl border border-border overflow-hidden relative">
+      <div ref={mapRef} className="w-full h-full min-h-[280px]" />
+      {!loaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
+          <div className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Step: Location ───────────────────────────────────────────────────────────
 function StepLocation({ data, onUpdate, onNext }: { data: BookingData; onUpdate: (d: Partial<BookingData>) => void; onNext: () => void }) {
   return (
@@ -177,21 +275,7 @@ function StepLocation({ data, onUpdate, onNext }: { data: BookingData; onUpdate:
       </div>
 
       {/* Map */}
-      <div className="mx-5 flex-1 min-h-[300px] rounded-2xl border border-border overflow-hidden relative bg-muted/10">
-        <div className="absolute inset-0"
-          style={{ backgroundImage: "repeating-linear-gradient(0deg,transparent,transparent 47px,hsl(var(--border)/0.4) 48px),repeating-linear-gradient(90deg,transparent,transparent 47px,hsl(var(--border)/0.4) 48px)" }} />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-10 h-14 flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-destructive shadow-lg flex items-center justify-center">
-                <div className="w-3 h-3 rounded-full bg-white" />
-              </div>
-              <div className="w-0.5 h-4 bg-destructive" />
-            </div>
-          </div>
-        </div>
-        <div className="absolute bottom-3 left-3 text-[10px] text-muted-foreground/60 font-medium">fieldd</div>
-      </div>
+      <LocationMap address={data.serviceAddress} city={data.serviceCity} state={data.serviceState} zip={data.serviceZip} />
 
       <div className="px-5 pt-4 grid grid-cols-2 gap-3 pb-2">
         <div className="col-span-2 space-y-1.5">
