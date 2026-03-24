@@ -73,6 +73,8 @@ export const customers = mysqlTable("customers", {
   lifetimeValue: decimal("lifetimeValue", { precision: 10, scale: 2 }).default("0.00"),
   lastServiceDate: timestamp("lastServiceDate"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+  urableId: varchar("urableId", { length: 100 }),  // Urable customer ID for sync
+  urableSyncedAt: timestamp("urableSyncedAt"),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
@@ -232,6 +234,8 @@ export const bookings = mysqlTable("bookings", {
   internalNotes: text("internalNotes"),
   howHeard: varchar("howHeard", { length: 100 }),
   reviewRequestSent: boolean("reviewRequestSent").default(false),
+  urableJobId: varchar("urableJobId", { length: 100 }),  // Urable job ID for sync
+  urableSyncedAt: timestamp("urableSyncedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

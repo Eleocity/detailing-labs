@@ -6,6 +6,7 @@ import { crmRouter } from "./routers/crm";
 import { employeesRouter } from "./routers/employees";
 import { invoicesRouter } from "./routers/invoices";
 import { paymentsRouter } from "./routers/payments";
+import { urableRouter } from "./routers/urable";
 import { mediaRouter } from "./routers/media";
 import { contentRouter } from "./routers/content";
 import { usersRouter } from "./routers/users";
@@ -19,6 +20,7 @@ export const appRouter = router({
   employees: employeesRouter,
   invoices: invoicesRouter,
   payments: paymentsRouter,
+  urable: urableRouter,
   media: mediaRouter,
   content: contentRouter,
   users: usersRouter,

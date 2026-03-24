@@ -152,6 +152,61 @@ async function startServer() {
     }
   });
 
+  // ── Urable webhook ───────────────────────────────────────────────────────
+  app.post("/api/webhooks/urable", express.raw({ type: "application/json" }), async (req, res) => {
+    res.status(200).json({ ok: true });
+    try {
+      const bodyStr = req.body instanceof Buffer ? req.body.toString("utf8") : JSON.stringify(req.body);
+      const { parseUrableWebhook } = await import("../urable");
+      const event = parseUrableWebhook(bodyStr);
+      if (!event) return;
+      const { getDb } = await import("../db");
+      const db = await getDb();
+      if (!db) return;
+      const { customers, bookings } = await import("../../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      console.log(`[Urable webhook] ${event.type}`);
+
+      if (event.type === "job.completed" || event.type === "job.status_updated") {
+        const urableJobId = String(event.data?.job_id ?? event.data?.id ?? "");
+        const newStatus = event.data?.status ?? "";
+        if (!urableJobId) return;
+        const all = await db.select().from(bookings).limit(500);
+        const booking = all.find((b: any) => b.urableJobId === urableJobId);
+        if (!booking) return;
+        const map: Record<string, string> = { completed:"completed", cancelled:"cancelled", confirmed:"confirmed", in_progress:"in_progress" };
+        const mapped = map[newStatus.toLowerCase()];
+        if (mapped) await db.update(bookings).set({ status: mapped as any }).where(eq(bookings.id, booking.id));
+      }
+
+      if (event.type === "job.paid") {
+        const urableJobId = String(event.data?.job_id ?? event.data?.id ?? "");
+        if (!urableJobId) return;
+        const all = await db.select().from(bookings).limit(500);
+        const booking = all.find((b: any) => b.urableJobId === urableJobId);
+        if (booking) await db.update(bookings).set({ paymentStatus: "paid" as any }).where(eq(bookings.id, booking.id));
+      }
+
+      if (event.type === "customer.updated" || event.type === "customer.created") {
+        const urableId = String(event.data?.id ?? "");
+        const email = event.data?.email ?? "";
+        if (!email) return;
+        const existing = await db.select().from(customers).where(eq(customers.email, email)).limit(1);
+        if (existing.length > 0) {
+          await db.update(customers).set({
+            ...(event.data?.first_name ? { firstName: event.data.first_name } : {}),
+            ...(event.data?.last_name  ? { lastName:  event.data.last_name  } : {}),
+            ...(event.data?.phone      ? { phone:     event.data.phone      } : {}),
+            urableId,
+            urableSyncedAt: new Date(),
+          } as any).where(eq(customers.id, existing[0].id));
+        }
+      }
+    } catch (err: any) {
+      console.error("[Urable webhook error]", err?.message);
+    }
+  });
+
   // ── Force HTTPS in production ──
   // Railway terminates TLS at the edge and sets x-forwarded-proto
   app.use((req, res, next) => {

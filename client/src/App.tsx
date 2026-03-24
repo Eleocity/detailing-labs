@@ -46,6 +46,7 @@ const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminRoutePlanner = lazy(() => import("./pages/admin/AdminRoutePlanner"));
 const AdminSiteEditor = lazy(() => import("./pages/admin/AdminSiteEditor"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminUrable     = lazy(() => import("./pages/admin/AdminUrable"));
 const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 
@@ -109,7 +110,9 @@ function Router() {
         <Route path="/admin/employees/:id" component={AdminEmployeeDetail} />
         <Route path="/admin/invoices" component={AdminInvoicesList} />
         <Route path="/admin/invoices/:id" component={AdminInvoiceDetail} />
+        <Route path="/admin/urable" component={AdminUrable} />
         <Route path="/admin/invoices/:id" component={AdminInvoiceDetail} />
+        <Route path="/admin/urable" component={AdminUrable} />
         <Route path="/admin/media" component={AdminMedia} />
         <Route path="/admin/reviews" component={AdminReviews} />
         <Route path="/admin/route-planner" component={AdminRoutePlanner} />
