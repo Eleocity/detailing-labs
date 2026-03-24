@@ -15,6 +15,10 @@ RUN pnpm install --frozen-lockfile
 # Copy all source files
 COPY . .
 
+# Accept VITE_ vars as build args so Vite can embed them in the bundle
+ARG VITE_GOOGLE_MAPS_API_KEY
+ENV VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY
+
 # Build frontend (Vite → dist/public) + backend (esbuild → dist/index.js)
 RUN pnpm build
 
