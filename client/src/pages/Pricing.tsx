@@ -113,6 +113,12 @@ export default function Pricing() {
 
   const { data: dbPackages } = trpc.bookings.getPackages.useQuery();
   const { data: dbAddOns } = trpc.bookings.getAddOns.useQuery();
+  const { data: contactData } = trpc.content.getSiteContent.useQuery({ section: "contact" });
+  const contact = Object.fromEntries((contactData ?? []).map(r => [r.key, r.value ?? ""]));
+  const phone      = contact.phone || "(262) 555-0190";
+  const email      = contact.email || "hello@detailinglabswi.com";
+  const phoneHref  = `tel:${phone.replace(/\D/g, "")}`;
+  const emailHref  = `mailto:${email}`;
 
   const packages = (dbPackages && dbPackages.length > 0 ? dbPackages : FALLBACK_PACKAGES)
     .filter(p => !p.name.toLowerCase().includes("ceramic") && p.isActive);
@@ -407,28 +413,28 @@ export default function Pricing() {
                     <p className="text-muted-foreground text-sm mb-5">Reach out and we'll get back to you within a few hours.</p>
                     <div className="flex flex-col gap-3">
                       <a
-                        href="tel:+12625550190"
+                        href={phoneHref}
                         className="flex items-center gap-4 p-4 rounded-xl border-2 border-primary/30 bg-primary/5 hover:border-primary hover:bg-primary/8 transition-all group"
                       >
                         <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
                           <Phone className="w-5 h-5 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-foreground">Call or Text Us</p>
+                          <p className="font-semibold text-sm text-foreground">{phone}</p>
                           <p className="text-muted-foreground text-xs">Fastest way to get a quote — we typically respond within minutes</p>
                         </div>
                         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                       </a>
 
                       <a
-                        href="mailto:hello@detailinglabswi.com"
+                        href={emailHref}
                         className="flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-primary/40 hover:bg-muted/30 transition-all group"
                       >
                         <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
                           <Mail className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-foreground">Email Us</p>
+                          <p className="font-semibold text-sm text-foreground">{email}</p>
                           <p className="text-muted-foreground text-xs">Send us your vehicle details and we'll prepare a full quote</p>
                         </div>
                         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />

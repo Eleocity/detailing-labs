@@ -48,6 +48,16 @@ const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 
+// Location pages
+const LocationPageRacine        = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageRacine })));
+const LocationPageKenosha       = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageKenosha })));
+const LocationPageSturtevant    = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageSturtevant })));
+const LocationPageMountPleasant = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageMountPleasant })));
+const LocationPageOakCreek      = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageOakCreek })));
+const LocationPageCaledonia     = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageCaledonia })));
+const LocationPageBurlington    = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageBurlington })));
+const LocationPageFranksville   = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageFranksville })));
+
 function PageLoader() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -103,6 +113,16 @@ function Router() {
 
         {/* Invite */}
         <Route path="/accept-invite" component={AcceptInvite} />
+
+        {/* Location pages */}
+        <Route path="/mobile-detailing-racine-wi"         component={LocationPageRacine} />
+        <Route path="/mobile-detailing-kenosha-wi"        component={LocationPageKenosha} />
+        <Route path="/mobile-detailing-sturtevant-wi"     component={LocationPageSturtevant} />
+        <Route path="/mobile-detailing-mount-pleasant-wi" component={LocationPageMountPleasant} />
+        <Route path="/mobile-detailing-oak-creek-wi"      component={LocationPageOakCreek} />
+        <Route path="/mobile-detailing-caledonia-wi"      component={LocationPageCaledonia} />
+        <Route path="/mobile-detailing-burlington-wi"     component={LocationPageBurlington} />
+        <Route path="/mobile-detailing-franksville-wi"    component={LocationPageFranksville} />
 
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
