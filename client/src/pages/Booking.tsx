@@ -153,7 +153,7 @@ function StickyBottom({ dateLabel, onNext, nextLabel = "Next", disabled = false,
 // ─── LocationMap ─────────────────────────────────────────────────────────────
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
 
-function LocationMap({ address, city, state, zip }: { address: string; city: string; state: string; zip: string }) {
+function LocationMap({ address, onGeocode }: { address: string; onGeocode?: (parts: { street: string; city: string; state: string; zip: string }) => void }) {
   const mapRef    = useRef<HTMLDivElement>(null);
   const mapObj    = useRef<any>(null);
   const markerObj = useRef<any>(null);
@@ -206,8 +206,8 @@ function LocationMap({ address, city, state, zip }: { address: string; city: str
     if (!ready || !mapObj.current) return;
     const g = (window as any).google;
     if (!g?.maps) return;
-    const query = [address, city, state, zip].filter(Boolean).join(", ");
-    if (!query.trim() || !address) return;
+    const query = address.trim();
+    if (!query) return;
     const t = setTimeout(() => {
       new g.maps.Geocoder().geocode({ address: query }, (results: any, status: any) => {
         if (status !== "OK" || !results?.[0] || !mapObj.current) return;
@@ -220,10 +220,23 @@ function LocationMap({ address, city, state, zip }: { address: string; city: str
           position: loc,
           animation: g.maps.Animation.DROP,
         });
+        // Parse address components and call back
+        if (onGeocode) {
+          const comps = results[0].address_components ?? [];
+          const get = (type: string) => comps.find((c: any) => c.types.includes(type))?.long_name ?? "";
+          const getShort = (type: string) => comps.find((c: any) => c.types.includes(type))?.short_name ?? "";
+          const streetNum  = get("street_number");
+          const route      = get("route");
+          const city       = get("locality") || get("sublocality") || get("neighborhood");
+          const state      = getShort("administrative_area_level_1");
+          const zip        = get("postal_code");
+          const street     = [streetNum, route].filter(Boolean).join(" ");
+          onGeocode({ street, city, state, zip });
+        }
       });
     }, 700);
     return () => clearTimeout(t);
-  }, [ready, address, city, state, zip]);
+  }, [ready, address]);
 
   if (!MAPS_KEY || error) {
     return (
@@ -248,6 +261,15 @@ function LocationMap({ address, city, state, zip }: { address: string; city: str
 
 // ─── Step: Location ───────────────────────────────────────────────────────────
 function StepLocation({ data, onUpdate, onNext }: { data: BookingData; onUpdate: (d: Partial<BookingData>) => void; onNext: () => void }) {
+  const handleGeocode = (parts: { street: string; city: string; state: string; zip: string }) => {
+    onUpdate({
+      serviceAddress: parts.street || data.serviceAddress,
+      serviceCity:    parts.city,
+      serviceState:   parts.state,
+      serviceZip:     parts.zip,
+    });
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <div className="px-5 pt-6 pb-4">
@@ -259,13 +281,14 @@ function StepLocation({ data, onUpdate, onNext }: { data: BookingData; onUpdate:
         <div className="flex items-center gap-3 px-4 py-3 rounded-2xl border-2 border-border focus-within:border-primary transition-colors bg-card">
           <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
           <input
-            placeholder="Enter the street number and full address"
+            placeholder="Enter your full address"
             value={data.serviceAddress}
             onChange={(e) => onUpdate({ serviceAddress: e.target.value })}
             className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
+            autoComplete="street-address"
           />
           {data.serviceAddress && (
-            <button onClick={() => onUpdate({ serviceAddress: "" })} className="text-muted-foreground">
+            <button onClick={() => onUpdate({ serviceAddress: "", serviceCity: "", serviceState: "WI", serviceZip: "" })} className="text-muted-foreground">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -273,25 +296,20 @@ function StepLocation({ data, onUpdate, onNext }: { data: BookingData; onUpdate:
         </div>
       </div>
 
-      {/* Map */}
-      <LocationMap address={data.serviceAddress} city={data.serviceCity} state={data.serviceState} zip={data.serviceZip} />
+      {/* Map — geocodes address and auto-fills city/state/zip */}
+      <LocationMap address={data.serviceAddress} onGeocode={handleGeocode} />
 
-      <div className="px-5 pt-4 grid grid-cols-2 gap-3 pb-2">
-        <div className="col-span-2 space-y-1.5">
-          <Label className="text-xs font-medium">City <span className="text-destructive">*</span></Label>
-          <Input placeholder="Nashville" value={data.serviceCity} onChange={(e) => onUpdate({ serviceCity: e.target.value })} className="bg-input border-border" />
+      {/* Show parsed address confirmation once geocoded */}
+      {data.serviceCity && (
+        <div className="px-5 pt-3 pb-2">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/8 border border-primary/20 text-xs text-primary">
+            <Check className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="font-medium">{data.serviceAddress}{data.serviceCity ? `, ${data.serviceCity}` : ""}{data.serviceState ? `, ${data.serviceState}` : ""} {data.serviceZip}</span>
+          </div>
         </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs font-medium">State</Label>
-          <Input placeholder="WI" value={data.serviceState} onChange={(e) => onUpdate({ serviceState: e.target.value })} maxLength={2} className="bg-input border-border" />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs font-medium">ZIP <span className="text-destructive">*</span></Label>
-          <Input placeholder="37201" value={data.serviceZip} onChange={(e) => onUpdate({ serviceZip: e.target.value })} className="bg-input border-border" />
-        </div>
-      </div>
+      )}
 
-      <StickyBottom onNext={onNext} nextLabel="Next" disabled={!data.serviceAddress || !data.serviceCity || !data.serviceZip} />
+      <StickyBottom onNext={onNext} nextLabel="Next" disabled={!data.serviceAddress} />
     </div>
   );
 }
