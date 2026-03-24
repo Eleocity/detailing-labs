@@ -495,30 +495,66 @@ function StepAddOns({ data, onUpdate, onNext, breadcrumb }: {
 
       {isLoading ? <Spinner /> : (
         <div>
-          {/* Exterior upgrades */}
-          <SectionHeader label="Exterior Upgrades" />
+          {/* Cleaning & Protection */}
+          <SectionHeader label="Cleaning & Protection" />
           <div className="divide-y divide-border/60">
-            {(addOns ?? []).filter((_, i) => i % 2 === 0).map((ao) => {
+            {(addOns ?? []).filter(ao =>
+              ["Pet Hair Removal","Odor Elimination Treatment","Engine Bay Detail"].includes(ao.name)
+            ).map((ao) => {
               const qty = data.addOnQty[ao.id] ?? 0;
               return <AddOnRow key={ao.id} ao={ao} qty={qty} onQty={(q) => setQty(ao.id, q)} />;
             })}
           </div>
 
-          {/* Interior upgrades */}
-          <SectionHeader label="Interior Upgrades" />
+          {/* Restoration */}
+          <SectionHeader label="Restoration" />
           <div className="divide-y divide-border/60">
-            {(addOns ?? []).filter((_, i) => i % 2 === 1).map((ao) => {
+            {(addOns ?? []).filter(ao =>
+              ["Headlight Restoration"].includes(ao.name)
+            ).map((ao) => {
               const qty = data.addOnQty[ao.id] ?? 0;
               return <AddOnRow key={ao.id} ao={ao} qty={qty} onQty={(q) => setQty(ao.id, q)} />;
             })}
           </div>
+
+          {/* Seat Extraction */}
+          <SectionHeader label="Seat Extraction" />
+          <div className="divide-y divide-border/60">
+            {(addOns ?? []).filter(ao =>
+              ao.name.toLowerCase().includes("seat") || ao.name.toLowerCase().includes("extraction")
+            ).map((ao) => {
+              const qty = data.addOnQty[ao.id] ?? 0;
+              return <AddOnRow key={ao.id} ao={ao} qty={qty} onQty={(q) => setQty(ao.id, q)} />;
+            })}
+          </div>
+
+          {/* Any remaining add-ons not matched above */}
+          {(addOns ?? []).filter(ao =>
+            !["Pet Hair Removal","Odor Elimination Treatment","Engine Bay Detail","Headlight Restoration"].includes(ao.name) &&
+            !ao.name.toLowerCase().includes("seat") &&
+            !ao.name.toLowerCase().includes("extraction")
+          ).length > 0 && (
+            <>
+              <SectionHeader label="Other" />
+              <div className="divide-y divide-border/60">
+                {(addOns ?? []).filter(ao =>
+                  !["Pet Hair Removal","Odor Elimination Treatment","Engine Bay Detail","Headlight Restoration"].includes(ao.name) &&
+                  !ao.name.toLowerCase().includes("seat") &&
+                  !ao.name.toLowerCase().includes("extraction")
+                ).map((ao) => {
+                  const qty = data.addOnQty[ao.id] ?? 0;
+                  return <AddOnRow key={ao.id} ao={ao} qty={qty} onQty={(q) => setQty(ao.id, q)} />;
+                })}
+              </div>
+            </>
+          )}
         </div>
       )}
 
       <div className="sticky bottom-0 bg-background/95 backdrop-blur border-t border-border/60 p-4">
         <button onClick={onNext}
           className="w-full bg-primary/80 hover:bg-primary text-white font-semibold py-3.5 rounded-2xl text-sm transition-colors">
-          Add 1 · ${total.toFixed(2)}
+          {totalAddOns > 0 ? `Continue · $${total.toFixed(2)}` : "Continue — No Add-Ons"}
         </button>
       </div>
     </div>
