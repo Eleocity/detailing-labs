@@ -31,7 +31,7 @@ export default function SiteFooter() {
             </p>
             <div className="flex items-center gap-3">
               <a
-                href="https://instagram.com/detailinglabs"
+                href="https://www.instagram.com/detailing.labs.wi"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-lg bg-secondary hover:bg-primary/20 border border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-all"
