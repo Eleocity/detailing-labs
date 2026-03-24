@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -154,44 +154,92 @@ function StickyBottom({ dateLabel, onNext, nextLabel = "Next", disabled = false,
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
 
 function LocationMap({ address, city, state, zip }: { address: string; city: string; state: string; zip: string }) {
-  const [embedSrc, setEmbedSrc] = useState<string>("");
+  const mapRef    = useRef<HTMLDivElement>(null);
+  const mapObj    = useRef<any>(null);
+  const markerObj = useRef<any>(null);
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState(false);
 
+  // Load Maps JS API once
   useEffect(() => {
-    const query = [address, city, state, zip].filter(Boolean).join(", ");
-    if (!query.trim() || !address) {
-      // Default view centered on SE Wisconsin
-      const base = MAPS_KEY
-        ? `https://www.google.com/maps/embed/v1/view?key=${MAPS_KEY}&center=42.7261,-87.7829&zoom=11`
-        : "";
-      setEmbedSrc(base);
-      return;
+    if (!MAPS_KEY) return;
+    const w = window as any;
+    if (w.__gmaps === "ready") { setReady(true); return; }
+    if (w.__gmaps === "loading") {
+      const t = setInterval(() => { if (w.__gmaps === "ready") { setReady(true); clearInterval(t); } }, 150);
+      return () => clearInterval(t);
     }
+    w.__gmaps = "loading";
+    const s = document.createElement("script");
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&v=weekly`;
+    s.async = true;
+    s.onload  = () => { w.__gmaps = "ready"; setReady(true); };
+    s.onerror = () => { w.__gmaps = "error";  setError(true); };
+    document.head.appendChild(s);
+  }, []);
+
+  // Init map once script is ready
+  useEffect(() => {
+    if (!ready || !mapRef.current || mapObj.current) return;
+    const g = (window as any).google;
+    if (!g?.maps) return;
+    mapObj.current = new g.maps.Map(mapRef.current, {
+      center: { lat: 42.7261, lng: -87.7829 },
+      zoom: 11,
+      disableDefaultUI: true,
+      gestureHandling: "cooperative",
+      styles: [
+        { elementType: "geometry",            stylers: [{ color: "#1a1a2e" }] },
+        { elementType: "labels.text.fill",    stylers: [{ color: "#8892a4" }] },
+        { elementType: "labels.text.stroke",  stylers: [{ color: "#1a1a2e" }] },
+        { featureType: "road", elementType: "geometry",        stylers: [{ color: "#2d2d4e" }] },
+        { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212138" }] },
+        { featureType: "water", elementType: "geometry",       stylers: [{ color: "#0e1626" }] },
+        { featureType: "poi",   stylers: [{ visibility: "off" }] },
+      ],
+    });
+    g.maps.event.trigger(mapObj.current, "resize");
+  }, [ready]);
+
+  // Geocode + drop pin whenever address changes
+  useEffect(() => {
+    if (!ready || !mapObj.current) return;
+    const g = (window as any).google;
+    if (!g?.maps) return;
+    const query = [address, city, state, zip].filter(Boolean).join(", ");
+    if (!query.trim() || !address) return;
     const t = setTimeout(() => {
-      const q = encodeURIComponent(query);
-      const src = MAPS_KEY
-        ? `https://www.google.com/maps/embed/v1/place?key=${MAPS_KEY}&q=${q}&zoom=16`
-        : `https://maps.google.com/maps?q=${q}&output=embed&z=16`;
-      setEmbedSrc(src);
+      new g.maps.Geocoder().geocode({ address: query }, (results: any, status: any) => {
+        if (status !== "OK" || !results?.[0] || !mapObj.current) return;
+        const loc = results[0].geometry.location;
+        mapObj.current.panTo(loc);
+        mapObj.current.setZoom(16);
+        if (markerObj.current) markerObj.current.setMap(null);
+        markerObj.current = new g.maps.Marker({
+          map: mapObj.current,
+          position: loc,
+          animation: g.maps.Animation.DROP,
+        });
+      });
     }, 700);
     return () => clearTimeout(t);
-  }, [address, city, state, zip]);
+  }, [ready, address, city, state, zip]);
+
+  if (!MAPS_KEY || error) {
+    return (
+      <div className="mx-5 rounded-2xl border border-border bg-muted/10 flex flex-col items-center justify-center gap-2 text-muted-foreground/40" style={{ height: 260 }}>
+        <MapPin className="w-7 h-7" />
+        <p className="text-xs">{error ? "Map unavailable" : "Enter your address above"}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="mx-5 rounded-2xl border border-border overflow-hidden" style={{ height: 260 }}>
-      {embedSrc ? (
-        <iframe
-          src={embedSrc}
-          width="100%"
-          height="100%"
-          style={{ border: 0, display: "block" }}
-          allowFullScreen
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
-      ) : (
-        <div className="w-full h-full bg-muted/10 flex flex-col items-center justify-center gap-2 text-muted-foreground/40">
-          <MapPin className="w-7 h-7" />
-          <p className="text-xs">Enter your address above</p>
+    <div className="mx-5 rounded-2xl border border-border overflow-hidden relative" style={{ height: 260 }}>
+      <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
+      {!ready && (
+        <div className="absolute inset-0 bg-muted/20 flex items-center justify-center">
+          <div className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
         </div>
       )}
     </div>
