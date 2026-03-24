@@ -39,7 +39,8 @@ const AdminCRMList = lazy(() => import("./pages/admin/AdminCRM").then(m => ({ de
 const AdminCRMDetail = lazy(() => import("./pages/admin/AdminCRM").then(m => ({ default: m.AdminCRMDetail })));
 const AdminEmployeesList = lazy(() => import("./pages/admin/AdminEmployees").then(m => ({ default: m.AdminEmployeesList })));
 const AdminEmployeeDetail = lazy(() => import("./pages/admin/AdminEmployees").then(m => ({ default: m.AdminEmployeeDetail })));
-const AdminInvoicesList = lazy(() => import("./pages/admin/AdminInvoices").then(m => ({ default: m.AdminInvoicesList })));
+const AdminInvoicesList   = lazy(() => import("./pages/admin/AdminInvoices").then(m => ({ default: m.AdminInvoicesList })));
+const AdminInvoiceDetail  = lazy(() => import("./pages/admin/AdminInvoices").then(m => ({ default: m.AdminInvoiceDetail })));
 const AdminMedia = lazy(() => import("./pages/admin/AdminMedia"));
 const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminRoutePlanner = lazy(() => import("./pages/admin/AdminRoutePlanner"));
@@ -107,6 +108,8 @@ function Router() {
         <Route path="/admin/employees" component={AdminEmployeesList} />
         <Route path="/admin/employees/:id" component={AdminEmployeeDetail} />
         <Route path="/admin/invoices" component={AdminInvoicesList} />
+        <Route path="/admin/invoices/:id" component={AdminInvoiceDetail} />
+        <Route path="/admin/invoices/:id" component={AdminInvoiceDetail} />
         <Route path="/admin/media" component={AdminMedia} />
         <Route path="/admin/reviews" component={AdminReviews} />
         <Route path="/admin/route-planner" component={AdminRoutePlanner} />

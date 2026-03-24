@@ -3,7 +3,7 @@ import { Link, useParams, useLocation } from "wouter";
 import {
   Search, Filter, ChevronLeft, Car, Calendar, MapPin, Phone,
   Mail, User, CheckCircle2, Clock, AlertCircle, Edit, Trash2,
-  UserCheck, DollarSign, Camera, Star, ChevronRight, Plus, Loader2
+  UserCheck, DollarSign, Camera, Star, ChevronRight, Plus, Loader2, FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,30 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 // ── Booking List ─────────────────────────────────────────────────────────────
+
+// ── Generate Invoice Button ───────────────────────────────────────────────────
+function GenerateInvoiceButton({ bookingId }: { bookingId: number }) {
+  const [, navigate] = useLocation();
+  const generate = trpc.bookings.generateInvoice.useMutation({
+    onSuccess: ({ invoiceId }) => {
+      toast.success("Invoice ready");
+      navigate(`/admin/invoices/${invoiceId}`);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  return (
+    <Button variant="ghost" size="sm" className="w-full justify-start text-xs"
+      onClick={() => generate.mutate({ bookingId })}
+      disabled={generate.isPending}>
+      {generate.isPending
+        ? <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+        : <FileText className="w-3 h-3 mr-2" />}
+      {generate.isPending ? "Generating…" : "Generate / View Invoice"}
+    </Button>
+  );
+}
+
 export function AdminBookingsList() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -339,11 +363,7 @@ export function AdminBookingDetail() {
                     <Camera className="w-3 h-3 mr-2" /> View Photos
                   </Button>
                 </Link>
-                <Link href={`/admin/invoices`}>
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-xs">
-                    <DollarSign className="w-3 h-3 mr-2" /> View Invoice
-                  </Button>
-                </Link>
+                <GenerateInvoiceButton bookingId={booking.id} />
                 {booking.customerId && (
                   <Link href={`/admin/crm/${booking.customerId}`}>
                     <Button variant="ghost" size="sm" className="w-full justify-start text-xs">

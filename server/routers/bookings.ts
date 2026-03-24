@@ -309,6 +309,32 @@ export const bookingsRouter = router({
         notes: input.notes || null,
       });
 
+      // Auto-create invoice when booking is marked completed
+      if (input.status === "completed") {
+        const existingInv = await db.select().from(invoices).where(eq(invoices.bookingId, input.id)).limit(1);
+        if (existingInv.length === 0) {
+          const lineItems: { name: string; qty: number; price: number }[] = [];
+          if (current.packageName) lineItems.push({ name: current.packageName, qty: 1, price: Number(current.subtotal) || 0 });
+          if (Number(current.travelFee) > 0) lineItems.push({ name: "Travel Fee", qty: 1, price: Number(current.travelFee) });
+          const subtotal    = Number(current.subtotal)  || 0;
+          const travelFee   = Number(current.travelFee) || 0;
+          const taxAmount   = Number(current.taxAmount) || 0;
+          const totalAmount = subtotal + travelFee + taxAmount;
+          const invNum = `INV-${Date.now().toString(36).toUpperCase()}`;
+          await db.insert(invoices).values({
+            invoiceNumber: invNum,
+            bookingId: input.id,
+            customerId: current.customerId ?? undefined,
+            lineItems: JSON.stringify(lineItems),
+            subtotal: subtotal.toFixed(2)   as any,
+            travelFee: travelFee.toFixed(2) as any,
+            taxAmount: taxAmount.toFixed(2) as any,
+            totalAmount: totalAmount.toFixed(2) as any,
+            status: "draft",
+          }).catch(() => {}); // ignore duplicate errors
+        }
+      }
+
       return { success: true };
     }),
 
