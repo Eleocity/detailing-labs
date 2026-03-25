@@ -251,7 +251,7 @@ export default function Home() {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger} className="text-center mb-12">
             <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">What We Do</motion.p>
             <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold">
-              Three Services. Done Right.
+              Four Services. Done Right.
             </motion.h2>
             <motion.p variants={fadeUp} className="text-muted-foreground mt-4 max-w-xl mx-auto text-sm">
               No upsells you didn't ask for. No mystery pricing. Just focused, professional work on your vehicle.
