@@ -6,7 +6,10 @@
  * Get your key: Urable → Settings → Integrations → API Key
  */
 
-const URABLE_BASE = "https://api.urable.com/api/v1";
+// Urable API base URL — the docs site is api.urable.com but the actual
+// REST endpoints are served from a different path. We try multiple patterns.
+// Set URABLE_API_BASE in Railway to override if you know the correct URL.
+const URABLE_BASE = process.env.URABLE_API_BASE ?? "https://api.urable.com";
 
 async function urableRequest(
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
@@ -19,8 +22,9 @@ async function urableRequest(
     return null;
   }
 
+  const url = `${URABLE_BASE}${path}`;
   try {
-    const res = await fetch(`${URABLE_BASE}${path}`, {
+    const res = await fetch(url, {
       method,
       headers: {
         "x-api-key": apiKey,
@@ -31,14 +35,19 @@ async function urableRequest(
     });
 
     const text = await res.text();
+    // If we get HTML back, the URL is wrong
+    if (text.trimStart().startsWith("<!")) {
+      console.error(`[Urable] ${method} ${url} returned HTML — wrong base URL. Set URABLE_API_BASE env var. Current: ${URABLE_BASE}`);
+      return null;
+    }
     if (!res.ok) {
-      console.error(`[Urable] ${method} ${path} → ${res.status}: ${text.slice(0, 200)}`);
+      console.error(`[Urable] ${method} ${url} → ${res.status}: ${text.slice(0, 200)}`);
       return null;
     }
 
     return text ? JSON.parse(text) : {};
   } catch (err: any) {
-    console.error(`[Urable] Request failed: ${err?.message}`);
+    console.error(`[Urable] Request to ${url} failed: ${err?.message}`);
     return null;
   }
 }

@@ -16,6 +16,18 @@ export default function AdminUrable() {
     onError: (e) => { toast.error(e.message); addLog(`Error: ${e.message}`); },
   });
 
+  const probe = trpc.urable.probe.useMutation({
+    onSuccess: (d) => {
+      if (d.ok) {
+        toast.success(`Working URL found: ${d.workingUrl}`);
+        addLog(`✅ Working URL: ${d.workingUrl}`);
+      } else {
+        toast.error("No working URL found — check results in log");
+        (d.results ?? []).forEach((r: any) => addLog(`${r.status} ${r.isJson ? "JSON" : "HTML"} — ${r.url} — ${r.preview?.slice(0,60)}`));
+      }
+    },
+    onError: (e) => { toast.error(e.message); addLog(`Probe error: ${e.message}`); },
+  });
   const syncPackages = trpc.urable.syncPackages.useMutation({
     onSuccess: (d) => { toast.success(`Synced ${d.synced}/${d.total} items`); addLog(`Packages: ${(d as any).packages ?? d.synced} · Add-Ons: ${(d as any).addons ?? 0} · Failed: ${(d as any).failed ?? 0}`); },
     onError: (e) => { toast.error(e.message); addLog(`Error: ${e.message}`); },
@@ -55,6 +67,18 @@ export default function AdminUrable() {
                 : "Add URABLE_API_KEY to Railway → your app service → Variables, then redeploy."}
             </p>
           </div>
+        </div>
+
+        {/* Probe button — always show */}
+        <div className="p-4 rounded-xl border border-border bg-card flex items-center justify-between gap-4">
+          <div>
+            <p className="font-semibold text-sm">Diagnose API Connection</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Tests multiple URL patterns to find the correct Urable API endpoint. Check the sync log for results.</p>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => probe.mutate({})} disabled={!isConfigured || probe.isPending} className="flex-shrink-0 gap-1.5">
+            {probe.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+            Test URLs
+          </Button>
         </div>
 
         {/* Setup instructions when not configured */}

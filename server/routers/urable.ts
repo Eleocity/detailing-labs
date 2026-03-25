@@ -40,6 +40,36 @@ export const urableRouter = router({
     }
   }),
 
+  // ── Probe API URL ────────────────────────────────────────────────────────
+  probe: protectedProcedure
+    .input(z.object({ baseUrl: z.string().optional() }))
+    .mutation(async ({ input, ctx }) => {
+      adminOnly(ctx.user.role);
+      const apiKey = process.env.URABLE_API_KEY;
+      if (!apiKey) return { ok: false, error: "URABLE_API_KEY not set" };
+
+      const base = input.baseUrl ?? process.env.URABLE_API_BASE ?? "https://api.urable.com";
+      const pathsToTry = ["/customers", "/api/v1/customers", "/api/customers", "/v1/customers"];
+      const results: { url: string; status: number; isJson: boolean; preview: string }[] = [];
+
+      for (const path of pathsToTry) {
+        const url = `${base}${path}`;
+        try {
+          const res = await fetch(url, {
+            headers: { "x-api-key": apiKey, "Accept": "application/json" },
+          });
+          const text = await res.text();
+          const isJson = !text.trimStart().startsWith("<");
+          results.push({ url, status: res.status, isJson, preview: text.slice(0, 100) });
+        } catch (e: any) {
+          results.push({ url, status: 0, isJson: false, preview: e?.message });
+        }
+      }
+
+      const working = results.find(r => r.isJson && r.status < 500);
+      return { ok: !!working, workingUrl: working?.url ?? null, results };
+    }),
+
   // ── Sync all unsynced customers ───────────────────────────────────────────
   syncAllCustomers: protectedProcedure.mutation(async ({ ctx }) => {
     adminOnly(ctx.user.role);
