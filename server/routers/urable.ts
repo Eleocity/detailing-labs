@@ -88,7 +88,18 @@ export const urableRouter = router({
     if (!process.env.URABLE_API_KEY)
       throw new TRPCError({ code: "BAD_REQUEST", message: "URABLE_API_KEY not set in Railway variables" });
 
-    const all = await db.select().from(customers).limit(500);
+    let all: any[] = [];
+    try {
+      all = await db.select().from(customers).limit(500);
+    } catch (e: any) {
+      if (e?.message?.includes("urableId") || e?.message?.includes("urableSyncedAt")) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Database migration pending — the urableId columns haven't been added yet. Visit https://detailinglabswi.com/api/migrate to run migrations manually, or redeploy the app."
+        });
+      }
+      throw e;
+    }
     let synced = 0; let failed = 0;
 
     for (const c of all) {
