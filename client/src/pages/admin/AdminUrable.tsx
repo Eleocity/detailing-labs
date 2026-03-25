@@ -125,24 +125,19 @@ export default function AdminUrable() {
             </Button>
           </div>
 
-          <div className="p-5 rounded-xl border border-border bg-card">
+          <div className="p-5 rounded-xl border border-border bg-card opacity-60">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                <Package className="w-4 h-4 text-amber-500" />
+              <div className="w-9 h-9 rounded-lg bg-muted/40 border border-border flex items-center justify-center">
+                <Package className="w-4 h-4 text-muted-foreground" />
               </div>
               <div>
                 <p className="font-semibold text-sm">Packages & Services</p>
-                <p className="text-xs text-muted-foreground">Sync your packages to Urable as Items</p>
+                <p className="text-xs text-muted-foreground">Not required</p>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground mb-4">
-              Pushes all packages and add-ons to Urable as service items so they appear in job creation.
+            <p className="text-xs text-muted-foreground">
+              Urable doesn't use a standalone product catalog — packages and add-ons are automatically included as line items when each booking syncs. No separate action needed.
             </p>
-            <Button className="w-full gap-2 border-amber-500/30 text-amber-400 hover:bg-amber-500/10" size="sm" variant="outline"
-              onClick={() => syncPackages.mutate()} disabled={!isConfigured || syncPackages.isPending}>
-              {syncPackages.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Package className="w-3.5 h-3.5" />}
-              Sync Packages
-            </Button>
           </div>
         </div>
 
