@@ -437,9 +437,13 @@ function AddOnEditor() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminSiteEditor() {
+  const utils = trpc.useUtils();
   const { data: allContent, isLoading } = trpc.content.getSiteContent.useQuery({});
   const bulkUpsert = trpc.content.bulkUpsertSiteContent.useMutation({
-    onSuccess: (res) => toast.success(`Saved ${res.count} field${res.count !== 1 ? "s" : ""}`),
+    onSuccess: (res) => {
+      utils.content.getSiteContent.invalidate();
+      toast.success(`Saved ${res.count} field${res.count !== 1 ? "s" : ""}`);
+    },
     onError: () => toast.error("Failed to save changes"),
   });
 
