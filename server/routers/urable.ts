@@ -3,7 +3,7 @@ import { eq, isNull } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { customers, bookings, packages as pkgsTable } from "../../drizzle/schema";
+import { customers, bookings, packages as pkgsTable, addOns as addOnsTable } from "../../drizzle/schema";
 import {
   syncCustomerToUrable, createUrableJob, updateUrableJobStatus,
   syncItemToUrable, parseUrableWebhook,
@@ -179,8 +179,13 @@ export const urableRouter = router({
     if (!process.env.URABLE_API_KEY)
       throw new TRPCError({ code: "BAD_REQUEST", message: "URABLE_API_KEY not set" });
 
-    const pkgs = await db.select().from(pkgsTable);
+    const pkgs  = await db.select().from(pkgsTable);
+    const addons = await db.select().from(addOnsTable);
+
     let synced = 0;
+    let failed = 0;
+
+    // Sync packages
     for (const pkg of pkgs) {
       const itemId = await syncItemToUrable({
         name:        pkg.name,
@@ -188,9 +193,21 @@ export const urableRouter = router({
         price:       Number(pkg.price),
         category:    "Detailing",
       });
-      if (itemId) synced++;
+      itemId ? synced++ : failed++;
     }
-    return { synced, total: pkgs.length };
+
+    // Sync add-ons
+    for (const addon of addons) {
+      const itemId = await syncItemToUrable({
+        name:        addon.name,
+        description: addon.description,
+        price:       Number(addon.price),
+        category:    "Add-On",
+      });
+      itemId ? synced++ : failed++;
+    }
+
+    return { synced, failed, total: pkgs.length + addons.length, packages: pkgs.length, addons: addons.length };
   }),
 
   // ── Urable webhook → your site ─────────────────────────────────────────────

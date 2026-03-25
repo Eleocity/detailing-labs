@@ -10,7 +10,7 @@ import {
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard, Calendar, Users, UserCheck, MapPin, FileText,
-  Camera, Star, LogOut, PanelLeft, ChevronRight, Bell, Globe, Settings
+  Camera, Star, LogOut, PanelLeft, ChevronRight, Bell, Globe, Settings, Zap
 } from "lucide-react";
 import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { CSSProperties, useEffect, useRef, useState } from "react";
@@ -28,6 +28,7 @@ const menuItems = [
   { icon: FileText, label: "Invoices", path: "/admin/invoices" },
   { icon: Camera, label: "Media", path: "/admin/media" },
   { icon: Star, label: "Reviews", path: "/admin/reviews" },
+  { icon: Zap, label: "Urable Sync", path: "/admin/urable" },
   { icon: Globe, label: "Site Editor", path: "/admin/site-editor" },
   { icon: Users, label: "Users", path: "/admin/users" },
 ];

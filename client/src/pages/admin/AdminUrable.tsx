@@ -17,7 +17,7 @@ export default function AdminUrable() {
   });
 
   const syncPackages = trpc.urable.syncPackages.useMutation({
-    onSuccess: (d) => { toast.success(`Synced ${d.synced} packages`); addLog(`Packages: ${d.synced}/${d.total} synced`); },
+    onSuccess: (d) => { toast.success(`Synced ${d.synced}/${d.total} items`); addLog(`Packages: ${(d as any).packages ?? d.synced} · Add-Ons: ${(d as any).addons ?? 0} · Failed: ${(d as any).failed ?? 0}`); },
     onError: (e) => { toast.error(e.message); addLog(`Error: ${e.message}`); },
   });
 
@@ -103,7 +103,7 @@ export default function AdminUrable() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground mb-4">
-              Pushes all your detailing packages to Urable as service items so they appear in job creation.
+              Pushes all packages and add-ons to Urable as service items so they appear in job creation.
             </p>
             <Button className="w-full gap-2 border-amber-500/30 text-amber-400 hover:bg-amber-500/10" size="sm" variant="outline"
               onClick={() => syncPackages.mutate()} disabled={!isConfigured || syncPackages.isPending}>
