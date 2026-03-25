@@ -36,7 +36,7 @@ const VEHICLE_TIERS: Record<string, { label: string; price: number }[]> = {
     { label: "Small SUV / Truck",    price: 269.99 },
     { label: "Large SUV / Minivan",  price: 359.99 },
   ],
-  "The Ultimate Bundle": [
+  "The Lab Grade Detail": [
     { label: "Sedan / Coupe",        price: 449.99 },
     { label: "Small SUV / Truck",    price: 529.99 },
     { label: "Large SUV / Minivan",  price: 649.99 },
@@ -70,7 +70,7 @@ const FALLBACK_PACKAGES = [
     features: JSON.stringify([
       "Compressed air blowout",
       "Deep vacuum (all surfaces)",
-      "Dash / console / door scrub",
+      "Dash/console/door scrub",
       "UV protectant treatment",
       "Streak-free interior glass",
       "Floor mat restoration",
@@ -82,6 +82,21 @@ const FALLBACK_PACKAGES = [
     id: 3,
     name: "Full Showroom Reset",
     price: "229.99",
+    duration: 240,
+    description: "Our most popular package — total vehicle transformation inside and out. From $229.",
+    features: JSON.stringify([
+      "Everything in Exterior Decon & Shield",
+      "Everything in Interior Deep Refresh",
+      "Best value — save up to $39 vs. booking separately",
+      "Like-new vehicle experience inside and out",
+    ]),
+    isPopular: true,
+    isActive: true,
+  },
+  {
+    id: 4,
+    name: "The Lab Grade Detail",
+    price: "2",
     duration: 240,
     description: "Our most popular package — total vehicle transformation inside and out. From $229.",
     features: JSON.stringify([
