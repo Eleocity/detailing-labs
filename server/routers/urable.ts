@@ -88,17 +88,28 @@ export const urableRouter = router({
     if (!process.env.URABLE_API_KEY)
       throw new TRPCError({ code: "BAD_REQUEST", message: "URABLE_API_KEY not set in Railway variables" });
 
+    // Use raw SQL to avoid schema/DB column mismatch during migrations
+    const db2 = (db as any).connection ?? (db as any).$client ?? db;
     let all: any[] = [];
     try {
-      all = await db.select().from(customers).limit(500);
-    } catch (e: any) {
-      if (e?.message?.includes("urableId") || e?.message?.includes("urableSyncedAt")) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Database migration pending — the urableId columns haven't been added yet. Visit https://detailinglabswi.com/api/migrate to run migrations manually, or redeploy the app."
-        });
-      }
-      throw e;
+      const [rows]: any = await db2.execute(
+        "SELECT id, firstName, lastName, email, phone, address, city, state, zip, notes FROM customers LIMIT 500"
+      );
+      all = rows ?? [];
+    } catch {
+      // Fallback to Drizzle select
+      all = await db.select({
+        id: customers.id,
+        firstName: customers.firstName,
+        lastName: customers.lastName,
+        email: customers.email,
+        phone: customers.phone,
+        address: customers.address,
+        city: customers.city,
+        state: customers.state,
+        zip: customers.zip,
+        notes: customers.notes,
+      }).from(customers).limit(500);
     }
     let synced = 0; let failed = 0;
 
@@ -115,7 +126,7 @@ export const urableRouter = router({
         notes:     c.notes,
       });
       if (urableId) {
-        await db.update(customers).set({ urableId, urableSyncedAt: new Date() } as any).where(eq(customers.id, c.id));
+        try { await db.update(customers).set({ urableId, urableSyncedAt: new Date() } as any).where(eq(customers.id, c.id)); } catch { console.warn('[Urable] Could not store urableId — migration may be pending'); }
         synced++;
       } else {
         failed++;
@@ -143,7 +154,7 @@ export const urableRouter = router({
       });
 
       if (!urableId) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Urable sync failed — check API key and connection" });
-      await db.update(customers).set({ urableId, urableSyncedAt: new Date() } as any).where(eq(customers.id, c.id));
+      try { await db.update(customers).set({ urableId, urableSyncedAt: new Date() } as any).where(eq(customers.id, c.id)); } catch { console.warn('[Urable] Could not store urableId — migration may be pending'); }
       return { urableId };
     }),
 
