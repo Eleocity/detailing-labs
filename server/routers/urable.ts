@@ -48,7 +48,7 @@ export const urableRouter = router({
       const apiKey = process.env.URABLE_API_KEY;
       if (!apiKey) return { ok: false, error: "URABLE_API_KEY not set" };
 
-      const base = input.baseUrl ?? process.env.URABLE_API_BASE ?? "https://api.urable.com";
+      const base = input.baseUrl ?? process.env.URABLE_API_BASE ?? "https://app.urable.com/api";
       // Try all combinations of path + auth header style
       const pathsToTry = ["/customers", "/v1/customers"];
       const authHeaders: { headers: Record<string,string>; name: string }[] = [
