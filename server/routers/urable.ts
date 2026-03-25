@@ -18,13 +18,26 @@ export const urableRouter = router({
   // ── Status check ─────────────────────────────────────────────────────────
   status: protectedProcedure.query(async ({ ctx }) => {
     adminOnly(ctx.user.role);
-    const isConfigured = !!process.env.URABLE_API_KEY;
-    if (!isConfigured) return { configured: false, customers: 0, bookings: 0 };
-    const db = await getDb();
-    if (!db) return { configured: true, customers: 0, bookings: 0 };
-    const [syncedCustomers] = await db.select({ count: customers.id })
-      .from(customers).where(eq(customers.urableId as any, customers.urableId as any)).limit(1);
-    return { configured: true, customers: 0, bookings: 0 };
+    const apiKey = process.env.URABLE_API_KEY;
+    if (!apiKey) return { configured: false, connected: false, error: null };
+
+    // Test the connection by listing customers (lightweight call)
+    try {
+      const res = await fetch("https://api.urable.com/api/v1/customers?limit=1", {
+        headers: {
+          "x-api-key": apiKey,
+          "Accept": "application/json",
+        },
+      });
+      if (res.ok) {
+        return { configured: true, connected: true, error: null };
+      } else {
+        const text = await res.text().catch(() => "");
+        return { configured: true, connected: false, error: `API returned ${res.status}: ${text.slice(0, 100)}` };
+      }
+    } catch (err: any) {
+      return { configured: true, connected: false, error: err?.message ?? "Connection failed" };
+    }
   }),
 
   // ── Sync all unsynced customers ───────────────────────────────────────────

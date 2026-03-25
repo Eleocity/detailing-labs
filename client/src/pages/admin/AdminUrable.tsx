@@ -22,6 +22,8 @@ export default function AdminUrable() {
   });
 
   const isConfigured = status?.configured ?? false;
+  const isConnected  = (status as any)?.connected ?? false;
+  const connError    = (status as any)?.error ?? null;
   const webhookUrl = "https://detailinglabswi.com/api/webhooks/urable";
 
   return (
@@ -34,17 +36,23 @@ export default function AdminUrable() {
 
         {/* Status banner */}
         <div className={`flex items-center gap-3 p-4 rounded-xl border ${isConfigured ? "border-emerald-500/30 bg-emerald-500/5" : "border-amber-500/30 bg-amber-500/5"}`}>
-          {isConfigured
+          {isConfigured && isConnected
             ? <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             : <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0" />}
           <div>
-            <p className={`font-semibold text-sm ${isConfigured ? "text-emerald-300" : "text-amber-300"}`}>
-              {isConfigured ? "Connected to Urable" : "Not configured"}
+            <p className={`font-semibold text-sm ${isConfigured && isConnected ? "text-emerald-300" : "text-amber-300"}`}>
+              {isConfigured && isConnected
+                ? "Connected to Urable ✓"
+                : isConfigured
+                ? "API key found but connection failed"
+                : "Not configured"}
             </p>
             <p className="text-muted-foreground text-xs mt-0.5">
-              {isConfigured
-                ? "URABLE_API_KEY is set. New bookings sync automatically."
-                : "Add URABLE_API_KEY to Railway → your app service → Variables to enable sync."}
+              {isConfigured && isConnected
+                ? "URABLE_API_KEY is set and verified. New bookings sync automatically."
+                : isConfigured && connError
+                ? `Error: ${connError}`
+                : "Add URABLE_API_KEY to Railway → your app service → Variables, then redeploy."}
             </p>
           </div>
         </div>
@@ -144,7 +152,7 @@ export default function AdminUrable() {
         <div className="rounded-xl border border-border bg-card p-5">
           <h3 className="font-semibold text-sm mb-1">Urable Webhook URL</h3>
           <p className="text-xs text-muted-foreground mb-4">
-            Add this in Urable → Settings → Webhooks to enable two-way sync (job status updates, payments, customer changes).
+            Add this in Urable → Settings → Integrations → Webhooks to enable two-way sync. If you don't see Webhooks, contact Urable support — it may require plan activation.
           </p>
           <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30 border border-border font-mono text-xs break-all">
             <span className="flex-1 text-primary">{webhookUrl}</span>
@@ -153,7 +161,7 @@ export default function AdminUrable() {
               <Copy className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
           </div>
-          <a href="https://app.urable.com/settings/integrations" target="_blank" rel="noopener noreferrer"
+          <a href="https://app.urable.com/settings" target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline mt-3">
             Open Urable Settings <ExternalLink className="w-3 h-3" />
           </a>
