@@ -77,7 +77,7 @@ export default function Home() {
   const about   = useContent("about");
   const contact = useContent("contact");
 
-  const phone     = contact.phone     || "(262) 555-0190";
+  const phone     = contact.phone     || "(262) 260-9474";
   const phoneHref = `tel:${phone.replace(/\D/g, "")}`;
 
   return (
