@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import {
   ChevronRight, Star, Shield, Clock, MapPin, Sparkles,
-  CheckCircle2, ArrowRight, Phone, Zap,
+  CheckCircle2, ArrowRight, Phone, Zap, Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
@@ -291,6 +291,46 @@ export default function Home() {
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 text-sm font-semibold text-amber-500">
+                    Get a quote <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+
+            {/* Fleet */}
+            <motion.div variants={fadeUp}>
+              <Link href="/pricing?tab=fleet">
+                <div className="group flex flex-col gap-5 p-7 rounded-2xl border-2 border-border bg-card hover:border-sky-500/50 hover:bg-sky-500/3 transition-all cursor-pointer h-full">
+                  <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center group-hover:bg-sky-500/20 transition-colors">
+                    <Zap className="w-6 h-6 text-sky-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-display font-bold text-xl mb-2">Fleet Services</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Multiple vehicles? Custom programs for businesses, dealerships, and property managers.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-sm font-semibold text-sky-500">
+                    Get a quote <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+
+            {/* Paint Correction */}
+            <motion.div variants={fadeUp}>
+              <Link href="/pricing?tab=paint">
+                <div className="group flex flex-col gap-5 p-7 rounded-2xl border-2 border-border bg-card hover:border-rose-500/50 hover:bg-rose-500/3 transition-all cursor-pointer h-full">
+                  <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center group-hover:bg-rose-500/20 transition-colors">
+                    <Wrench className="w-6 h-6 text-rose-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-display font-bold text-xl mb-2">Paint Correction</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Remove swirl marks, scratches, and oxidation. Quoted based on your paint's condition.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-sm font-semibold text-rose-400">
                     Get a quote <ArrowRight className="w-4 h-4" />
                   </div>
                 </div>
