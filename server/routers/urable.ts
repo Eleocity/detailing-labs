@@ -236,19 +236,11 @@ export const urableRouter = router({
     const addons = await db.select().from(addOnsTable);
     let synced = 0; let failed = 0;
 
-    // Pre-fetch existing Urable items once to avoid 11 separate GET calls
-    let existingItems: any[] = [];
-    try {
-      const itemsBase = process.env.URABLE_API_BASE ?? "https://app.urable.com/api/v1";
-      const listRes = await fetch(`${itemsBase}/items`, {
-        headers: { "Authorization": `Bearer ${process.env.URABLE_API_KEY!}`, "Accept": "application/json" },
-      });
-      const listJson = await listRes.json() as any;
-      console.log("[Urable] items list:", JSON.stringify(listJson)?.slice(0, 400));
-      existingItems = listJson?.data ?? listJson?.items ?? (Array.isArray(listJson) ? listJson : []);
-    } catch (e: any) {
-      console.error("[Urable] Failed to list items:", e?.message);
-    }
+    // Pre-fetch using urableRequest (handles Bearer auth correctly)
+    const { urableRequest } = await import("../urable") as any;
+    const listJson = await urableRequest("GET", "/items");
+    console.log("[Urable] items list response:", JSON.stringify(listJson)?.slice(0, 500));
+    const existingItems: any[] = listJson?.data ?? listJson?.items ?? (Array.isArray(listJson) ? listJson : []);
 
     // Sync packages
     for (const pkg of pkgs) {
