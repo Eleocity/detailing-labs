@@ -1,4 +1,5 @@
 import { useParams, Link } from "wouter";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, Calendar, MapPin, Car, Phone, ChevronRight, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,18 @@ export default function BookingConfirmation() {
     navigator.clipboard.writeText(bookingNumber ?? "");
     toast.success("Booking number copied!");
   };
+
+  useEffect(() => {
+    if (!booking) return;
+    const fbq = (window as any).fbq;
+    if (typeof fbq !== "function") return;
+    fbq("track", "Lead", {
+      content_name: booking.packageName ?? "Detailing Booking",
+      currency: "USD",
+      value: booking.totalAmount ? Number(booking.totalAmount) : undefined,
+    });
+    fbq("track", "Schedule");
+  }, [booking]);
 
   if (isLoading) {
     return (
