@@ -9,7 +9,7 @@
 // Urable API base URL — the docs site is api.urable.com but the actual
 // REST endpoints are served from a different path. We try multiple patterns.
 // Set URABLE_API_BASE in Railway to override if you know the correct URL.
-const URABLE_BASE = process.env.URABLE_API_BASE ?? "https://api.urable.com";
+const URABLE_BASE = process.env.URABLE_API_BASE ?? "https://app.urable.com/api";
 
 async function urableRequest(
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
