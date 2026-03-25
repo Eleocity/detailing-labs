@@ -49,25 +49,34 @@ export const urableRouter = router({
       if (!apiKey) return { ok: false, error: "URABLE_API_KEY not set" };
 
       const base = input.baseUrl ?? process.env.URABLE_API_BASE ?? "https://api.urable.com";
-      const pathsToTry = ["/customers", "/v1/customers", "/api/v1/customers", "/contacts"];
-      const results: { url: string; status: number; isJson: boolean; preview: string }[] = [];
+      // Try all combinations of path + auth header style
+      const pathsToTry = ["/customers", "/v1/customers"];
+      const authHeaders: { headers: Record<string,string>; name: string }[] = [
+        { headers: { "Authorization": `Bearer ${apiKey}`, "Accept": "application/json" }, name: "Bearer" },
+        { headers: { "x-api-key": apiKey, "Accept": "application/json" }, name: "x-api-key" },
+        { headers: { "Authorization": apiKey, "Accept": "application/json" }, name: "raw-auth" },
+        { headers: { "api-key": apiKey, "Accept": "application/json" }, name: "api-key" },
+      ];
+      const results: { url: string; auth: string; status: number; isJson: boolean; preview: string }[] = [];
 
       for (const path of pathsToTry) {
-        const url = `${base}${path}`;
-        try {
-          const res = await fetch(url, {
-            headers: { "x-api-key": apiKey, "Accept": "application/json" },
-          });
-          const text = await res.text();
-          const isJson = !text.trimStart().startsWith("<");
-          results.push({ url, status: res.status, isJson, preview: text.slice(0, 100) });
-        } catch (e: any) {
-          results.push({ url, status: 0, isJson: false, preview: e?.message });
+        for (const auth of authHeaders) {
+          const url = `${base}${path}`;
+          const authType = auth.name;
+          try {
+            const res = await fetch(url, { headers: auth.headers });
+            const text = await res.text();
+            const isJson = !text.trimStart().startsWith("<");
+            results.push({ url, auth: authType, status: res.status, isJson, preview: text.slice(0, 120) });
+            if (isJson && res.status < 400) break; // found a working combo
+          } catch (e: any) {
+            results.push({ url, auth: authType, status: 0, isJson: false, preview: e?.message ?? "" });
+          }
         }
       }
 
-      const working = results.find(r => r.isJson && r.status < 500);
-      return { ok: !!working, workingUrl: working?.url ?? null, results };
+      const working = results.find(r => r.isJson && r.status < 400);
+      return { ok: !!working, workingUrl: working?.url ?? null, workingAuth: (working as any)?.auth ?? null, results };
     }),
 
   // ── Sync all unsynced customers ───────────────────────────────────────────

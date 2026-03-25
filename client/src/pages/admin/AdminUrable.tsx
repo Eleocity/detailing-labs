@@ -19,11 +19,12 @@ export default function AdminUrable() {
   const probe = trpc.urable.probe.useMutation({
     onSuccess: (d) => {
       if (d.ok) {
-        toast.success(`Working URL found: ${d.workingUrl}`);
-        addLog(`✅ Working URL: ${d.workingUrl}`);
+        toast.success(`Connected! URL: ${d.workingUrl}, Auth: ${(d as any).workingAuth}`);
+        addLog(`✅ Working: ${d.workingUrl} using ${(d as any).workingAuth}`);
+        addLog(`Set URABLE_AUTH_STYLE=${(d as any).workingAuth === "Authorization" ? "bearer" : (d as any).workingAuth} in Railway if needed`);
       } else {
-        toast.error("No working URL found — check results in log");
-        (d.results ?? []).forEach((r: any) => addLog(`${r.status} ${r.isJson ? "JSON" : "HTML"} — ${r.url} — ${r.preview?.slice(0,60)}`));
+        toast.error("No working combo found — check log for details");
+        (d.results ?? []).forEach((r: any) => addLog(`${r.status} ${r.isJson ? "✓JSON" : "✗HTML"} [${(r as any).auth}] ${r.url} — ${r.preview?.slice(0,50)}`));
       }
     },
     onError: (e) => { toast.error(e.message); addLog(`Probe error: ${e.message}`); },

@@ -24,13 +24,19 @@ async function urableRequest(
 
   const url = `${URABLE_BASE}${path}`;
   try {
+    // Urable uses Authorization: Bearer for API key auth
+    const authStyle = process.env.URABLE_AUTH_STYLE ?? "bearer";
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    };
+    if (authStyle === "x-api-key") headers["x-api-key"] = apiKey;
+    else if (authStyle === "raw") headers["Authorization"] = apiKey;
+    else headers["Authorization"] = `Bearer ${apiKey}`;
+
     const res = await fetch(url, {
       method,
-      headers: {
-        "x-api-key": apiKey,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
+      headers,
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
 
