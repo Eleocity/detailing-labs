@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight, CheckCircle2, MapPin, Info,
-  Sparkles, Shield, Phone, Mail, ArrowRight, Zap,
+  Sparkles, Shield, Phone, Mail, ArrowRight, Zap, Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
@@ -120,7 +120,7 @@ const FALLBACK_ADDONS = [
   { name: "Seat Extraction — Per Seat (Spot)",   price: "24.99",  description: "$25 per seat spot treatment" },
 ];
 
-type Tab = "detailing" | "ceramic" | "fleet";
+type Tab = "detailing" | "ceramic" | "fleet" | "paint";
 
 export default function Pricing() {
   const [tab, setTab] = useState<Tab | null>(null);
@@ -288,6 +288,41 @@ export default function Pricing() {
                 <div className={cn(
                   "flex items-center gap-1.5 text-sm font-semibold mt-auto transition-colors",
                   tab === "fleet" ? "text-sky-500" : "text-muted-foreground group-hover:text-sky-500"
+                )}>
+                  Get a quote <ArrowRight className="w-4 h-4" />
+                </div>
+              </button>
+
+              {/* Paint Correction */}
+              <button
+                onClick={() => setTab("paint")}
+                className={cn(
+                  "group relative flex flex-col items-start gap-4 p-5 sm:p-7 rounded-2xl border-2 text-left transition-all duration-300 sm:col-span-2 lg:col-span-1",
+                  tab === "paint"
+                    ? "border-rose-500/60 bg-rose-500/6 shadow-xl shadow-rose-500/10"
+                    : "border-border bg-card hover:border-rose-500/40 hover:bg-rose-500/3"
+                )}
+              >
+                {tab === "paint" && (
+                  <div className="absolute top-4 right-4 w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center">
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                <div className={cn(
+                  "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
+                  tab === "paint" ? "bg-rose-500/20" : "bg-muted group-hover:bg-rose-500/10"
+                )}>
+                  <Wrench className={cn("w-6 h-6", tab === "paint" ? "text-rose-400" : "text-muted-foreground group-hover:text-rose-400")} />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-xl mb-2">Paint Correction</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Remove swirl marks, scratches, and oxidation. Every correction is quoted based on your paint's condition and desired finish level.
+                  </p>
+                </div>
+                <div className={cn(
+                  "flex items-center gap-1.5 text-sm font-semibold mt-auto transition-colors",
+                  tab === "paint" ? "text-rose-400" : "text-muted-foreground group-hover:text-rose-400"
                 )}>
                   Get a quote <ArrowRight className="w-4 h-4" />
                 </div>
@@ -666,13 +701,106 @@ export default function Pricing() {
                 </motion.div>
               )}
 
+              {/* ── PAINT CORRECTION QUOTE ── */}
+              {tab === "paint" && (
+                <motion.div
+                  key="paint"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="max-w-2xl mx-auto"
+                >
+                  <div className="rounded-2xl border border-rose-500/25 bg-rose-500/5 p-8 mb-6 text-center">
+                    <div className="w-14 h-14 rounded-full bg-rose-500/15 flex items-center justify-center mx-auto mb-5">
+                      <Wrench className="w-7 h-7 text-rose-400" />
+                    </div>
+                    <h2 className="text-2xl font-display font-bold mb-3">Paint Correction is Custom Work</h2>
+                    <p className="text-muted-foreground leading-relaxed mb-2">
+                      Every vehicle's paint is different. The level of correction needed depends on the severity of swirl marks, scratches, and oxidation — and how refined a finish you want as the end result.
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      We inspect the paint, walk you through what's achievable, and quote based on what's actually needed. No guessing, no surprises.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-border bg-card p-6 mb-6">
+                    <h3 className="font-display font-bold mb-4">What Paint Correction Addresses</h3>
+                    <ul className="space-y-2.5">
+                      {[
+                        "Swirl marks and buffer trails from improper washing",
+                        "Light scratches that haven't penetrated the clear coat",
+                        "Water spot etching and environmental contamination",
+                        "Oxidation and fading on older paint",
+                        "Haze and dullness from sun exposure",
+                        "Pre-coating prep — required before any ceramic coating",
+                      ].map((f) => (
+                        <li key={f} className="flex items-start gap-2.5 text-sm">
+                          <CheckCircle2 className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                          <span className="text-muted-foreground">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-2xl border border-border bg-card p-6 mb-4">
+                    <h3 className="font-display font-bold mb-1">Get Your Paint Correction Quote</h3>
+                    <p className="text-muted-foreground text-sm mb-5">Send us a few photos of your paint or reach out directly — we'll give you a straight assessment.</p>
+                    <div className="flex flex-col gap-3">
+                      <a
+                        href={phoneHref}
+                        className="flex items-center gap-4 p-4 rounded-xl border-2 border-rose-500/30 bg-rose-500/5 hover:border-rose-500 hover:bg-rose-500/8 transition-all group"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-rose-500/15 flex items-center justify-center flex-shrink-0">
+                          <Phone className="w-5 h-5 text-rose-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-foreground">{phone}</p>
+                          <p className="text-muted-foreground text-xs">Call or text — we can assess from photos too</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-rose-400 transition-colors flex-shrink-0" />
+                      </a>
+                      <a
+                        href={emailHref}
+                        className="flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-rose-500/40 hover:bg-muted/30 transition-all group"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                          <Mail className="w-5 h-5 text-muted-foreground group-hover:text-rose-400 transition-colors" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-foreground">{email}</p>
+                          <p className="text-muted-foreground text-xs">Email us with photos for a remote assessment</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-rose-400 transition-colors flex-shrink-0" />
+                      </a>
+                      <Link href="/contact">
+                        <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-border hover:border-rose-500/40 hover:bg-muted/30 transition-all group cursor-pointer">
+                          <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                            <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-rose-400 transition-colors" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm text-foreground">Contact Form</p>
+                            <p className="text-muted-foreground text-xs">Describe your paint issues and we'll follow up with a quote</p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-rose-400 transition-colors flex-shrink-0" />
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+
+                  <p className="text-center text-xs text-muted-foreground">
+                    Interested in ceramic coating after correction? <button onClick={() => setTab("ceramic")} className="text-amber-500 hover:underline font-medium">View ceramic coating →</button>
+                  </p>
+                </motion.div>
+              )}
+
             </AnimatePresence>
           </div>
         </div>
       </section>
 
       {/* Bottom CTA — only when no tab selected or detailing tab */}
-      {tab !== "ceramic" && tab !== "fleet" && (
+      {tab !== "ceramic" && tab !== "fleet" && tab !== "paint" && (
         <section className="py-16 bg-[oklch(0.06_0.004_280)]">
           <div className="container text-center">
             <h2 className="text-3xl font-display font-bold mb-4">
