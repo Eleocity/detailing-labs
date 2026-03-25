@@ -9,7 +9,7 @@
 // Urable API base URL — the docs site is api.urable.com but the actual
 // REST endpoints are served from a different path. We try multiple patterns.
 // Set URABLE_API_BASE in Railway to override if you know the correct URL.
-const URABLE_BASE = process.env.URABLE_API_BASE ?? "https://app.urable.com/api";
+const URABLE_BASE = process.env.URABLE_API_BASE ?? "https://app.urable.com/api/v1";
 
 async function urableRequest(
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
@@ -25,7 +25,7 @@ async function urableRequest(
   const url = `${URABLE_BASE}${path}`;
   try {
     // Urable uses Authorization: Bearer for API key auth
-    const authStyle = process.env.URABLE_AUTH_STYLE ?? "bearer";
+    const authStyle = process.env.URABLE_AUTH_STYLE ?? "Bearer";
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       "Accept": "application/json",
