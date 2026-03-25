@@ -22,10 +22,11 @@ export const urableRouter = router({
     if (!apiKey) return { configured: false, connected: false, error: null };
 
     // Test the connection by listing customers (lightweight call)
+    const base = process.env.URABLE_API_BASE ?? "https://app.urable.com/api/v1";
     try {
-      const res = await fetch("https://app.urable.com/api/v1/customers?limit=1", {
+      const res = await fetch(`${base}/customers?limit=1`, {
         headers: {
-          "x-api-key": apiKey,
+          "Authorization": `Bearer ${apiKey}`,
           "Accept": "application/json",
         },
       });
@@ -238,8 +239,9 @@ export const urableRouter = router({
     // Pre-fetch existing Urable items once to avoid 11 separate GET calls
     let existingItems: any[] = [];
     try {
-      const listRes = await fetch("https://app.urable.com/api/v1/items", {
-        headers: { "x-api-key": process.env.URABLE_API_KEY!, "Accept": "application/json" },
+      const itemsBase = process.env.URABLE_API_BASE ?? "https://app.urable.com/api/v1";
+      const listRes = await fetch(`${itemsBase}/items`, {
+        headers: { "Authorization": `Bearer ${process.env.URABLE_API_KEY!}`, "Accept": "application/json" },
       });
       const listJson = await listRes.json() as any;
       console.log("[Urable] items list:", JSON.stringify(listJson)?.slice(0, 400));
