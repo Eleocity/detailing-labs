@@ -201,24 +201,34 @@ export interface UrableItemInput {
 }
 
 /** Push a service/package to Urable as an Item. Returns Urable item ID or null. */
-export async function syncItemToUrable(input: UrableItemInput): Promise<string | null> {
+export async function syncItemToUrable(
+  input: UrableItemInput,
+  existingItems?: any[]  // pass pre-fetched list to avoid N+1 calls
+): Promise<string | null> {
   if (!process.env.URABLE_API_KEY) return null;
 
-  // List items to check if it already exists
-  const res = await urableRequest("GET", "/items");
-  const items: any[] = res?.data ?? res?.items ?? [];
-  const existing = items.find((i: any) =>
+  // Fetch items list if not provided
+  let items = existingItems;
+  if (!items) {
+    const res = await urableRequest("GET", "/items");
+    console.log("[Urable] GET /items response:", JSON.stringify(res)?.slice(0, 300));
+    items = res?.data ?? res?.items ?? (Array.isArray(res) ? res : []);
+  }
+
+  const existing = (items ?? []).find((i: any) =>
     (i.name ?? i.title ?? "").toLowerCase() === input.name.toLowerCase()
   );
 
   if (existing) {
     const id = existing.id ?? existing._id;
+    if (!id) return null;
     await urableRequest("PUT", `/items/${id}`, {
       name:        input.name,
       description: input.description ?? "",
       price:       input.price,
       category:    input.category ?? "Detailing",
     });
+    console.log(`[Urable] Item updated: ${input.name} (${id})`);
     return String(id);
   }
 
@@ -229,7 +239,11 @@ export async function syncItemToUrable(input: UrableItemInput): Promise<string |
     category:    input.category ?? "Detailing",
   });
 
-  return String(created?.id ?? created?._id ?? "");
+  console.log(`[Urable] POST /items (${input.name}) response:`, JSON.stringify(created)?.slice(0, 300));
+  const id = created?.id ?? created?._id ?? created?.item?.id ?? null;
+  if (!id) return null;
+  console.log(`[Urable] Item created: ${input.name} (${id})`);
+  return String(id);
 }
 
 // ── Webhook handler (Urable → your site) ─────────────────────────────────────

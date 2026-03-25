@@ -192,11 +192,22 @@ export const urableRouter = router({
     if (!process.env.URABLE_API_KEY)
       throw new TRPCError({ code: "BAD_REQUEST", message: "URABLE_API_KEY not set" });
 
-    const pkgs  = await db.select().from(pkgsTable);
+    const pkgs   = await db.select().from(pkgsTable);
     const addons = await db.select().from(addOnsTable);
+    let synced = 0; let failed = 0;
 
-    let synced = 0;
-    let failed = 0;
+    // Pre-fetch existing Urable items once to avoid 11 separate GET calls
+    let existingItems: any[] = [];
+    try {
+      const listRes = await fetch("https://api.urable.com/api/v1/items", {
+        headers: { "x-api-key": process.env.URABLE_API_KEY!, "Accept": "application/json" },
+      });
+      const listJson = await listRes.json() as any;
+      console.log("[Urable] items list:", JSON.stringify(listJson)?.slice(0, 400));
+      existingItems = listJson?.data ?? listJson?.items ?? (Array.isArray(listJson) ? listJson : []);
+    } catch (e: any) {
+      console.error("[Urable] Failed to list items:", e?.message);
+    }
 
     // Sync packages
     for (const pkg of pkgs) {
@@ -205,7 +216,7 @@ export const urableRouter = router({
         description: pkg.description,
         price:       Number(pkg.price),
         category:    "Detailing",
-      });
+      }, existingItems);
       itemId ? synced++ : failed++;
     }
 
@@ -216,10 +227,11 @@ export const urableRouter = router({
         description: addon.description,
         price:       Number(addon.price),
         category:    "Add-On",
-      });
+      }, existingItems);
       itemId ? synced++ : failed++;
     }
 
+    console.log(`[Urable] Item sync: ${synced} synced, ${failed} failed of ${pkgs.length + addons.length}`);
     return { synced, failed, total: pkgs.length + addons.length, packages: pkgs.length, addons: addons.length };
   }),
 
