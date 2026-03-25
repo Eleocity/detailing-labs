@@ -11,7 +11,7 @@
 // Set URABLE_API_BASE in Railway to override if you know the correct URL.
 const URABLE_BASE = process.env.URABLE_API_BASE ?? "https://app.urable.com/api/v1";
 
-async function urableRequest(
+export async function urableRequest(
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
   path: string,
   body?: unknown

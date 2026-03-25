@@ -6,7 +6,7 @@ import { getDb } from "../db";
 import { customers, bookings, packages as pkgsTable, addOns as addOnsTable } from "../../drizzle/schema";
 import {
   syncCustomerToUrable, createUrableJob, updateUrableJobStatus,
-  syncItemToUrable, parseUrableWebhook,
+  syncItemToUrable, parseUrableWebhook, urableRequest,
 } from "../urable";
 
 function adminOnly(role: string) {
@@ -237,7 +237,6 @@ export const urableRouter = router({
     let synced = 0; let failed = 0;
 
     // Pre-fetch using urableRequest (handles Bearer auth correctly)
-    const { urableRequest } = await import("../urable") as any;
     const listJson = await urableRequest("GET", "/items");
     console.log("[Urable] items list response:", JSON.stringify(listJson)?.slice(0, 500));
     const existingItems: any[] = listJson?.data ?? listJson?.items ?? (Array.isArray(listJson) ? listJson : []);
