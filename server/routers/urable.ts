@@ -5,7 +5,7 @@ import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { customers, bookings, packages as pkgsTable, addOns as addOnsTable } from "../../drizzle/schema";
 import {
-  syncCustomerToUrable, createUrableJob, updateUrableJobStatus,
+  syncCustomerToUrable, syncBookingToUrable,
   syncItemToUrable, parseUrableWebhook, urableRequest,
 } from "../urable";
 
@@ -22,9 +22,8 @@ export const urableRouter = router({
     if (!apiKey) return { configured: false, connected: false, error: null };
 
     // Test the connection by listing customers (lightweight call)
-    const base = process.env.URABLE_API_BASE ?? "https://app.urable.com/api/v1";
     try {
-      const res = await fetch(`${base}/customers?limit=1`, {
+      const res = await fetch("https://app.urable.com/api/v1/customers?limit=1", {
         headers: {
           "Authorization": `Bearer ${apiKey}`,
           "Accept": "application/json",
@@ -219,31 +218,35 @@ export const urableRouter = router({
         } catch {}
       }
 
-      const urableJobId = await createUrableJob({
-        urableCustomerId,
-        title:        booking.packageName ?? booking.serviceName ?? "Mobile Detailing",
-        serviceDate:  new Date(booking.appointmentDate),
-        address:      booking.serviceAddress,
-        city:         booking.serviceCity,
-        state:        booking.serviceState,
-        zip:          booking.serviceZip,
-        notes:        [booking.notes, booking.gateInstructions].filter(Boolean).join("\n") || null,
-        lineItems,
-        vehicleMake:  booking.vehicleMake,
-        vehicleModel: booking.vehicleModel,
-        vehicleYear:  booking.vehicleYear,
-        vehicleColor: booking.vehicleColor,
-        totalAmount:  Number(booking.totalAmount) || 0,
+      const { urableCustomerId: custId2, urableVehicleId } = await syncBookingToUrable({
+        firstName:       booking.customerFirstName,
+        lastName:        booking.customerLastName,
+        email:           booking.customerEmail,
+        phone:           booking.customerPhone,
+        city:            booking.serviceCity,
+        state:           booking.serviceState,
+        zip:             booking.serviceZip,
+        vehicleYear:     booking.vehicleYear ?? null,
+        vehicleMake:     booking.vehicleMake,
+        vehicleModel:    booking.vehicleModel,
+        vehicleColor:    booking.vehicleColor ?? null,
+        vehiclePlate:    booking.vehicleLicensePlate ?? null,
+        bookingNumber:   booking.bookingNumber,
+        packageName:     booking.packageName ?? booking.serviceName ?? null,
+        appointmentDate: new Date(booking.appointmentDate),
+        serviceAddress:  booking.serviceAddress,
+        totalAmount:     booking.totalAmount ? Number(booking.totalAmount) : null,
+        notes:           [booking.notes, booking.gateInstructions].filter(Boolean).join("\n") || null,
       });
 
-      if (!urableJobId) {
-        // Jobs endpoint may not be public — log and return partial success
-        console.warn("[Urable] Job creation returned null — endpoint may need verification");
-        return { urableCustomerId, urableJobId: null, warning: "Customer synced. Job sync requires Urable job API access — contact Urable support to enable." };
+      if (!custId2) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not sync customer to Urable — check API key" });
       }
 
-      await db.update(bookings).set({ urableJobId, urableSyncedAt: new Date() } as any).where(eq(bookings.id, booking.id));
-      return { urableCustomerId, urableJobId };
+      if (urableVehicleId) {
+        await db.update(bookings).set({ urableJobId: urableVehicleId, urableSyncedAt: new Date() } as any).where(eq(bookings.id, booking.id));
+      }
+      return { urableCustomerId: custId2, urableVehicleId };
     }),
 
   // ── Sync all packages as Urable items ─────────────────────────────────────
