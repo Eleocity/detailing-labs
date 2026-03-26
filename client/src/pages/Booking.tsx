@@ -349,32 +349,46 @@ function StepSchedule({data,onUpdate,onNext}:{data:BookingData;onUpdate:(d:Parti
   return (
     <div>
       <PageTitle title="Select Date & Time"/>
+
+      {/* Package summary pill */}
       {data.packageName&&(
-        <div className="mx-4 mt-3 p-3 rounded-2xl border border-border bg-card flex items-center gap-3">
-          <div className="text-lg">💎</div>
+        <div className="mx-4 mt-3 p-2.5 rounded-xl border border-border bg-card flex items-center gap-2.5">
+          <div className="text-base">💎</div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-primary">{data.packageName}</p>
-            <p className="text-xs text-muted-foreground">${data.packagePrice?.toFixed(2)}{data.packageDuration?` · ${Math.floor(data.packageDuration/60)}h${data.packageDuration%60>0?` ${data.packageDuration%60}m`:""}`:""}</p>
+            <p className="text-xs font-bold text-primary leading-tight">{data.packageName}</p>
+            <p className="text-[11px] text-muted-foreground">${data.packagePrice?.toFixed(2)}{data.packageDuration?` · ${Math.floor(data.packageDuration/60)}h${data.packageDuration%60>0?` ${data.packageDuration%60}m`:""}`:""}</p>
           </div>
         </div>
       )}
-      <div className="mx-4 mt-3 p-4 rounded-2xl border border-border bg-card">
-        <div className="flex items-center justify-between mb-4">
+
+      {/* Compact calendar */}
+      <div className="mx-4 mt-3 p-3 rounded-2xl border border-border bg-card">
+        <div className="flex items-center justify-between mb-2">
           <button onClick={()=>setViewMonth(new Date(viewMonth.getFullYear(),viewMonth.getMonth()-1,1))} disabled={isEarliestMonth}
-            className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
-            <ChevronLeft className="w-4 h-4"/>
+            className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+            <ChevronLeft className="w-3.5 h-3.5"/>
           </button>
-          <p className="text-sm font-bold text-primary">{viewMonth.toLocaleDateString("en-US",{month:"long",year:"numeric"})}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-bold text-primary">{viewMonth.toLocaleDateString("en-US",{month:"long",year:"numeric"})}</p>
+            <button onClick={()=>{const e=ALL_DATES[0];if(e){onUpdate({appointmentDate:e.toISOString().split("T")[0],appointmentTime:""});setViewMonth(new Date(e.getFullYear(),e.getMonth(),1));}}}
+              className="text-[10px] font-medium text-primary/70 hover:text-primary border border-primary/20 hover:border-primary/50 rounded-full px-2 py-0.5 transition-colors whitespace-nowrap">
+              Earliest
+            </button>
+          </div>
           <button onClick={()=>setViewMonth(new Date(viewMonth.getFullYear(),viewMonth.getMonth()+1,1))}
-            className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-            <ChevronRight className="w-4 h-4"/>
+            className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+            <ChevronRight className="w-3.5 h-3.5"/>
           </button>
         </div>
-        <div className="grid grid-cols-7 mb-2">
-          {["Mo","Tu","We","Th","Fr","Sa","Su"].map((d)=>(
-            <div key={d} className="text-center text-[11px] font-medium text-muted-foreground py-1">{d}</div>
+
+        {/* Day headers */}
+        <div className="grid grid-cols-7">
+          {["M","T","W","T","F","S","S"].map((d,i)=>(
+            <div key={i} className="text-center text-[10px] font-medium text-muted-foreground/60 pb-1">{d}</div>
           ))}
         </div>
+
+        {/* Date cells — fixed h-8, no aspect-square */}
         <div className="grid grid-cols-7 gap-0.5">
           {monthDates.map((d,i)=>{
             if (!d) return <div key={i}/>;
@@ -384,44 +398,46 @@ function StepSchedule({data,onUpdate,onNext}:{data:BookingData;onUpdate:(d:Parti
             const isSel=data.appointmentDate===str;
             return (
               <button key={str} disabled={!isAvail} onClick={()=>onUpdate({appointmentDate:str,appointmentTime:""})}
-                className={cn("aspect-square flex items-center justify-center text-sm font-medium rounded-xl transition-all",
-                  isPast?"text-muted-foreground/30 cursor-not-allowed":
-                  isSel?"bg-primary text-white":
+                className={cn(
+                  "h-8 flex items-center justify-center text-xs font-medium rounded-lg transition-all",
+                  isPast?"text-muted-foreground/25 cursor-not-allowed":
+                  isSel?"bg-primary text-white shadow-sm":
                   isAvail?"text-primary hover:bg-primary/10 cursor-pointer":
-                  "text-muted-foreground/40 cursor-not-allowed")}>
+                  "text-muted-foreground/30 cursor-not-allowed"
+                )}>
                 {d.getDate()}
               </button>
             );
           })}
         </div>
-        <div className="mt-3 flex justify-center">
-          <button onClick={()=>{const e=ALL_DATES[0];if(e){onUpdate({appointmentDate:e.toISOString().split("T")[0],appointmentTime:""});setViewMonth(new Date(e.getFullYear(),e.getMonth(),1));}}}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-            <CalendarDays className="w-3 h-3"/> Earliest Available
-          </button>
-        </div>
       </div>
+
+      {/* Time slots — compact 3-column grid */}
       <AnimatePresence>
         {data.appointmentDate&&(
-          <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} className="mx-4 mt-3 flex flex-col gap-2">
-            {TIME_SLOTS.map((slot)=>{
-              const isSel=data.appointmentTime===slot.value;
-              return (
-                <button key={slot.value} onClick={()=>onUpdate({appointmentTime:slot.value})}
-                  className={cn("flex items-center gap-3 p-4 rounded-2xl border-2 transition-all",isSel?"border-primary bg-primary/5":"border-border bg-card hover:border-primary/40")}>
-                  <div className="flex-1 text-left">
-                    <p className={cn("text-sm font-bold",isSel?"text-primary":"text-foreground")}>{slot.label}</p>
-                  </div>
-                  <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",isSel?"border-primary bg-primary":"border-border")}>
-                    {isSel&&<Check className="w-3 h-3 text-white"/>}
-                  </div>
-                </button>
-              );
-            })}
+          <motion.div initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{duration:0.15}} className="mx-4 mt-3">
+            <p className="text-xs font-semibold text-muted-foreground mb-2">
+              {new Date(data.appointmentDate+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {TIME_SLOTS.map((slot)=>{
+                const isSel=data.appointmentTime===slot.value;
+                return (
+                  <button key={slot.value} onClick={()=>onUpdate({appointmentTime:slot.value})}
+                    className={cn(
+                      "py-2.5 rounded-xl border-2 text-center transition-all",
+                      isSel?"border-primary bg-primary/8 text-primary":"border-border bg-card hover:border-primary/40"
+                    )}>
+                    <span className={cn("text-xs font-semibold",isSel?"text-primary":"text-foreground")}>{slot.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="h-24"/>
+
+      <div className="h-4"/>
       <StickyBottom dateLabel={dateLabel} onNext={onNext} disabled={!data.appointmentDate||!data.appointmentTime}/>
     </div>
   );
