@@ -123,13 +123,13 @@ export default function Home() {
 
               <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 pt-2 w-full sm:w-auto">
                 <Link href="/booking">
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12 text-base shadow-lg shadow-primary/25 w-full sm:w-auto">
+                  <Button size="lg" className="bg-primary hover:bg-primary/85 text-primary-foreground font-bold px-10 h-14 text-lg shadow-xl shadow-primary/30 w-full sm:w-auto">
                     {hero.cta_primary || "Book Your Appointment"}
                     <ChevronRight className="w-5 h-5 ml-1" />
                   </Button>
                 </Link>
                 <Link href="/pricing">
-                  <Button size="lg" variant="outline" className="border-border hover:border-primary/50 hover:bg-primary/5 font-semibold px-8 h-12 text-base w-full sm:w-auto">
+                  <Button size="lg" variant="outline" className="border-border hover:border-primary/60 hover:bg-primary/8 font-semibold px-10 h-14 text-lg w-full sm:w-auto">
                     {hero.cta_secondary || "See What's Included"}
                   </Button>
                 </Link>
@@ -179,7 +179,7 @@ export default function Home() {
       </section>
 
       {/* ── WHY — lead with differentiation before services ──────────────── */}
-      <section className="py-14 sm:py-24">
+      <section className="py-20 sm:py-32">
         <div className="container">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
@@ -219,7 +219,7 @@ export default function Home() {
                   Book online in two minutes. We'll confirm your appointment and show up ready — water, power, and everything else included.
                 </p>
                 <Link href="/booking">
-                  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-11 text-base mb-3">
+                  <Button className="w-full bg-primary hover:bg-primary/85 text-primary-foreground font-bold h-12 text-base mb-3">
                     Schedule Your Detail
                     <ChevronRight className="w-5 h-5 ml-1" />
                   </Button>
@@ -246,7 +246,7 @@ export default function Home() {
       </section>
 
       {/* ── SERVICES ─────────────────────────────────────────────────────── */}
-      <section className="py-14 sm:py-24 bg-[oklch(0.06_0.004_280)]">
+      <section className="py-20 sm:py-32 bg-[oklch(0.06_0.004_280)]">
         <div className="container">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger} className="text-center mb-12">
             <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">What We Do</motion.p>
@@ -350,7 +350,7 @@ export default function Home() {
       </section>
 
       {/* ── TESTIMONIALS ─────────────────────────────────────────────────── */}
-      <section className="py-14 sm:py-24">
+      <section className="py-20 sm:py-32">
         <div className="container">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-14">
             <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">What Clients Say</motion.p>
@@ -375,7 +375,7 @@ export default function Home() {
       </section>
 
       {/* ── SERVICE AREA ─────────────────────────────────────────────────── */}
-      <section className="py-10 sm:py-16 bg-[oklch(0.06_0.004_280)]">
+      <section className="py-14 sm:py-20 bg-[oklch(0.06_0.004_280)]">
         <div className="container">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-7 rounded-2xl border border-border bg-card">
             <div className="flex items-start gap-4">
@@ -400,7 +400,7 @@ export default function Home() {
       </section>
 
       {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
-      <section className="py-14 sm:py-24 relative overflow-hidden">
+      <section className="py-20 sm:py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_0%_50%,oklch(0.60_0.22_295/0.15),transparent)]" />
         <div className="container relative z-10 text-center">
@@ -413,13 +413,13 @@ export default function Home() {
             </motion.p>
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 px-4 sm:px-0">
               <Link href="/booking">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12 text-base shadow-lg shadow-primary/30 w-full sm:w-auto">
+                <Button size="lg" className="bg-primary hover:bg-primary/85 text-primary-foreground font-bold px-10 h-14 text-lg shadow-xl shadow-primary/30 w-full sm:w-auto">
                   Book Your Appointment
                   <ChevronRight className="w-5 h-5 ml-1" />
                 </Button>
               </Link>
               <a href={phoneHref}>
-                <Button size="lg" variant="outline" className="border-border hover:border-primary/50 font-semibold px-8 h-12 text-base w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="border-border hover:border-primary/60 font-semibold px-10 h-14 text-lg w-full sm:w-auto">
                   <Phone className="w-4 h-4 mr-2" />
                   {phone}
                 </Button>
