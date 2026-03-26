@@ -65,8 +65,12 @@ async function runMigrations(): Promise<{ applied: number; log: string[] }> {
     const sanitized = sql.replace(/--> statement-breakpoint/g, "");
     const statements = sanitized
       .split(";")
-      .map((s: string) => s.trim())
-      .filter((s: string) => s.length > 0 && !s.startsWith("--"));
+      .map((s: string) => {
+        // Strip leading comment lines (lines starting with --) from each statement
+        // so a comment at the top of a file doesn't cause the entire statement to be dropped
+        return s.split("\n").filter((line: string) => !line.trim().startsWith("--")).join("\n").trim();
+      })
+      .filter((s: string) => s.length > 0);
 
     for (const stmt of statements) {
       await conn.execute(stmt);
