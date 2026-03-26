@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check, MapPin, Search, ChevronLeft, ChevronRight,
-  Clock, Star, Loader2, Plus, Minus, X, CalendarDays, User,
+  Clock, Loader2, Plus, Minus, X, CalendarDays,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +33,6 @@ type Step = "location" | "package" | "addons" | "schedule" | "recurring" | "vehi
 const STEPS: Step[] = ["location","package","addons","schedule","recurring","vehicle_info","contact"];
 
 const HOW_HEARD = ["Google","Instagram","Facebook","Referral","Yelp","Nextdoor","Other"];
-const FAKE_TECHS = [{ name:"Jake T.", rating:4.9 },{ name:"Maria V.", rating:4.9 },{ name:"Devon K.", rating:4.8 }];
 const RECURRING = [
   { interval:"14", label:"Every 14 Days", save:20 },
   { interval:"30", label:"Every 30 Days", save:10 },
@@ -342,7 +341,6 @@ function StepSchedule({data,onUpdate,onNext}:{data:BookingData;onUpdate:(d:Parti
     return cells;
   },[viewMonth]);
   const availableSet=new Set(ALL_DATES.map((d)=>d.toISOString().split("T")[0]));
-  const selectedTech=FAKE_TECHS[0];
   const dateLabel=data.appointmentDate&&data.appointmentTime
     ?formatDateLabel(data.appointmentDate,data.appointmentTime)
     :data.appointmentDate
@@ -411,12 +409,8 @@ function StepSchedule({data,onUpdate,onNext}:{data:BookingData;onUpdate:(d:Parti
               return (
                 <button key={slot.value} onClick={()=>onUpdate({appointmentTime:slot.value})}
                   className={cn("flex items-center gap-3 p-4 rounded-2xl border-2 transition-all",isSel?"border-primary bg-primary/5":"border-border bg-card hover:border-primary/40")}>
-                  <div className="w-10 h-10 rounded-xl bg-muted/30 border border-border flex items-center justify-center flex-shrink-0">
-                    <User className="w-5 h-5 text-muted-foreground"/>
-                  </div>
                   <div className="flex-1 text-left">
                     <p className={cn("text-sm font-bold",isSel?"text-primary":"text-foreground")}>{slot.label}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">{selectedTech.name}<Star className="w-3 h-3 fill-amber-400 text-amber-400"/>{selectedTech.rating}</p>
                   </div>
                   <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",isSel?"border-primary bg-primary":"border-border")}>
                     {isSel&&<Check className="w-3 h-3 text-white"/>}
