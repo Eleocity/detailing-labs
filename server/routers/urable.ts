@@ -206,18 +206,6 @@ export const urableRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not create customer in Urable" });
       }
 
-      // Build line items
-      const lineItems: { name: string; price: number; qty: number }[] = [];
-      if (booking.packageName) {
-        lineItems.push({ name: booking.packageName, price: Number(booking.subtotal) || 0, qty: 1 });
-      }
-      if (booking.addOnIds) {
-        try {
-          const ids: number[] = JSON.parse(booking.addOnIds);
-          if (ids.length > 0) lineItems.push({ name: "Add-On Services", price: 0, qty: ids.length });
-        } catch {}
-      }
-
       const { urableCustomerId: custId2, urableVehicleId } = await syncBookingToUrable({
         firstName:       booking.customerFirstName,
         lastName:        booking.customerLastName,
