@@ -584,7 +584,7 @@ function StepContact({data,onUpdate,onSubmit,isPending}:{data:BookingData;onUpda
           <Input placeholder="you@example.com" value={data.email}
             onChange={(e)=>onUpdate({email:e.target.value})}
             onBlur={()=>setEmailTouched(true)}
-            type="email" inputMode="email" autoComplete="email"
+            type="text" inputMode="email" autoComplete="email"
             className={cn("bg-input border-border",emailError&&"border-destructive/60")}/>
           {emailError&&<p className="text-xs text-destructive">{emailError}</p>}
           {!data.email&&!emailTouched&&<p className="text-xs text-muted-foreground">Recommended — we'll send your booking confirmation here</p>}

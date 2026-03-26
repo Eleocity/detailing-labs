@@ -4,7 +4,7 @@ import { eq, desc, and, gte, lte, like, or, sql } from "drizzle-orm";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { sendEmail, bookingConfirmationEmail } from "../email";
-import { syncCustomerToUrable, createUrableJob } from "../urable";
+import { syncBookingToUrable } from "../urable";
 import {
   bookings, customers, vehicles, services, packages, addOns,
   bookingAssignments, bookingStatusHistory, invoices, notifications, employees, siteContent
@@ -51,7 +51,7 @@ export const bookingsRouter = router({
       z.object({
         customerFirstName: z.string().min(1),
         customerLastName: z.string().min(1),
-        customerEmail: z.string().email().optional().or(z.literal("")),
+        customerEmail: z.string().optional(),
         customerPhone: z.string().min(10),
         vehicleMake: z.string().min(1),
         vehicleModel: z.string().min(1),
@@ -187,53 +187,42 @@ export const bookingsRouter = router({
 
       // Auto-sync to Urable (non-blocking)
       if (process.env.URABLE_API_KEY && newBooking) {
-        (async () => {
-          try {
-            const urableCustomerId = await syncCustomerToUrable({
-              firstName: input.customerFirstName,
-              lastName:  input.customerLastName,
-              email:     input.customerEmail,
-              phone:     input.customerPhone,
-              city:      input.serviceCity,
-              state:     input.serviceState,
-              zip:       input.serviceZip,
-            });
-            if (!urableCustomerId) return;
-
-            // Update customer record with Urable ID
-            if (newBooking.customerId) {
-              await db.update(customers).set({ urableId: urableCustomerId, urableSyncedAt: new Date() } as any)
-                .where(eq(customers.id, newBooking.customerId));
-            }
-
-            // Create job in Urable
-            const lineItems = [];
-            if (input.packageName) lineItems.push({ name: input.packageName, price: Number(input.subtotal) || 0, qty: 1 });
-            const urableJobId = await createUrableJob({
-              urableCustomerId,
-              title:       input.packageName ?? "Mobile Detailing",
-              serviceDate: new Date(input.appointmentDate),
-              address:     input.serviceAddress,
-              city:        input.serviceCity,
-              state:       input.serviceState,
-              zip:         input.serviceZip,
-              notes:       input.notes,
-              lineItems,
-              vehicleMake:  input.vehicleMake,
-              vehicleModel: input.vehicleModel,
-              vehicleYear:  input.vehicleYear ? Number(input.vehicleYear) : null,
-              vehicleColor: input.vehicleColor,
-              totalAmount: Number(input.totalAmount) || 0,
-            });
-            if (urableJobId) {
-              await db.update(bookings).set({ urableJobId, urableSyncedAt: new Date() } as any)
-                .where(eq(bookings.id, newBooking.id));
-            }
-            console.log(`[Urable] Booking ${bookingNumber} synced — customer: ${urableCustomerId}, job: ${urableJobId}`);
-          } catch (e: any) {
-            console.error("[Urable] Auto-sync failed:", e?.message);
+        syncBookingToUrable({
+          firstName:       input.customerFirstName,
+          lastName:        input.customerLastName,
+          email:           input.customerEmail,
+          phone:           input.customerPhone,
+          city:            input.serviceCity,
+          state:           input.serviceState,
+          zip:             input.serviceZip,
+          howHeard:        input.howHeard,
+          vehicleYear:     input.vehicleYear ?? null,
+          vehicleMake:     input.vehicleMake,
+          vehicleModel:    input.vehicleModel,
+          vehicleColor:    input.vehicleColor ?? null,
+          vehiclePlate:    input.vehicleLicensePlate ?? null,
+          bookingNumber,
+          packageName:     input.packageName ?? null,
+          appointmentDate: new Date(input.appointmentDate),
+          serviceAddress:  input.serviceAddress,
+          totalAmount:     input.totalAmount ?? null,
+          notes:           input.notes ?? null,
+        }).then(({ urableCustomerId, urableVehicleId }) => {
+          if (urableCustomerId && newBooking?.customerId) {
+            db.update(customers)
+              .set({ urableId: urableCustomerId, urableSyncedAt: new Date() } as any)
+              .where(eq(customers.id, newBooking.customerId))
+              .catch(() => {});
           }
-        })();
+          if (urableVehicleId && newBooking?.id) {
+            db.update(bookings)
+              .set({ urableJobId: urableVehicleId, urableSyncedAt: new Date() } as any)
+              .where(eq(bookings.id, newBooking.id))
+              .catch(() => {});
+          }
+        }).catch((e: any) => {
+          console.error("[Urable] Non-blocking sync failed:", e?.message);
+        });
       }
 
       return { bookingNumber, bookingId: newBooking?.id };
