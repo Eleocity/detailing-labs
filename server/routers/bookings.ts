@@ -136,7 +136,7 @@ export const bookingsRouter = router({
       // Upsert customer record
       if (input.customerEmail) {
         const existing = await db
-          .select()
+          .select({ id: customers.id })
           .from(customers)
           .where(eq(customers.email, input.customerEmail))
           .limit(1);
