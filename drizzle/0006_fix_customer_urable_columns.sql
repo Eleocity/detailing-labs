@@ -1,3 +1,3 @@
 ALTER TABLE `customers`
-  ADD COLUMN IF NOT EXISTS `urableId` varchar(100),
-  ADD COLUMN IF NOT EXISTS `urableSyncedAt` timestamp;
+  ADD COLUMN `urableId` varchar(100),
+  ADD COLUMN `urableSyncedAt` timestamp NULL;
