@@ -96,16 +96,18 @@ const FALLBACK_PACKAGES = [
   {
     id: 4,
     name: "The Lab Grade Detail",
-    price: "2",
-    duration: 240,
-    description: "Our most popular package — total vehicle transformation inside and out. From $229.",
+    price: "449.99",
+    duration: 480,
+    description: "Our most intensive single-day service. Paint-corrected, decontaminated, and coated — the highest result we offer.",
     features: JSON.stringify([
-      "Everything in Exterior Decon & Shield",
-      "Everything in Interior Deep Refresh",
-      "Best value — save up to $39 vs. booking separately",
-      "Like-new vehicle experience inside and out",
+      "Everything in Full Showroom Reset",
+      "Iron X iron & fallout decontamination",
+      "Clay bar paint decontamination",
+      "1-stage paint correction (swirl & scratch reduction)",
+      "Ceramic spray sealant (6-month protection)",
+      "Before & after photo documentation",
     ]),
-    isPopular: true,
+    isPopular: false,
     isActive: true,
   },
 ];
@@ -119,11 +121,26 @@ const FALLBACK_ADDONS = [
   { name: "Seat Extraction — Full Vehicle",      price: "99.99", description: "$100–$150 all rows" },
   { name: "Seat Extraction — Per Seat (Spot)",   price: "24.99",  description: "$25 per seat spot treatment" },
 ];
+const PACKAGE_META: Record<string, { bestFor: string }> = {
+  "Exterior Decon & Shield": {
+    bestFor: "Seasonal refresh, pre-event prep, or maintaining a clean car between full details",
+  },
+  "Interior Deep Refresh": {
+    bestFor: "Used car buyers, pet owners, or anyone whose cabin needs a proper reset",
+  },
+  "Full Showroom Reset": {
+    bestFor: "First-time clients, pre-sale prep, or when you want the full treatment in one visit",
+  },
+  "The Lab Grade Detail": {
+    bestFor: "High-end vehicles, neglected paint, or when only the highest possible result will do",
+  },
+};
+
 
 type Tab = "detailing" | "ceramic" | "fleet" | "paint";
 
 export default function Pricing() {
-  const [tab, setTab] = useState<Tab | null>(null);
+  const [tab, setTab] = useState<Tab | null>("detailing");
   const [vehicleSize, setVehicleSize] = useState<"sedan" | "suv" | "large" | null>(null);
 
   const VEHICLE_SIZE_LABELS: Record<string, string> = {
@@ -417,7 +434,12 @@ export default function Pricing() {
                           )}
 
                           <div className="mb-4">
-                            <h3 className="font-display font-bold text-xl mb-0.5">{pkg.name}</h3>
+                            <h3 className="font-display font-bold text-xl mb-1">{pkg.name}</h3>
+                            {PACKAGE_META[pkg.name] && (
+                              <p className="text-xs text-primary font-medium">
+                                Best for: {PACKAGE_META[pkg.name].bestFor}
+                              </p>
+                            )}
                           </div>
 
                           {/* Single price for selected vehicle size */}
@@ -503,6 +525,13 @@ export default function Pricing() {
                         <p className="text-muted-foreground text-sm">Prices shown are for the selected vehicle size. Final price confirmed before your appointment.</p>
                       </div>
                     </div>
+                    <div className="flex gap-3 p-4 rounded-xl border border-primary/20 bg-primary/5">
+                      <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-sm mb-1">Satisfaction Guarantee</p>
+                        <p className="text-muted-foreground text-sm">If you're not happy with the result, tell us and we'll come back and make it right — no charge. We document every job with before and after photos.</p>
+                      </div>
+                    </div>
                   </div>
                   </>
                   )} {/* end vehicleSizeSelected */}
@@ -528,6 +557,9 @@ export default function Pricing() {
                     <p className="text-muted-foreground leading-relaxed mb-2">
                       Ceramic coating pricing depends on your vehicle's size, paint condition, and the level of correction needed before coating. We don't believe in one-size-fits-all pricing for a job this important.
                     </p>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 mb-3">
+                      <span className="text-amber-400 font-bold text-sm">Most passenger vehicles: $499–$799</span>
+                    </div>
                     <p className="text-muted-foreground text-sm">
                       We'll assess your vehicle, walk you through exactly what's needed, and give you a transparent quote with no pressure.
                     </p>
