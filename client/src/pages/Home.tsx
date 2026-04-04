@@ -494,7 +494,7 @@ export default function Home() {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="max-w-3xl mx-auto p-5 rounded-2xl border border-amber-500/25 bg-amber-500/5 text-center">
             <p className="text-sm text-muted-foreground">
               Need <strong className="text-foreground">ceramic coating</strong> or <strong className="text-foreground">paint correction</strong>? Those are quoted to your vehicle.
-              Most passenger vehicles start at <strong className="text-amber-500">$499–$799</strong> for ceramic coating.{" "}
+              Pricing depends on your paint's condition and the correction needed. Every job is custom-quoted —{" "}
               <Link href="/pricing?tab=ceramic">
                 <span className="text-amber-500 font-semibold hover:underline cursor-pointer">Get a free estimate →</span>
               </Link>

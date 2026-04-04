@@ -1,87 +1,254 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import AdminLayout from "@/components/AdminLayout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
-  Pencil, Plus, Trash2, Save, Globe, DollarSign,
-  MessageSquare, Phone, HelpCircle, Settings2, Star, Package
+  Globe, DollarSign, Phone, HelpCircle, Settings2, Package,
+  Save, CheckCircle2, Loader2, ChevronDown, ChevronRight,
+  Eye, EyeOff, RefreshCw, Star, Info,
 } from "lucide-react";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function useContentMap(data: { section: string; key: string; value: string | null }[] | undefined) {
-  const map: Record<string, Record<string, string>> = {};
-  if (!data) return map;
-  for (const row of data) {
-    if (!map[row.section]) map[row.section] = {};
-    map[row.section][row.key] = row.value ?? "";
-  }
-  return map;
+// ─── Types ────────────────────────────────────────────────────────────────────
+type SavingState = "idle" | "saving" | "saved" | "error";
+
+interface FieldDef {
+  key: string;
+  label: string;
+  multiline?: boolean;
+  hint?: string;
+  placeholder?: string;
 }
 
-// ─── Section Editor (generic key/value form) ──────────────────────────────────
-function SectionEditor({
-  section,
-  fields,
-  contentMap,
-  onSave,
-  isSaving,
-}: {
-  section: string;
-  fields: { key: string; label: string; multiline?: boolean; hint?: string }[];
-  contentMap: Record<string, Record<string, string>>;
-  onSave: (items: { section: string; key: string; value: string }[]) => void;
-  isSaving: boolean;
-}) {
-  const [values, setValues] = useState<Record<string, string>>({});
+interface SectionDef {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  color: string;
+  fields: FieldDef[];
+}
 
+// ─── All editable content sections ───────────────────────────────────────────
+const SECTIONS: SectionDef[] = [
+  {
+    id: "hero",
+    label: "Homepage Hero",
+    icon: <Globe className="w-4 h-4" />,
+    color: "text-purple-400",
+    fields: [
+      { key: "badge",              label: "Location Badge",        placeholder: "Mobile Detailing · Racine & Kenosha County, WI" },
+      { key: "headline",           label: "Main Headline",         placeholder: "Professional Mobile Detailing.\nWe Bring Everything.", hint: "Supports <br /> for line breaks" },
+      { key: "subheadline",        label: "Subheadline",           multiline: true, placeholder: "We carry our own water..." },
+      { key: "cta_primary",        label: "Primary Button Text",   placeholder: "Book My Appointment" },
+      { key: "cta_secondary",      label: "Secondary Link Text",   placeholder: "See packages & pricing" },
+      { key: "trust_reviews",      label: "Trust — Reviews",       placeholder: "5.0 · Google Reviews" },
+      { key: "trust_certified",    label: "Trust — Certification", placeholder: "Fully insured & self-contained" },
+      { key: "trust_availability", label: "Trust — Hours",         placeholder: "Mon–Sat, 7am–7pm" },
+    ],
+  },
+  {
+    id: "about",
+    label: "About / Stats",
+    icon: <Star className="w-4 h-4" />,
+    color: "text-blue-400",
+    fields: [
+      { key: "headline",          label: "Section Headline",      placeholder: "Not a Franchise. Not a Car Wash." },
+      { key: "body",              label: "Body Text",             multiline: true, placeholder: "We built Detailing Labs around one problem..." },
+      { key: "vehicles_detailed", label: "Stat — Vehicles",       placeholder: "150+" },
+      { key: "years_experience",  label: "Stat — Years",          placeholder: "3+" },
+      { key: "satisfaction_rate", label: "Stat — Satisfaction",   placeholder: "100%" },
+      { key: "service_areas",     label: "Stat — Service Areas",  placeholder: "15+" },
+    ],
+  },
+  {
+    id: "contact",
+    label: "Contact Info",
+    icon: <Phone className="w-4 h-4" />,
+    color: "text-green-400",
+    fields: [
+      { key: "phone",          label: "Phone Number",   placeholder: "(262) 260-9474" },
+      { key: "email",          label: "Email Address",  placeholder: "hello@detailinglabswi.com" },
+      { key: "address",        label: "City / Address", placeholder: "Southeast Wisconsin" },
+      { key: "hours_weekday",  label: "Weekday Hours",  placeholder: "Mon–Sat: 7:00 AM – 7:00 PM" },
+      { key: "hours_weekend",  label: "Sunday",         placeholder: "Sunday: Closed" },
+    ],
+  },
+  {
+    id: "business",
+    label: "Business Settings",
+    icon: <Settings2 className="w-4 h-4" />,
+    color: "text-orange-400",
+    fields: [
+      { key: "name",                   label: "Business Name",       placeholder: "Detailing Labs" },
+      { key: "tagline",                label: "Tagline",             placeholder: "Professional Mobile Detailing" },
+      { key: "tax_rate",               label: "Tax Rate (decimal)",  placeholder: "0.0825", hint: "e.g. 0.0825 = 8.25%" },
+      { key: "travel_fee_base",        label: "Base Travel Fee ($)", placeholder: "0" },
+      { key: "service_radius_miles",   label: "Service Radius (mi)", placeholder: "40" },
+      { key: "booking_advance_hours",  label: "Min Booking Lead (hrs)", placeholder: "12", hint: "How far ahead customers must book" },
+    ],
+  },
+];
+
+// FAQ is handled separately since it's an array
+const FAQ_SECTION_ID = "faq";
+
+// ─── Auto-save hook ───────────────────────────────────────────────────────────
+function useAutoSave(
+  section: string,
+  key: string,
+  initialValue: string,
+  onSave: (section: string, key: string, value: string) => Promise<void>
+) {
+  const [value, setValue] = useState(initialValue);
+  const [state, setState] = useState<SavingState>("idle");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestValue = useRef(initialValue);
+
+  // Sync when initial value changes (e.g. fresh fetch)
   useEffect(() => {
-    const initial: Record<string, string> = {};
-    for (const f of fields) {
-      initial[f.key] = contentMap[section]?.[f.key] ?? "";
-    }
-    setValues(initial);
-  }, [contentMap, section]);
+    setValue(initialValue);
+    latestValue.current = initialValue;
+  }, [initialValue]);
 
-  const handleSave = () => {
-    const items = fields.map((f) => ({ section, key: f.key, value: values[f.key] ?? "" }));
-    onSave(items);
-  };
+  const handleChange = useCallback((newValue: string) => {
+    setValue(newValue);
+    latestValue.current = newValue;
+    setState("saving");
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        await onSave(section, key, latestValue.current);
+        setState("saved");
+        setTimeout(() => setState("idle"), 2000);
+      } catch {
+        setState("error");
+      }
+    }, 600);
+  }, [section, key, onSave]);
+
+  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
+
+  return { value, handleChange, state };
+}
+
+// ─── Save indicator ───────────────────────────────────────────────────────────
+function SaveIndicator({ state }: { state: SavingState }) {
+  if (state === "idle") return null;
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-medium transition-all ${
+      state === "saving" ? "text-muted-foreground" :
+      state === "saved"  ? "text-green-500" :
+      "text-destructive"
+    }`}>
+      {state === "saving" && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
+      {state === "saved"  && <CheckCircle2 className="w-2.5 h-2.5" />}
+      {state === "saving" ? "Saving…" : state === "saved" ? "Saved" : "Error"}
+    </span>
+  );
+}
+
+// ─── Single field row ─────────────────────────────────────────────────────────
+function FieldRow({
+  field,
+  initialValue,
+  onSave,
+}: {
+  field: FieldDef;
+  initialValue: string;
+  onSave: (section: string, key: string, value: string) => Promise<void>;
+}) {
+  // We extract section from the onSave closure; pass section+key when calling
+  const { value, handleChange, state } = useAutoSave(
+    "", // section filled by parent via closure
+    field.key,
+    initialValue,
+    onSave
+  );
 
   return (
-    <div className="space-y-5">
-      {fields.map((f) => (
-        <div key={f.key} className="space-y-1.5">
-          <Label className="text-sm font-medium text-foreground">{f.label}</Label>
-          {f.hint && <p className="text-xs text-muted-foreground">{f.hint}</p>}
-          {f.multiline ? (
-            <Textarea
-              value={values[f.key] ?? ""}
-              onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
-              rows={4}
-              className="bg-background/50 border-border/60 resize-none"
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <label className="text-xs font-medium text-foreground">{field.label}</label>
+        <SaveIndicator state={state} />
+      </div>
+      {field.hint && <p className="text-[10px] text-muted-foreground">{field.hint}</p>}
+      {field.multiline ? (
+        <textarea
+          value={value}
+          onChange={(e) => handleChange(e.target.value)}
+          placeholder={field.placeholder}
+          rows={4}
+          className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground text-sm resize-none focus:outline-none focus:border-primary/60 transition-colors placeholder:text-muted-foreground/50"
+        />
+      ) : (
+        <input
+          value={value}
+          onChange={(e) => handleChange(e.target.value)}
+          placeholder={field.placeholder}
+          className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground text-sm focus:outline-none focus:border-primary/60 transition-colors placeholder:text-muted-foreground/50"
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Field row with section context baked in ──────────────────────────────────
+function SectionFieldRow({
+  section,
+  field,
+  initialValue,
+  onSave,
+}: {
+  section: string;
+  field: FieldDef;
+  initialValue: string;
+  onSave: (section: string, key: string, value: string) => Promise<void>;
+}) {
+  const boundSave = useCallback(
+    (_s: string, key: string, value: string) => onSave(section, key, value),
+    [section, onSave]
+  );
+  return <FieldRow field={field} initialValue={initialValue} onSave={boundSave} />;
+}
+
+// ─── Collapsible section panel ────────────────────────────────────────────────
+function SectionPanel({
+  section,
+  contentMap,
+  onSave,
+  defaultOpen,
+}: {
+  section: SectionDef;
+  contentMap: Record<string, string>;
+  onSave: (section: string, key: string, value: string) => Promise<void>;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen ?? false);
+
+  return (
+    <div className="rounded-xl border border-border overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-3 px-5 py-4 bg-card hover:bg-card/80 transition-colors text-left"
+      >
+        <span className={section.color}>{section.icon}</span>
+        <span className="font-semibold text-sm flex-1">{section.label}</span>
+        <span className="text-xs text-muted-foreground">{section.fields.length} fields</span>
+        {open ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+      </button>
+      {open && (
+        <div className="px-5 py-4 bg-background border-t border-border space-y-5">
+          {section.fields.map((field) => (
+            <SectionFieldRow
+              key={field.key}
+              section={section.id}
+              field={field}
+              initialValue={contentMap[field.key] ?? ""}
+              onSave={onSave}
             />
-          ) : (
-            <Input
-              value={values[f.key] ?? ""}
-              onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
-              className="bg-background/50 border-border/60"
-            />
-          )}
+          ))}
         </div>
-      ))}
-      <Button onClick={handleSave} disabled={isSaving} className="bg-primary hover:bg-primary/90">
-        <Save className="h-4 w-4 mr-2" />
-        {isSaving ? "Saving…" : "Save Changes"}
-      </Button>
+      )}
     </div>
   );
 }
@@ -90,347 +257,354 @@ function SectionEditor({
 function FAQEditor({
   contentMap,
   onSave,
-  isSaving,
 }: {
-  contentMap: Record<string, Record<string, string>>;
-  onSave: (items: { section: string; key: string; value: string }[]) => void;
-  isSaving: boolean;
+  contentMap: Record<string, string>;
+  onSave: (section: string, key: string, value: string) => Promise<void>;
 }) {
-  const faqSection = contentMap["faq"] ?? {};
-  // Build FAQ pairs from keys like item_1_q / item_1_a
-  const indicesSet = Object.keys(faqSection)
-    .filter((k) => k.startsWith("item_"))
-    .map((k) => k.split("_")[1]);
-  const indices = indicesSet.filter((v, i, a) => a.indexOf(v) === i).sort();
+  const [open, setOpen] = useState(false);
 
-  const [faqs, setFaqs] = useState<{ q: string; a: string }[]>([]);
+  // Build FAQ pairs from keys: item_1_q / item_1_a
+  const indices = [...new Set(
+    Object.keys(contentMap)
+      .filter(k => k.startsWith("item_"))
+      .map(k => k.split("_")[1])
+  )].sort();
 
-  useEffect(() => {
-    const loaded = indices.map((i) => ({
-      q: faqSection[`item_${i}_q`] ?? "",
-      a: faqSection[`item_${i}_a`] ?? "",
-    }));
-    if (loaded.length === 0) {
-      setFaqs([{ q: "", a: "" }]);
-    } else {
-      setFaqs(loaded);
-    }
-  }, [contentMap]);
-
-  const handleSave = () => {
-    const items: { section: string; key: string; value: string }[] = [];
-    faqs.forEach((faq, i) => {
-      items.push({ section: "faq", key: `item_${i + 1}_q`, value: faq.q });
-      items.push({ section: "faq", key: `item_${i + 1}_a`, value: faq.a });
-    });
-    onSave(items);
-  };
+  const faqs = indices.length > 0
+    ? indices.map(i => ({ q: contentMap[`item_${i}_q`] ?? "", a: contentMap[`item_${i}_a`] ?? "" }))
+    : [
+        { q: "Do you need access to water or power at my location?", a: "No. We carry everything — our own water tank and generator." },
+        { q: "What if I'm not home during the appointment?",         a: "Most clients aren't. As long as we can access the vehicle, we'll handle it." },
+        { q: "How long does a detail take?",                         a: "Exterior or interior alone is about 2 hours. Full Showroom Reset is 3–4 hours." },
+        { q: "Do you service my area?",                              a: "We cover Racine County, Kenosha County, and the greater Milwaukee metro." },
+        { q: "What if I'm not happy with the result?",              a: "Tell us and we'll come back and make it right, no charge." },
+      ];
 
   return (
-    <div className="space-y-4">
-      {faqs.map((faq, i) => (
-        <Card key={i} className="bg-card/50 border-border/60">
-          <CardContent className="pt-4 space-y-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-primary uppercase tracking-wider">FAQ #{i + 1}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:text-destructive h-7 px-2"
-                onClick={() => setFaqs((f) => f.filter((_, j) => j !== i))}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Question</Label>
-              <Input
-                value={faq.q}
-                onChange={(e) => setFaqs((f) => f.map((x, j) => j === i ? { ...x, q: e.target.value } : x))}
-                placeholder="Enter question…"
-                className="bg-background/50 border-border/60"
+    <div className="rounded-xl border border-border overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-3 px-5 py-4 bg-card hover:bg-card/80 transition-colors text-left"
+      >
+        <span className="text-yellow-400"><HelpCircle className="w-4 h-4" /></span>
+        <span className="font-semibold text-sm flex-1">FAQ Questions</span>
+        <span className="text-xs text-muted-foreground">{faqs.length} questions</span>
+        {open ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+      </button>
+      {open && (
+        <div className="px-5 py-4 bg-background border-t border-border space-y-6">
+          {faqs.map((faq, i) => (
+            <div key={i} className="space-y-3 pb-5 border-b border-border/60 last:border-0 last:pb-0">
+              <p className="text-xs font-bold text-primary uppercase tracking-wider">FAQ #{i + 1}</p>
+              <SectionFieldRow
+                section={FAQ_SECTION_ID}
+                field={{ key: `item_${i + 1}_q`, label: "Question", placeholder: "Enter question…" }}
+                initialValue={faq.q}
+                onSave={onSave}
+              />
+              <SectionFieldRow
+                section={FAQ_SECTION_ID}
+                field={{ key: `item_${i + 1}_a`, label: "Answer", placeholder: "Enter answer…", multiline: true }}
+                initialValue={faq.a}
+                onSave={onSave}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Answer</Label>
-              <Textarea
-                value={faq.a}
-                onChange={(e) => setFaqs((f) => f.map((x, j) => j === i ? { ...x, a: e.target.value } : x))}
-                placeholder="Enter answer…"
-                rows={3}
-                className="bg-background/50 border-border/60 resize-none"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-      <div className="flex gap-3">
-        <Button
-          variant="outline"
-          onClick={() => setFaqs((f) => [...f, { q: "", a: "" }])}
-          className="border-border/60"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add FAQ
-        </Button>
-        <Button onClick={handleSave} disabled={isSaving} className="bg-primary hover:bg-primary/90">
-          <Save className="h-4 w-4 mr-2" />
-          {isSaving ? "Saving…" : "Save FAQs"}
-        </Button>
-      </div>
+          ))}
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Info className="w-3 h-3" />
+            To add/remove FAQ items, contact your developer. Changes save automatically.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Package Editor ───────────────────────────────────────────────────────────
-function PackageEditor() {
+// ─── Packages Editor ──────────────────────────────────────────────────────────
+function PackagesEditor() {
   const utils = trpc.useUtils();
   const { data: pkgs, isLoading } = trpc.content.getPackages.useQuery();
   const upsert = trpc.content.upsertPackage.useMutation({
-    onSuccess: () => { utils.content.getPackages.invalidate(); toast.success("Package saved"); setEditPkg(null); },
-    onError: () => toast.error("Failed to save package"),
+    onSuccess: () => { utils.content.getPackages.invalidate(); toast.success("Package saved"); },
+    onError:   () => toast.error("Failed to save package"),
   });
   const deletePkg = trpc.content.deletePackage.useMutation({
     onSuccess: () => { utils.content.getPackages.invalidate(); toast.success("Package deactivated"); },
   });
 
+  const [open, setOpen] = useState(false);
   const [editPkg, setEditPkg] = useState<null | {
     id?: number; name: string; description: string; price: string;
     duration: number; features: string; isPopular: boolean; isActive: boolean; sortOrder: number;
   }>(null);
 
-  const openNew = () => setEditPkg({ name: "", description: "", price: "0.00", duration: 120, features: "[]", isPopular: false, isActive: true, sortOrder: 0 });
-  const openEdit = (p: NonNullable<typeof pkgs>[number]) => setEditPkg({
-    id: p.id, name: p.name, description: p.description ?? "", price: String(p.price),
-    duration: p.duration, features: p.features ?? "[]", isPopular: p.isPopular ?? false,
-    isActive: p.isActive ?? true, sortOrder: p.sortOrder ?? 0,
-  });
-
-  const handleSave = () => {
-    if (!editPkg) return;
-    // Parse features from newline-separated text to JSON
-    let featuresJson = editPkg.features;
-    try { JSON.parse(featuresJson); } catch {
-      featuresJson = JSON.stringify(editPkg.features.split("\n").map((s) => s.trim()).filter(Boolean));
-    }
-    upsert.mutate({ ...editPkg, features: featuresJson });
+  const featuresText = (j: string | null) => {
+    try { return (JSON.parse(j ?? "[]") as string[]).join("\n"); } catch { return j ?? ""; }
   };
 
-  const featuresDisplay = (featuresJson: string | null) => {
-    try { return (JSON.parse(featuresJson ?? "[]") as string[]).slice(0, 3).join(", "); } catch { return ""; }
-  };
+  const [open2, setOpen2] = useState(false);
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <p className="text-sm text-muted-foreground">Manage your service packages. Changes reflect immediately in the booking form.</p>
-        <Button onClick={openNew} className="bg-primary hover:bg-primary/90">
-          <Plus className="h-4 w-4 mr-2" /> Add Package
-        </Button>
-      </div>
-
-      {isLoading ? (
-        <div className="text-muted-foreground text-sm">Loading packages…</div>
-      ) : (
-        <div className="space-y-3">
-          {pkgs?.map((p) => (
-            <Card key={p.id} className={`bg-card/50 border-border/60 ${!p.isActive ? "opacity-50" : ""}`}>
-              <CardContent className="py-4 flex items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-foreground">{p.name}</span>
-                    {p.isPopular && <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">Popular</Badge>}
-                    {!p.isActive && <Badge variant="outline" className="text-xs text-muted-foreground">Inactive</Badge>}
+    <div className="rounded-xl border border-border overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-3 px-5 py-4 bg-card hover:bg-card/80 transition-colors text-left"
+      >
+        <span className="text-primary"><DollarSign className="w-4 h-4" /></span>
+        <span className="font-semibold text-sm flex-1">Service Packages</span>
+        <span className="text-xs text-muted-foreground">{pkgs?.length ?? 0} packages</span>
+        {open ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+      </button>
+      {open && (
+        <div className="px-5 py-4 bg-background border-t border-border space-y-3">
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+              <Loader2 className="w-4 h-4 animate-spin" /> Loading packages…
+            </div>
+          ) : (
+            <>
+              {pkgs?.map((pkg) => (
+                <div key={pkg.id} className={`p-4 rounded-xl border bg-card ${!pkg.isActive ? "opacity-50" : ""}`}>
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div>
+                      <p className="font-semibold text-sm">{pkg.name}</p>
+                      <p className="text-xs text-muted-foreground">${Number(pkg.price).toFixed(2)} · {Math.round(pkg.duration / 60)}h</p>
+                    </div>
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      {pkg.isPopular && <span className="text-[10px] bg-primary/15 text-primary border border-primary/20 px-2 py-0.5 rounded-full font-semibold">Popular</span>}
+                      <button
+                        onClick={() => setEditPkg({ id: pkg.id, name: pkg.name, description: pkg.description ?? "", price: String(pkg.price), duration: pkg.duration, features: pkg.features ?? "[]", isPopular: pkg.isPopular ?? false, isActive: pkg.isActive ?? true, sortOrder: pkg.sortOrder ?? 0 })}
+                        className="text-xs text-primary hover:underline"
+                      >Edit</button>
+                      <button
+                        onClick={() => deletePkg.mutate({ id: pkg.id })}
+                        className="text-xs text-destructive hover:underline"
+                      >Disable</button>
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground truncate">{featuresDisplay(p.features)}</div>
+                  {pkg.description && <p className="text-xs text-muted-foreground line-clamp-2">{pkg.description}</p>}
                 </div>
-                <div className="flex items-center gap-4 shrink-0">
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-primary">${Number(p.price).toFixed(2)}</div>
-                    <div className="text-xs text-muted-foreground">{Math.round(p.duration / 60)}h</div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(p)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive" onClick={() => deletePkg.mutate({ id: p.id })}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+              ))}
+              <button
+                onClick={() => setEditPkg({ name: "", description: "", price: "0.00", duration: 120, features: "[]", isPopular: false, isActive: true, sortOrder: 0 })}
+                className="w-full py-2.5 rounded-xl border-2 border-dashed border-border hover:border-primary/40 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
+                + Add Package
+              </button>
+            </>
+          )}
 
-      <Dialog open={!!editPkg} onOpenChange={(o) => !o && setEditPkg(null)}>
-        <DialogContent className="max-w-lg bg-card border-border/60 max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editPkg?.id ? "Edit Package" : "New Package"}</DialogTitle>
-          </DialogHeader>
+          {/* Inline edit form */}
           {editPkg && (
-            <div className="space-y-4 py-2">
-              <div className="space-y-1.5">
-                <Label>Package Name</Label>
-                <Input value={editPkg.name} onChange={(e) => setEditPkg((p) => p && ({ ...p, name: e.target.value }))} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Description</Label>
-                <Textarea value={editPkg.description} onChange={(e) => setEditPkg((p) => p && ({ ...p, description: e.target.value }))} rows={3} className="resize-none" />
-              </div>
+            <div className="mt-2 p-5 rounded-xl border-2 border-primary/30 bg-primary/5 space-y-4">
+              <p className="text-sm font-bold">{editPkg.id ? "Edit Package" : "New Package"}</p>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Price ($)</Label>
-                  <Input type="number" step="0.01" value={editPkg.price} onChange={(e) => setEditPkg((p) => p && ({ ...p, price: e.target.value }))} />
+                <div className="col-span-2 space-y-1">
+                  <label className="text-xs font-medium">Package Name</label>
+                  <input value={editPkg.name} onChange={(e) => setEditPkg(p => p && ({ ...p, name: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm focus:outline-none focus:border-primary/60" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Duration (minutes)</Label>
-                  <Input type="number" value={editPkg.duration} onChange={(e) => setEditPkg((p) => p && ({ ...p, duration: Number(e.target.value) }))} />
+                <div className="col-span-2 space-y-1">
+                  <label className="text-xs font-medium">Description</label>
+                  <textarea value={editPkg.description} onChange={(e) => setEditPkg(p => p && ({ ...p, description: e.target.value }))}
+                    rows={2} className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm resize-none focus:outline-none focus:border-primary/60" />
                 </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Price ($)</label>
+                  <input type="number" step="0.01" value={editPkg.price} onChange={(e) => setEditPkg(p => p && ({ ...p, price: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm focus:outline-none focus:border-primary/60" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Duration (min)</label>
+                  <input type="number" value={editPkg.duration} onChange={(e) => setEditPkg(p => p && ({ ...p, duration: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm focus:outline-none focus:border-primary/60" />
+                </div>
+                <div className="col-span-2 space-y-1">
+                  <label className="text-xs font-medium">Features (one per line)</label>
+                  <textarea
+                    value={featuresText(editPkg.features)}
+                    onChange={(e) => setEditPkg(p => p && ({ ...p, features: JSON.stringify(e.target.value.split("\n").map(s => s.trim()).filter(Boolean)) }))}
+                    rows={5} placeholder="Signature hand wash&#10;Wheel & tire deep clean&#10;…"
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm font-mono resize-none focus:outline-none focus:border-primary/60" />
+                </div>
+                <label className="flex items-center gap-2 text-xs cursor-pointer">
+                  <input type="checkbox" checked={editPkg.isPopular} onChange={(e) => setEditPkg(p => p && ({ ...p, isPopular: e.target.checked }))} className="accent-primary" />
+                  Mark as Popular
+                </label>
+                <label className="flex items-center gap-2 text-xs cursor-pointer">
+                  <input type="checkbox" checked={editPkg.isActive} onChange={(e) => setEditPkg(p => p && ({ ...p, isActive: e.target.checked }))} className="accent-primary" />
+                  Active
+                </label>
               </div>
-              <div className="space-y-1.5">
-                <Label>Features (one per line)</Label>
-                <Textarea
-                  value={(() => { try { return (JSON.parse(editPkg.features) as string[]).join("\n"); } catch { return editPkg.features; } })()}
-                  onChange={(e) => setEditPkg((p) => p && ({ ...p, features: JSON.stringify(e.target.value.split("\n").map((s) => s.trim()).filter(Boolean)) }))}
-                  rows={5}
-                  placeholder={"Exterior hand wash & dry\nWheel & tire cleaning\nWindow cleaning"}
-                  className="resize-none font-mono text-sm"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-2">
-                  <Switch checked={editPkg.isPopular} onCheckedChange={(v) => setEditPkg((p) => p && ({ ...p, isPopular: v }))} />
-                  <Label>Mark as Popular</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch checked={editPkg.isActive} onCheckedChange={(v) => setEditPkg((p) => p && ({ ...p, isActive: v }))} />
-                  <Label>Active</Label>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Sort Order</Label>
-                <Input type="number" value={editPkg.sortOrder} onChange={(e) => setEditPkg((p) => p && ({ ...p, sortOrder: Number(e.target.value) }))} />
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => { if (editPkg) upsert.mutate(editPkg); setEditPkg(null); }}
+                  disabled={upsert.isPending}
+                  className="flex-1 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                >
+                  {upsert.isPending ? "Saving…" : "Save Package"}
+                </button>
+                <button onClick={() => setEditPkg(null)} className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Cancel
+                </button>
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditPkg(null)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={upsert.isPending} className="bg-primary hover:bg-primary/90">
-              {upsert.isPending ? "Saving…" : "Save Package"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Add-On Editor ────────────────────────────────────────────────────────────
-function AddOnEditor() {
+// ─── Add-ons Editor ───────────────────────────────────────────────────────────
+function AddOnsEditor() {
   const utils = trpc.useUtils();
   const { data: addons, isLoading } = trpc.content.getAddOns.useQuery();
   const upsert = trpc.content.upsertAddOn.useMutation({
     onSuccess: () => { utils.content.getAddOns.invalidate(); toast.success("Add-on saved"); setEditAddon(null); },
-    onError: () => toast.error("Failed to save add-on"),
+    onError:   () => toast.error("Failed to save add-on"),
   });
   const deleteAddon = trpc.content.deleteAddOn.useMutation({
     onSuccess: () => { utils.content.getAddOns.invalidate(); toast.success("Add-on deactivated"); },
   });
 
+  const [open, setOpen] = useState(false);
   const [editAddon, setEditAddon] = useState<null | {
     id?: number; name: string; description: string; price: string; duration: number; isActive: boolean; sortOrder: number;
   }>(null);
 
-  const openNew = () => setEditAddon({ name: "", description: "", price: "0.00", duration: 0, isActive: true, sortOrder: 0 });
-  const openEdit = (a: NonNullable<typeof addons>[number]) => setEditAddon({
-    id: a.id, name: a.name, description: a.description ?? "", price: String(a.price),
-    duration: a.duration ?? 0, isActive: a.isActive ?? true, sortOrder: a.sortOrder ?? 0,
-  });
-
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <p className="text-sm text-muted-foreground">Manage optional add-ons customers can select during booking.</p>
-        <Button onClick={openNew} className="bg-primary hover:bg-primary/90">
-          <Plus className="h-4 w-4 mr-2" /> Add Add-On
-        </Button>
-      </div>
-
-      {isLoading ? (
-        <div className="text-muted-foreground text-sm">Loading add-ons…</div>
-      ) : (
-        <div className="space-y-3">
-          {addons?.map((a) => (
-            <Card key={a.id} className={`bg-card/50 border-border/60 ${!a.isActive ? "opacity-50" : ""}`}>
-              <CardContent className="py-4 flex items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-foreground">{a.name}</span>
-                    {!a.isActive && <Badge variant="outline" className="text-xs text-muted-foreground">Inactive</Badge>}
+    <div className="rounded-xl border border-border overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-3 px-5 py-4 bg-card hover:bg-card/80 transition-colors text-left"
+      >
+        <span className="text-teal-400"><Package className="w-4 h-4" /></span>
+        <span className="font-semibold text-sm flex-1">Add-On Services</span>
+        <span className="text-xs text-muted-foreground">{addons?.length ?? 0} add-ons</span>
+        {open ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+      </button>
+      {open && (
+        <div className="px-5 py-4 bg-background border-t border-border space-y-3">
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+              <Loader2 className="w-4 h-4 animate-spin" /> Loading add-ons…
+            </div>
+          ) : (
+            <>
+              {addons?.map((ao) => (
+                <div key={ao.id} className={`flex items-center gap-3 p-3 rounded-xl border bg-card ${!ao.isActive ? "opacity-50" : ""}`}>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{ao.name}</p>
+                    <p className="text-xs text-muted-foreground">+${Number(ao.price).toFixed(2)}</p>
                   </div>
-                  <div className="text-sm text-muted-foreground truncate">{a.description}</div>
+                  <button onClick={() => setEditAddon({ id: ao.id, name: ao.name, description: ao.description ?? "", price: String(ao.price), duration: ao.duration ?? 0, isActive: ao.isActive ?? true, sortOrder: ao.sortOrder ?? 0 })}
+                    className="text-xs text-primary hover:underline flex-shrink-0">Edit</button>
+                  <button onClick={() => deleteAddon.mutate({ id: ao.id })}
+                    className="text-xs text-destructive hover:underline flex-shrink-0">Disable</button>
                 </div>
-                <div className="flex items-center gap-4 shrink-0">
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-primary">+${Number(a.price).toFixed(2)}</div>
-                    {(a.duration ?? 0) > 0 && <div className="text-xs text-muted-foreground">+{a.duration} min</div>}
-                  </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(a)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive" onClick={() => deleteAddon.mutate({ id: a.id })}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      <Dialog open={!!editAddon} onOpenChange={(o) => !o && setEditAddon(null)}>
-        <DialogContent className="max-w-md bg-card border-border/60">
-          <DialogHeader>
-            <DialogTitle>{editAddon?.id ? "Edit Add-On" : "New Add-On"}</DialogTitle>
-          </DialogHeader>
+              ))}
+              <button
+                onClick={() => setEditAddon({ name: "", description: "", price: "0.00", duration: 0, isActive: true, sortOrder: 0 })}
+                className="w-full py-2.5 rounded-xl border-2 border-dashed border-border hover:border-primary/40 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
+                + Add Add-On
+              </button>
+            </>
+          )}
           {editAddon && (
-            <div className="space-y-4 py-2">
-              <div className="space-y-1.5">
-                <Label>Add-On Name</Label>
-                <Input value={editAddon.name} onChange={(e) => setEditAddon((a) => a && ({ ...a, name: e.target.value }))} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Description</Label>
-                <Textarea value={editAddon.description} onChange={(e) => setEditAddon((a) => a && ({ ...a, description: e.target.value }))} rows={2} className="resize-none" />
-              </div>
+            <div className="mt-2 p-5 rounded-xl border-2 border-primary/30 bg-primary/5 space-y-4">
+              <p className="text-sm font-bold">{editAddon.id ? "Edit Add-On" : "New Add-On"}</p>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Price ($)</Label>
-                  <Input type="number" step="0.01" value={editAddon.price} onChange={(e) => setEditAddon((a) => a && ({ ...a, price: e.target.value }))} />
+                <div className="col-span-2 space-y-1">
+                  <label className="text-xs font-medium">Add-On Name</label>
+                  <input value={editAddon.name} onChange={(e) => setEditAddon(a => a && ({ ...a, name: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm focus:outline-none focus:border-primary/60" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Extra Duration (min)</Label>
-                  <Input type="number" value={editAddon.duration} onChange={(e) => setEditAddon((a) => a && ({ ...a, duration: Number(e.target.value) }))} />
+                <div className="col-span-2 space-y-1">
+                  <label className="text-xs font-medium">Description</label>
+                  <input value={editAddon.description} onChange={(e) => setEditAddon(a => a && ({ ...a, description: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm focus:outline-none focus:border-primary/60" />
                 </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Price ($)</label>
+                  <input type="number" step="0.01" value={editAddon.price} onChange={(e) => setEditAddon(a => a && ({ ...a, price: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm focus:outline-none focus:border-primary/60" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Extra Duration (min)</label>
+                  <input type="number" value={editAddon.duration} onChange={(e) => setEditAddon(a => a && ({ ...a, duration: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-input text-sm focus:outline-none focus:border-primary/60" />
+                </div>
+                <label className="flex items-center gap-2 text-xs cursor-pointer col-span-2">
+                  <input type="checkbox" checked={editAddon.isActive} onChange={(e) => setEditAddon(a => a && ({ ...a, isActive: e.target.checked }))} className="accent-primary" />
+                  Active
+                </label>
               </div>
-              <div className="flex items-center gap-2">
-                <Switch checked={editAddon.isActive} onCheckedChange={(v) => setEditAddon((a) => a && ({ ...a, isActive: v }))} />
-                <Label>Active</Label>
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => editAddon && upsert.mutate(editAddon)}
+                  disabled={upsert.isPending}
+                  className="flex-1 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                >
+                  {upsert.isPending ? "Saving…" : "Save Add-On"}
+                </button>
+                <button onClick={() => setEditAddon(null)} className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Cancel
+                </button>
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditAddon(null)}>Cancel</Button>
-            <Button onClick={() => editAddon && upsert.mutate(editAddon)} disabled={upsert.isPending} className="bg-primary hover:bg-primary/90">
-              {upsert.isPending ? "Saving…" : "Save Add-On"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Live Preview ─────────────────────────────────────────────────────────────
+function LivePreview({ visible, onToggle }: { visible: boolean; onToggle: () => void }) {
+  const [key, setKey] = useState(0);
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <Eye className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Live Preview</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setKey(k => k + 1)}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+          </button>
+          <button onClick={onToggle} className="text-muted-foreground hover:text-foreground transition-colors">
+            <EyeOff className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+      <div className="flex-1 overflow-hidden">
+        <iframe
+          key={key}
+          src="/"
+          className="w-full h-full border-0"
+          title="Site Preview"
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── Global save status bar ───────────────────────────────────────────────────
+function StatusBar({ lastSaved }: { lastSaved: Date | null }) {
+  return (
+    <div className="flex items-center gap-3 px-4 py-2.5 bg-card border-b border-border text-xs text-muted-foreground">
+      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+      <span>Auto-saving · Changes go live within seconds</span>
+      {lastSaved && (
+        <span className="ml-auto">Last saved: {lastSaved.toLocaleTimeString()}</span>
+      )}
     </div>
   );
 }
@@ -439,203 +613,96 @@ function AddOnEditor() {
 export default function AdminSiteEditor() {
   const utils = trpc.useUtils();
   const { data: allContent, isLoading } = trpc.content.getSiteContent.useQuery({});
-  const bulkUpsert = trpc.content.bulkUpsertSiteContent.useMutation({
-    onSuccess: (res) => {
-      utils.content.getSiteContent.invalidate();
-      toast.success(`Saved ${res.count} field${res.count !== 1 ? "s" : ""}`);
-    },
-    onError: () => toast.error("Failed to save changes"),
-  });
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [previewVisible, setPreviewVisible] = useState(true);
 
-  const contentMap = useContentMap(allContent);
+  // Build a nested map: section → key → value
+  const contentMap: Record<string, Record<string, string>> = {};
+  for (const row of allContent ?? []) {
+    if (!contentMap[row.section]) contentMap[row.section] = {};
+    contentMap[row.section][row.key] = row.value ?? "";
+  }
 
-  const handleSave = (items: { section: string; key: string; value: string }[]) => {
-    bulkUpsert.mutate(items);
-  };
+  // Single save function used by all fields
+  const save = useCallback(async (section: string, key: string, value: string) => {
+    await utils.client.content.upsertSiteContent.mutate({ section, key, value });
+    // Invalidate so any other components using this data reflect the change
+    utils.content.getSiteContent.invalidate();
+    setLastSaved(new Date());
+  }, [utils]);
 
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-64 text-muted-foreground">Loading site content…</div>
+        <div className="flex items-center justify-center h-64 gap-3 text-muted-foreground">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span>Loading site content…</span>
+        </div>
       </AdminLayout>
     );
   }
 
   return (
     <AdminLayout>
-      <div className="space-y-4 p-3 sm:p-0">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Site Content Editor</h1>
-          <p className="text-muted-foreground mt-1">
-            Edit your website text, pricing, and FAQs. All changes go live immediately on your public site and booking form.
+      <div className="flex flex-col h-[calc(100vh-64px)]">
+
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-border bg-background flex-shrink-0">
+          <h1 className="text-xl font-display font-bold text-foreground">Site Content Editor</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Every change saves automatically as you type. No save button needed.
           </p>
         </div>
 
-        <Tabs defaultValue="pricing" className="space-y-6">
-          <TabsList className="bg-card/50 border border-border/60 flex-wrap h-auto gap-1 p-1">
-            <TabsTrigger value="pricing" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <DollarSign className="h-3.5 w-3.5" /> Pricing
-            </TabsTrigger>
-            <TabsTrigger value="addons" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Package className="h-3.5 w-3.5" /> Add-Ons
-            </TabsTrigger>
-            <TabsTrigger value="hero" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Globe className="h-3.5 w-3.5" /> Hero
-            </TabsTrigger>
-            <TabsTrigger value="about" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Star className="h-3.5 w-3.5" /> About
-            </TabsTrigger>
-            <TabsTrigger value="contact" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Phone className="h-3.5 w-3.5" /> Contact
-            </TabsTrigger>
-            <TabsTrigger value="faq" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <HelpCircle className="h-3.5 w-3.5" /> FAQs
-            </TabsTrigger>
-            <TabsTrigger value="business" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Settings2 className="h-3.5 w-3.5" /> Business
-            </TabsTrigger>
-          </TabsList>
+        <StatusBar lastSaved={lastSaved} />
 
-          {/* ── Pricing ── */}
-          <TabsContent value="pricing">
-            <Card className="bg-card/50 border-border/60">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><DollarSign className="h-5 w-5 text-primary" /> Service Packages</CardTitle>
-                <CardDescription>Edit package names, descriptions, prices, durations, and features. Prices update immediately in the booking form.</CardDescription>
-              </CardHeader>
-              <CardContent><PackageEditor /></CardContent>
-            </Card>
-          </TabsContent>
+        {/* Split layout */}
+        <div className="flex flex-1 overflow-hidden">
 
-          {/* ── Add-Ons ── */}
-          <TabsContent value="addons">
-            <Card className="bg-card/50 border-border/60">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" /> Add-On Services</CardTitle>
-                <CardDescription>Manage optional services customers can add to their booking.</CardDescription>
-              </CardHeader>
-              <CardContent><AddOnEditor /></CardContent>
-            </Card>
-          </TabsContent>
+          {/* Left panel — editor */}
+          <div className={`flex flex-col overflow-y-auto border-r border-border transition-all ${previewVisible ? "w-[420px] flex-shrink-0" : "flex-1"}`}>
+            <div className="p-4 space-y-3">
 
-          {/* ── Hero ── */}
-          <TabsContent value="hero">
-            <Card className="bg-card/50 border-border/60">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Globe className="h-5 w-5 text-primary" /> Homepage Hero</CardTitle>
-                <CardDescription>Edit the main headline, subtext, and trust badges shown on your homepage.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SectionEditor
-                  section="hero"
-                  fields={[
-                    { key: "badge", label: "Badge Text", hint: "Small label above the headline (e.g. PREMIUM MOBILE DETAILING)" },
-                    { key: "headline", label: "Main Headline", hint: "The large bold text visitors see first" },
-                    { key: "subheadline", label: "Subheadline / Description", multiline: true },
-                    { key: "cta_primary", label: "Primary Button Text" },
-                    { key: "cta_secondary", label: "Secondary Button Text" },
-                    { key: "trust_reviews", label: "Trust Badge — Reviews" },
-                    { key: "trust_certified", label: "Trust Badge — Certification" },
-                    { key: "trust_availability", label: "Trust Badge — Availability" },
-                  ]}
-                  contentMap={contentMap}
-                  onSave={handleSave}
-                  isSaving={bulkUpsert.isPending}
+              {/* Preview toggle (mobile / when preview hidden) */}
+              {!previewVisible && (
+                <button
+                  onClick={() => setPreviewVisible(true)}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-card text-sm text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+                >
+                  <Eye className="w-4 h-4" /> Show Preview
+                </button>
+              )}
+
+              {/* Section panels */}
+              {SECTIONS.map((section, i) => (
+                <SectionPanel
+                  key={section.id}
+                  section={section}
+                  contentMap={contentMap[section.id] ?? {}}
+                  onSave={save}
+                  defaultOpen={i === 0}
                 />
-              </CardContent>
-            </Card>
-          </TabsContent>
+              ))}
 
-          {/* ── About ── */}
-          <TabsContent value="about">
-            <Card className="bg-card/50 border-border/60">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Star className="h-5 w-5 text-primary" /> About Section</CardTitle>
-                <CardDescription>Edit the about/stats section shown on the homepage and About page.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SectionEditor
-                  section="about"
-                  fields={[
-                    { key: "headline", label: "Section Headline" },
-                    { key: "body", label: "Body Text", multiline: true },
-                    { key: "years_experience", label: "Stat — Years of Experience", hint: 'e.g. "8+"' },
-                    { key: "vehicles_detailed", label: "Stat — Vehicles Detailed", hint: 'e.g. "2,500+"' },
-                    { key: "satisfaction_rate", label: "Stat — Satisfaction Rate", hint: 'e.g. "99%"' },
-                    { key: "service_areas", label: "Stat — Service Areas", hint: 'e.g. "15+"' },
-                  ]}
-                  contentMap={contentMap}
-                  onSave={handleSave}
-                  isSaving={bulkUpsert.isPending}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
+              <FAQEditor
+                contentMap={contentMap[FAQ_SECTION_ID] ?? {}}
+                onSave={save}
+              />
 
-          {/* ── Contact ── */}
-          <TabsContent value="contact">
-            <Card className="bg-card/50 border-border/60">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Phone className="h-5 w-5 text-primary" /> Contact Information</CardTitle>
-                <CardDescription>Update your phone number, email, address, and business hours shown across the site.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SectionEditor
-                  section="contact"
-                  fields={[
-                    { key: "phone", label: "Phone Number" },
-                    { key: "email", label: "Email Address" },
-                    { key: "address", label: "City / Address" },
-                    { key: "hours_weekday", label: "Weekday Hours", hint: 'e.g. "Mon–Fri: 7:00 AM – 7:00 PM"' },
-                    { key: "hours_weekend", label: "Weekend Hours", hint: 'e.g. "Sat–Sun: 8:00 AM – 5:00 PM"' },
-                  ]}
-                  contentMap={contentMap}
-                  onSave={handleSave}
-                  isSaving={bulkUpsert.isPending}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
+              <PackagesEditor />
+              <AddOnsEditor />
 
-          {/* ── FAQ ── */}
-          <TabsContent value="faq">
-            <Card className="bg-card/50 border-border/60">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><HelpCircle className="h-5 w-5 text-primary" /> Frequently Asked Questions</CardTitle>
-                <CardDescription>Add, edit, or remove FAQ items shown on the FAQ page.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FAQEditor contentMap={contentMap} onSave={handleSave} isSaving={bulkUpsert.isPending} />
-              </CardContent>
-            </Card>
-          </TabsContent>
+              <div className="h-8" />
+            </div>
+          </div>
 
-          {/* ── Business Settings ── */}
-          <TabsContent value="business">
-            <Card className="bg-card/50 border-border/60">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Settings2 className="h-5 w-5 text-primary" /> Business Settings</CardTitle>
-                <CardDescription>Configure tax rate, travel fees, service radius, and booking rules that affect pricing calculations.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SectionEditor
-                  section="business"
-                  fields={[
-                    { key: "name", label: "Business Name" },
-                    { key: "tagline", label: "Business Tagline" },
-                    { key: "tax_rate", label: "Tax Rate", hint: 'Decimal format, e.g. "0.0825" for 8.25%' },
-                    { key: "travel_fee_base", label: "Base Travel Fee ($)", hint: 'Flat fee added to all bookings, e.g. "0" for none' },
-                    { key: "service_radius_miles", label: "Service Radius (miles)" },
-                    { key: "booking_advance_hours", label: "Minimum Booking Lead Time (hours)", hint: 'How many hours in advance a customer must book' },
-                  ]}
-                  contentMap={contentMap}
-                  onSave={handleSave}
-                  isSaving={bulkUpsert.isPending}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          {/* Right panel — live preview */}
+          {previewVisible && (
+            <div className="flex-1 overflow-hidden">
+              <LivePreview visible={previewVisible} onToggle={() => setPreviewVisible(false)} />
+            </div>
+          )}
+        </div>
       </div>
     </AdminLayout>
   );

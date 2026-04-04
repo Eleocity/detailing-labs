@@ -558,7 +558,7 @@ export default function Pricing() {
                       Ceramic coating pricing depends on your vehicle's size, paint condition, and the level of correction needed before coating. We don't believe in one-size-fits-all pricing for a job this important.
                     </p>
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 mb-3">
-                      <span className="text-amber-400 font-bold text-sm">Most passenger vehicles: $499–$799</span>
+                      <span className="text-amber-400 font-bold text-sm">Every coating is custom-quoted based on your paint's condition</span>
                     </div>
                     <p className="text-muted-foreground text-sm">
                       We'll assess your vehicle, walk you through exactly what's needed, and give you a transparent quote with no pressure.
