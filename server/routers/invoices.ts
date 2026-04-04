@@ -5,6 +5,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { sendEmail, invoiceEmailV2, receiptEmail } from "../email";
 import { getDb } from "../db";
 import { invoices, bookings, siteContent } from "../../drizzle/schema";
+import { trackInvoicePaid } from "../klaviyo";
 
 function adminOnly(role: string) {
   if (role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED", message: "Admin only" });
@@ -209,6 +210,19 @@ export const invoicesRouter = router({
             businessEmail:     bizEmail,
           });
           sendEmail({ to: booking.customerEmail, ...receipt }).catch(console.error);
+        }
+
+        // Track Invoice Paid event in Klaviyo (triggers receipt + loyalty flows)
+        if (booking) {
+          trackInvoicePaid({
+            email:         booking.customerEmail,
+            phone:         booking.customerPhone,
+            firstName:     booking.customerFirstName,
+            invoiceNumber: inv.invoiceNumber,
+            bookingNumber: booking.bookingNumber,
+            totalAmount:   Number(inv.totalAmount),
+            packageName:   booking.packageName,
+          }).catch(() => {});
         }
       }
       return { success: true };

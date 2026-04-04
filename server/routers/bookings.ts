@@ -5,6 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { sendEmail, bookingConfirmationEmail } from "../email";
 import { syncBookingToUrable } from "../urable";
+import { syncBookingToKlaviyo, trackJobCompleted } from "../klaviyo";
 import {
   bookings, customers, vehicles, services, packages, addOns,
   bookingAssignments, bookingStatusHistory, invoices, notifications, employees, siteContent
@@ -225,6 +226,30 @@ export const bookingsRouter = router({
         });
       }
 
+      // Auto-sync to Klaviyo (non-blocking)
+      if (process.env.KLAVIYO_API_KEY && newBooking) {
+        syncBookingToKlaviyo({
+          firstName:       input.customerFirstName,
+          lastName:        input.customerLastName,
+          email:           input.customerEmail,
+          phone:           input.customerPhone,
+          city:            input.serviceCity,
+          state:           input.serviceState,
+          zip:             input.serviceZip,
+          howHeard:        input.howHeard,
+          vehicleYear:     input.vehicleYear ?? null,
+          vehicleMake:     input.vehicleMake,
+          vehicleModel:    input.vehicleModel,
+          bookingNumber,
+          packageName:     input.packageName ?? null,
+          appointmentDate: new Date(input.appointmentDate),
+          serviceAddress:  input.serviceAddress,
+          totalAmount:     input.totalAmount ?? null,
+        }).catch((e: any) => {
+          console.error("[Klaviyo] Booking sync failed:", e?.message);
+        });
+      }
+
       return { bookingNumber, bookingId: newBooking?.id };
     }),
 
@@ -374,6 +399,20 @@ export const bookingsRouter = router({
             status: "draft",
           }).catch(() => {}); // ignore duplicate errors
         }
+      }
+
+      // Track Job Completed event in Klaviyo (triggers review request flow)
+      if (input.status === "completed" && process.env.KLAVIYO_API_KEY) {
+        trackJobCompleted({
+          email:         current.customerEmail,
+          phone:         current.customerPhone,
+          firstName:     current.customerFirstName,
+          bookingNumber: current.bookingNumber,
+          packageName:   current.packageName,
+          totalAmount:   current.totalAmount ? Number(current.totalAmount) : null,
+          vehicleMake:   current.vehicleMake,
+          vehicleModel:  current.vehicleModel,
+        }).catch(() => {});
       }
 
       return { success: true };
