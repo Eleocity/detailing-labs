@@ -45,6 +45,7 @@ const AdminInvoiceDetail  = lazy(() => import("./pages/admin/AdminInvoices").the
 const AdminMedia = lazy(() => import("./pages/admin/AdminMedia"));
 const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminRoutePlanner = lazy(() => import("./pages/admin/AdminRoutePlanner"));
+const AdminAutomations = lazy(() => import("./pages/admin/AdminAutomations"));
 const AdminSiteEditor = lazy(() => import("./pages/admin/AdminSiteEditor"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminUrable     = lazy(() => import("./pages/admin/AdminUrable"));
@@ -118,6 +119,7 @@ function Router() {
         <Route path="/admin/media" component={AdminMedia} />
         <Route path="/admin/reviews" component={AdminReviews} />
         <Route path="/admin/route-planner" component={AdminRoutePlanner} />
+        <Route path="/admin/automations" component={AdminAutomations} />
         <Route path="/admin/site-editor" component={AdminSiteEditor} />
         <Route path="/admin/users" component={AdminUsers} />
         <Route path="/admin/profile" component={ProfileSettings} />

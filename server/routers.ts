@@ -11,6 +11,7 @@ import { mediaRouter } from "./routers/media";
 import { contentRouter } from "./routers/content";
 import { usersRouter } from "./routers/users";
 import { invitationsRouter } from "./routers/invitations";
+import { automationsRouter } from "./routers/automations";
 
 export const appRouter = router({
   system: systemRouter,
@@ -25,6 +26,7 @@ export const appRouter = router({
   content: contentRouter,
   users: usersRouter,
   invitations: invitationsRouter,
+  automations: automationsRouter,
 });
 
 export type AppRouter = typeof appRouter;

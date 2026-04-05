@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { startAutomationScheduler } from "../automations";
 import express from "express";
 import { createServer } from "http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -266,6 +267,9 @@ async function startServer() {
       resolve();
     });
   });
+
+  // Start email automation scheduler (runs every 15 min)
+  startAutomationScheduler();
 
   // Auto-run migrations in background after server is bound
   runMigrations()

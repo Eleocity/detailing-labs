@@ -398,3 +398,26 @@ export const emailUnsubscribes = mysqlTable("emailUnsubscribes", {
   source:       varchar("source", { length: 50 }).default("self"), // 'self' | 'admin'
 });
 export type EmailUnsubscribe = typeof emailUnsubscribes.$inferSelect;
+
+// ─── Email Automation Log ─────────────────────────────────────────────────────
+export const emailAutomationLog = mysqlTable("emailAutomationLog", {
+  id:             int("id").autoincrement().primaryKey(),
+  automationType: varchar("automationType", { length: 60 }).notNull(),
+  bookingId:      int("bookingId"),
+  customerId:     int("customerId"),
+  email:          varchar("email", { length: 320 }).notNull(),
+  status:         varchar("status", { length: 20 }).notNull().default("sent"),
+  sentAt:         timestamp("sentAt").defaultNow().notNull(),
+  error:          text("error"),
+});
+export type EmailAutomationLog = typeof emailAutomationLog.$inferSelect;
+
+// ─── Email Automation Settings ────────────────────────────────────────────────
+export const emailAutomationSettings = mysqlTable("emailAutomationSettings", {
+  id:        int("id").autoincrement().primaryKey(),
+  type:      varchar("type", { length: 60 }).notNull().unique(),
+  enabled:   boolean("enabled").notNull().default(true),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type EmailAutomationSettings = typeof emailAutomationSettings.$inferSelect;
+
