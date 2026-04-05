@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, asc } from "drizzle-orm";
 import { getDb } from "../db";
-import { siteContent, packages, addOns } from "../../drizzle/schema";
+import { siteContent, packages, addOns, emailUnsubscribes, customers } from "../../drizzle/schema";
 import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 
@@ -214,11 +214,39 @@ export const contentRouter = router({
   unsubscribeEmail: publicProcedure
     .input(z.object({ email: z.string().email() }))
     .mutation(async ({ input }) => {
-      const { suppressKlaviyoEmail } = await import("../klaviyo");
-      const ok = await suppressKlaviyoEmail(input.email);
-      if (!ok) {
-        console.warn("[Unsubscribe] Klaviyo suppression skipped — KLAVIYO_API_KEY not set");
-      }
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const normalised = input.email.trim().toLowerCase();
+
+      // 1. Add to global unsubscribes table (INSERT IGNORE duplicate)
+      await db
+        .insert(emailUnsubscribes)
+        .values({ email: normalised, source: "self" })
+        .onDuplicateKeyUpdate({ set: { unsubscribedAt: new Date() } });
+
+      // 2. Mark customer record if they exist
+      await db
+        .update(customers)
+        .set({ emailUnsubscribed: true, emailUnsubscribedAt: new Date() } as any)
+        .where(eq(customers.email, normalised));
+
+      console.log(`[Unsubscribe] ${normalised} unsubscribed`);
       return { success: true };
+    }),
+
+  // ── Public: Check if email is unsubscribed ──────────────────────────────────
+  isEmailUnsubscribed: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return { unsubscribed: false };
+      const normalised = input.email.trim().toLowerCase();
+      const rows = await db
+        .select({ id: emailUnsubscribes.id })
+        .from(emailUnsubscribes)
+        .where(eq(emailUnsubscribes.email, normalised))
+        .limit(1);
+      return { unsubscribed: rows.length > 0 };
     }),
 });

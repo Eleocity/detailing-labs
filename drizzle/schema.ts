@@ -73,6 +73,8 @@ export const customers = mysqlTable("customers", {
   lifetimeValue: decimal("lifetimeValue", { precision: 10, scale: 2 }).default("0.00"),
   lastServiceDate: timestamp("lastServiceDate"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+  emailUnsubscribed: boolean("emailUnsubscribed").default(false),
+  emailUnsubscribedAt: timestamp("emailUnsubscribedAt"),
   urableId: varchar("urableId", { length: 100 }),  // Urable customer ID for sync
   urableSyncedAt: timestamp("urableSyncedAt"),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -385,3 +387,14 @@ export const serviceAreas = mysqlTable("serviceAreas", {
   isActive: boolean("isActive").default(true),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+// ─── Email Unsubscribes ───────────────────────────────────────────────────────
+// Stores unsubscribed emails regardless of whether they are customers.
+// Checked before any marketing email is sent.
+export const emailUnsubscribes = mysqlTable("emailUnsubscribes", {
+  id:           int("id").autoincrement().primaryKey(),
+  email:        varchar("email", { length: 320 }).notNull().unique(),
+  unsubscribedAt: timestamp("unsubscribedAt").defaultNow().notNull(),
+  source:       varchar("source", { length: 50 }).default("self"), // 'self' | 'admin'
+});
+export type EmailUnsubscribe = typeof emailUnsubscribes.$inferSelect;

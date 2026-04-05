@@ -3,8 +3,6 @@ import { useSearch } from "wouter/use-browser-location";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Mail, CheckCircle2, AlertCircle, ChevronRight, ArrowLeft } from "lucide-react";
-import SiteHeader from "@/components/SiteHeader";
-import SiteFooter from "@/components/SiteFooter";
 import { trpc } from "@/lib/trpc";
 import SEO from "@/components/SEO";
 
@@ -127,8 +125,8 @@ export default function Unsubscribe() {
               <p className="text-center text-xs text-muted-foreground mt-6 leading-relaxed">
                 Changed your mind?{" "}
                 <Link href="/"><span className="text-primary hover:underline cursor-pointer">Return to the homepage.</span></Link>
-                <br />
-                Questions? Email us at{" "}
+                <br className="mt-1" />
+                Questions?{" "}
                 <a href="mailto:hello@detailinglabswi.com" className="text-primary hover:underline">
                   hello@detailinglabswi.com
                 </a>

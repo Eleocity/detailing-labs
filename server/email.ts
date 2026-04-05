@@ -12,6 +12,30 @@ interface EmailPayload {
   text?: string;
 }
 
+/** Check our local DB unsubscribes table before sending marketing email. */
+async function isUnsubscribed(email: string): Promise<boolean> {
+  try {
+    const { getDb } = await import("./db");
+    const { emailUnsubscribes } = await import("../drizzle/schema");
+    const { eq } = await import("drizzle-orm");
+    const db = await getDb();
+    if (!db) return false;
+    const rows = await db
+      .select({ id: emailUnsubscribes.id })
+      .from(emailUnsubscribes)
+      .where(eq(emailUnsubscribes.email, email.trim().toLowerCase()))
+      .limit(1);
+    return rows.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Send a transactional email — always delivered regardless of marketing opt-out.
+ * Use for: booking confirmations, receipts, password resets.
+ */
+
 export async function sendEmail({ to, subject, html, text }: EmailPayload): Promise<boolean> {
   const apiKey = process.env.SENDGRID_API_KEY;
   const from = process.env.EMAIL_FROM || "noreply@detailinglabswi.com";
@@ -612,4 +636,17 @@ export function contactFormEmail(params: {
       </table>`
     ),
   };
+}
+
+/**
+ * Send a marketing email — skipped if the recipient has unsubscribed.
+ * Use for: promotions, review requests, win-back campaigns.
+ */
+export async function sendMarketingEmail(payload: EmailPayload): Promise<boolean> {
+  const unsubscribed = await isUnsubscribed(payload.to);
+  if (unsubscribed) {
+    console.log(`[Email] Skipped marketing email to ${payload.to} — unsubscribed`);
+    return false;
+  }
+  return sendEmail(payload);
 }
