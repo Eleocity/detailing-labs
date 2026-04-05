@@ -247,7 +247,7 @@ async function startServer() {
   // ── SEO / utility redirects ───────────────────────────────────────────────
   // Google review shortlink — update the URL with your actual Google review link
   app.get("/review", (_req, res) => {
-    res.redirect(301, "https://search.google.com/local/writereview?placeid=YOUR_PLACE_ID");
+    res.redirect(301, "https://search.google.com/local/writereview?placeid=ChIJHXVewxNBBYgRmhM327HZMVc");
   });
 
   app.use(
