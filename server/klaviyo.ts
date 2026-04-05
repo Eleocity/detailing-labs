@@ -380,3 +380,39 @@ export async function trackQuoteSent(input: {
     },
   });
 }
+
+// ─── Unsubscribe / suppress ───────────────────────────────────────────────────
+
+/**
+ * Suppress (unsubscribe) an email address from all Klaviyo marketing.
+ * Uses the bulk suppression endpoint — email will no longer receive any
+ * Klaviyo flows or campaigns. Transactional emails are unaffected.
+ */
+export async function suppressKlaviyoEmail(email: string): Promise<boolean> {
+  if (!process.env.KLAVIYO_API_KEY) {
+    console.warn("[Klaviyo] suppressEmail: KLAVIYO_API_KEY not set");
+    return false;
+  }
+
+  const res = await klaviyoRequest("POST", "/profile-suppression-bulk-create-jobs/", {
+    data: {
+      type: "profile-suppression-bulk-create-job",
+      attributes: {
+        profiles: {
+          data: [
+            {
+              type: "profile",
+              attributes: { email },
+            },
+          ],
+        },
+      },
+    },
+  });
+
+  if (res !== null) {
+    console.log(`[Klaviyo] Email suppressed: ${email}`);
+    return true;
+  }
+  return false;
+}

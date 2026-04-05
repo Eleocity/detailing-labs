@@ -21,6 +21,7 @@ const About = lazy(() => import("./pages/About"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Contact = lazy(() => import("./pages/Contact"));
 const FAQ = lazy(() => import("./pages/FAQ"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 
 // Booking
 const Booking = lazy(() => import("./pages/Booking"));
@@ -89,6 +90,7 @@ function Router() {
         <Route path="/gallery" component={Gallery} />
         <Route path="/contact" component={Contact} />
         <Route path="/faq" component={FAQ} />
+        <Route path="/unsubscribe" component={Unsubscribe} />
 
         {/* Booking */}
         <Route path="/booking" component={Booking} />

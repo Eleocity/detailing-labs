@@ -209,4 +209,16 @@ export const contentRouter = router({
       if (!sent) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to send — please try again or call us directly." });
       return { success: true };
     }),
+
+  // ── Public: Email unsubscribe ──────────────────────────────────────────────
+  unsubscribeEmail: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input }) => {
+      const { suppressKlaviyoEmail } = await import("../klaviyo");
+      const ok = await suppressKlaviyoEmail(input.email);
+      if (!ok) {
+        console.warn("[Unsubscribe] Klaviyo suppression skipped — KLAVIYO_API_KEY not set");
+      }
+      return { success: true };
+    }),
 });
