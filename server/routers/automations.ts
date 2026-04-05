@@ -136,3 +136,76 @@ export const automationsRouter = router({
     };
   }),
 });
+
+// ─── Custom Automation CRUD Router ───────────────────────────────────────────
+
+export const customAutomationsRouter = router({
+
+  list: protectedProcedure.query(async ({ ctx }) => {
+    adminOnly(ctx.user.role);
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    const { emailCustomAutomations: tbl, emailAutomationLog: logTbl } = await import("../../drizzle/schema");
+    const rows = await db.select().from(tbl).orderBy(desc(tbl.createdAt));
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const counts = await db
+      .select({ id: logTbl.customAutomationId, count: sql<number>`count(*)` })
+      .from(logTbl)
+      .where(and(gte(logTbl.sentAt, since), sql`${logTbl.customAutomationId} IS NOT NULL`))
+      .groupBy(logTbl.customAutomationId);
+    const countMap: Record<number, number> = {};
+    for (const c of counts) if (c.id) countMap[c.id] = Number(c.count);
+    return rows.map(r => ({ ...r, sent30d: countMap[r.id] ?? 0 }));
+  }),
+
+  create: protectedProcedure
+    .input(z.object({
+      name:         z.string().min(1).max(200),
+      triggerType:  z.string(),
+      triggerValue: z.number().int().min(0),
+      triggerUnit:  z.enum(["hours", "days"]),
+      subject:      z.string().min(1).max(500),
+      body:         z.string().min(1),
+      enabled:      z.boolean().default(true),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      adminOnly(ctx.user.role);
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { emailCustomAutomations: tbl } = await import("../../drizzle/schema");
+      await db.insert(tbl).values(input as any);
+      return { success: true };
+    }),
+
+  update: protectedProcedure
+    .input(z.object({
+      id:           z.number().int(),
+      name:         z.string().min(1).max(200).optional(),
+      triggerType:  z.string().optional(),
+      triggerValue: z.number().int().min(0).optional(),
+      triggerUnit:  z.enum(["hours", "days"]).optional(),
+      subject:      z.string().min(1).max(500).optional(),
+      body:         z.string().min(1).optional(),
+      enabled:      z.boolean().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      adminOnly(ctx.user.role);
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { emailCustomAutomations: tbl } = await import("../../drizzle/schema");
+      const { id, ...data } = input;
+      await db.update(tbl).set(data as any).where(eq(tbl.id, id));
+      return { success: true };
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number().int() }))
+    .mutation(async ({ ctx, input }) => {
+      adminOnly(ctx.user.role);
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { emailCustomAutomations: tbl } = await import("../../drizzle/schema");
+      await db.delete(tbl).where(eq(tbl.id, input.id));
+      return { success: true };
+    }),
+});

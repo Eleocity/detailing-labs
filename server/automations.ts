@@ -18,7 +18,7 @@ import { and, eq, gte, lte, lt, sql, notInArray, inArray, or } from "drizzle-orm
 import { getDb } from "./db";
 import {
   bookings, customers,
-  emailAutomationLog, emailAutomationSettings,
+  emailAutomationLog, emailAutomationSettings, emailCustomAutomations,
 } from "../drizzle/schema";
 import { sendMarketingEmail } from "./email";
 import {
@@ -352,6 +352,171 @@ async function runCoatingAnniversary(db: any): Promise<number> {
   return sent;
 }
 
+
+// ─── Automation 6: Custom automations ────────────────────────────────────────
+
+function applyMergeTags(template: string, data: Record<string, string>): string {
+  let out = template;
+  for (const [key, value] of Object.entries(data)) {
+    out = out.replace(new RegExp(`{{\s*${key}\s*}}`, "gi"), value);
+  }
+  return out;
+}
+
+async function runCustomAutomations(db: any): Promise<number> {
+  const now = new Date();
+
+  const customs = await db
+    .select()
+    .from(emailCustomAutomations)
+    .where(eq(emailCustomAutomations.enabled, true));
+
+  if (!customs.length) return 0;
+
+  let sent = 0;
+
+  for (const auto of customs) {
+    const ms = auto.triggerUnit === "days"
+      ? auto.triggerValue * 24 * 60 * 60 * 1000
+      : auto.triggerValue * 60 * 60 * 1000;
+
+    // 30-minute window either side
+    const windowMs = 15 * 60 * 1000;
+
+    let candidates: any[] = [];
+
+    if (auto.triggerType === "days_after_booking_created") {
+      const low  = new Date(now.getTime() - ms - windowMs);
+      const high = new Date(now.getTime() - ms + windowMs);
+      candidates = await db.select().from(bookings).where(
+        and(
+          gte(bookings.createdAt, low),
+          lte(bookings.createdAt, high),
+          sql`${bookings.customerEmail} IS NOT NULL`
+        )
+      );
+    } else if (auto.triggerType === "days_before_appointment") {
+      const low  = new Date(now.getTime() + ms - windowMs);
+      const high = new Date(now.getTime() + ms + windowMs);
+      candidates = await db.select().from(bookings).where(
+        and(
+          gte(bookings.appointmentDate, low),
+          lte(bookings.appointmentDate, high),
+          inArray(bookings.status, ["new","confirmed","assigned"]),
+          sql`${bookings.customerEmail} IS NOT NULL`
+        )
+      );
+    } else if (auto.triggerType === "days_after_completed") {
+      const low  = new Date(now.getTime() - ms - windowMs);
+      const high = new Date(now.getTime() - ms + windowMs);
+      candidates = await db.select().from(bookings).where(
+        and(
+          eq(bookings.status, "completed"),
+          gte(bookings.appointmentDate, low),
+          lte(bookings.appointmentDate, high),
+          sql`${bookings.customerEmail} IS NOT NULL`
+        )
+      );
+    } else if (auto.triggerType === "days_since_last_booking") {
+      const low  = new Date(now.getTime() - ms - windowMs);
+      const high = new Date(now.getTime() - ms + windowMs);
+      candidates = await db.select().from(bookings).where(
+        and(
+          gte(bookings.appointmentDate, low),
+          lte(bookings.appointmentDate, high),
+          eq(bookings.status, "completed"),
+          sql`${bookings.customerEmail} IS NOT NULL`
+        )
+      );
+    }
+
+    for (const b of candidates) {
+      if (!b.customerEmail) continue;
+
+      // Check dedup using customAutomationId
+      const existing = await db
+        .select({ id: emailAutomationLog.id })
+        .from(emailAutomationLog)
+        .where(
+          and(
+            eq(emailAutomationLog.automationType, "custom"),
+            eq(emailAutomationLog.customAutomationId, auto.id),
+            eq(emailAutomationLog.bookingId, b.id)
+          )
+        )
+        .limit(1);
+      if (existing.length > 0) continue;
+
+      const vehicle = [b.vehicleYear, b.vehicleMake, b.vehicleModel].filter(Boolean).join(" ") || "your vehicle";
+      const dateStr = b.appointmentDate
+        ? new Date(b.appointmentDate).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
+        : "";
+
+      const mergeData: Record<string, string> = {
+        firstName:     b.customerFirstName ?? "",
+        lastName:      b.customerLastName  ?? "",
+        fullName:      `${b.customerFirstName ?? ""} ${b.customerLastName ?? ""}`.trim(),
+        bookingNumber: b.bookingNumber     ?? "",
+        packageName:   b.packageName       ?? "Mobile Detailing",
+        appointmentDate: dateStr,
+        vehicle,
+        serviceAddress: b.serviceAddress   ?? "",
+        totalAmount:   b.totalAmount ? `$${Number(b.totalAmount).toFixed(2)}` : "",
+        bookingUrl:    `https://detailinglabswi.com/booking/confirmation/${b.bookingNumber}`,
+        unsubscribeUrl: `https://detailinglabswi.com/unsubscribe?email=${encodeURIComponent(b.customerEmail)}`,
+      };
+
+      const subject = applyMergeTags(auto.subject, mergeData);
+      const htmlBody = applyMergeTags(auto.body, mergeData);
+
+      // Wrap in branded shell
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#09090f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#09090f;padding:32px 16px">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
+        <tr><td style="background:#0e0e1c;border-radius:16px 16px 0 0;border:1px solid #1c1c30;border-bottom:none;padding:24px 40px;text-align:center">
+          <p style="margin:0;color:#fff;font-size:20px;font-weight:800">Detailing Labs</p>
+          <p style="margin:2px 0 0;color:#6b6b9a;font-size:12px">Professional Mobile Detailing · SE Wisconsin</p>
+        </td></tr>
+        <tr><td style="height:3px;background:linear-gradient(90deg,#4f1d96,#7c3aed,#a78bfa);border-left:1px solid #1c1c30;border-right:1px solid #1c1c30"></td></tr>
+        <tr><td style="background:#0e0e1c;padding:40px;border:1px solid #1c1c30;border-top:none;border-bottom:none;color:#c8c8e8;font-size:14px;line-height:1.7">
+          ${htmlBody.split("\n").join("<br>")}
+        </td></tr>
+        <tr><td style="background:#070710;border-radius:0 0 16px 16px;border:1px solid #1c1c30;border-top:1px solid #181828;padding:20px 40px;text-align:center">
+          <p style="margin:0 0 6px;color:#3a3a5a;font-size:12px">© ${new Date().getFullYear()} Detailing Labs · Sturtevant, WI</p>
+          <p style="margin:0;color:#2a2a40;font-size:11px">
+            <a href="https://detailinglabswi.com/unsubscribe?email=${encodeURIComponent('{{EMAIL}}')}" style="color:#3a3a5a;text-decoration:underline">Unsubscribe</a>
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`.replace("{{EMAIL}}", b.customerEmail);
+
+      const ok = await sendMarketingEmail({ to: b.customerEmail, subject, html, text: subject });
+
+      try {
+        await db.insert(emailAutomationLog).values({
+          automationType:     "custom",
+          customAutomationId: auto.id,
+          bookingId:          b.id,
+          customerId:         b.customerId ?? null,
+          email:              b.customerEmail,
+          status:             ok ? "sent" : "skipped",
+        });
+      } catch {}
+
+      if (ok) sent++;
+    }
+  }
+
+  return sent;
+}
+
 // ─── Main runner ──────────────────────────────────────────────────────────────
 
 let _running = false;
@@ -382,6 +547,9 @@ export async function runAutomations(): Promise<void> {
     if (enabled.has("coating_anniversary")) {
       results.coating_anniversary = await runCoatingAnniversary(db);
     }
+
+    // Custom automations always run if any exist
+    results.custom = await runCustomAutomations(db);
 
     const totalSent = Object.values(results).reduce((a, b) => a + b, 0);
     if (totalSent > 0) {

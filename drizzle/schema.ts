@@ -401,10 +401,11 @@ export type EmailUnsubscribe = typeof emailUnsubscribes.$inferSelect;
 
 // ─── Email Automation Log ─────────────────────────────────────────────────────
 export const emailAutomationLog = mysqlTable("emailAutomationLog", {
-  id:             int("id").autoincrement().primaryKey(),
-  automationType: varchar("automationType", { length: 60 }).notNull(),
-  bookingId:      int("bookingId"),
-  customerId:     int("customerId"),
+  id:                 int("id").autoincrement().primaryKey(),
+  automationType:     varchar("automationType", { length: 60 }).notNull(),
+  customAutomationId: int("customAutomationId"),
+  bookingId:          int("bookingId"),
+  customerId:         int("customerId"),
   email:          varchar("email", { length: 320 }).notNull(),
   status:         varchar("status", { length: 20 }).notNull().default("sent"),
   sentAt:         timestamp("sentAt").defaultNow().notNull(),
@@ -420,4 +421,21 @@ export const emailAutomationSettings = mysqlTable("emailAutomationSettings", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 export type EmailAutomationSettings = typeof emailAutomationSettings.$inferSelect;
+
+// ─── Custom Email Automations ─────────────────────────────────────────────────
+export const emailCustomAutomations = mysqlTable("emailCustomAutomations", {
+  id:           int("id").autoincrement().primaryKey(),
+  name:         varchar("name", { length: 200 }).notNull(),
+  // Trigger types: days_after_booking_created | days_before_appointment
+  //                days_after_completed       | days_since_last_booking
+  triggerType:  varchar("triggerType",  { length: 60  }).notNull(),
+  triggerValue: int("triggerValue").notNull().default(0),
+  triggerUnit:  varchar("triggerUnit",  { length: 20  }).notNull().default("hours"),
+  subject:      varchar("subject",      { length: 500 }).notNull(),
+  body:         text("body").notNull(),
+  enabled:      boolean("enabled").notNull().default(true),
+  createdAt:    timestamp("createdAt").defaultNow().notNull(),
+  updatedAt:    timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type EmailCustomAutomation = typeof emailCustomAutomations.$inferSelect;
 
