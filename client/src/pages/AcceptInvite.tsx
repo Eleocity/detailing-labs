@@ -105,7 +105,7 @@ export default function AcceptInvite() {
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center">
-          <img src={LOGO_URL} alt="Detailing Labs" className="h-16 mx-auto" />
+          <img src={LOGO_URL} alt="Detailing Labs" width="120" height="64" className="h-16 mx-auto" />
         </div>
 
         <Card className="border-border/50">

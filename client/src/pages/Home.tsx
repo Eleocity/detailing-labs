@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { trpc } from "@/lib/trpc";
-import SEO, { localBusinessSchema, breadcrumbSchema } from "@/components/SEO";
+import SEO, { localBusinessSchema, breadcrumbSchema, faqSchema, reviewSchema } from "@/components/SEO";
 
 function useContent(section: string) {
   const { data } = trpc.content.getSiteContent.useQuery({ section });
@@ -260,9 +260,14 @@ export default function Home() {
       <SiteHeader />
       <SEO
         title="Mobile Auto Detailing — Racine County, WI | Detailing Labs"
-        description="Detailing Labs is a professional mobile detailing service in Southeast Wisconsin. Fully self-contained — we bring our own water and power. Serving Racine, Kenosha, and Milwaukee County. Book online."
+        description="Professional mobile detailing in SE Wisconsin. We bring our own water & power. Serving Racine, Kenosha & Milwaukee County. Book online in 2 minutes."
         canonical="/"
-        jsonLd={[localBusinessSchema, breadcrumbSchema([{ name: "Home", url: "/" }])]}
+        jsonLd={[
+          localBusinessSchema,
+          reviewSchema(testimonials.map(t => ({ author: t.name, rating: t.rating, text: t.text }))),
+          faqSchema(faqs.map(f => ({ q: f.q, a: f.a }))),
+          breadcrumbSchema([{ name: "Home", url: "/" }]),
+        ]}
       />
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}

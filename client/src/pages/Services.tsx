@@ -163,7 +163,7 @@ export default function Services() {
       <SiteHeader />
       <SEO
         title="Auto Detailing Services — Racine County, WI"
-        description="Professional mobile detailing services in Southeast Wisconsin. Interior, exterior, and full-service packages serving Racine County, Kenosha, and surrounding areas."
+        description="Professional mobile detailing services in SE Wisconsin. Interior, exterior & full-service packages. Serving Racine County, Kenosha & surrounding areas."
         canonical="/services"
         jsonLd={[serviceSchema("Mobile Auto Detailing", "Professional interior and exterior auto detailing services delivered to your location in Racine County, WI."), breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Services", url: "/services" }])]}
       />

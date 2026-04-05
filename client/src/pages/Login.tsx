@@ -63,7 +63,7 @@ export default function Login() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/">
-            <img src={LOGO_URL} alt="Detailing Labs" className="h-20 object-contain cursor-pointer" />
+            <img src={LOGO_URL} alt="Detailing Labs" width="160" height="80" className="h-20 object-contain cursor-pointer" />
           </Link>
         </div>
 

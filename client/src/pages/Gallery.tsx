@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { X, ZoomIn } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
-import SEO, { breadcrumbSchema } from "@/components/SEO";
+import SEO, { breadcrumbSchema, localBusinessSchema } from "@/components/SEO";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -41,7 +41,7 @@ export default function Gallery() {
         description="Real before and after photos from Detailing Labs mobile detailing jobs in Southeast Wisconsin. Interior details, exterior decon, and ceramic coatings."
 
         canonical="/gallery"
-        jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Gallery", url: "/gallery" }])}
+        jsonLd={[localBusinessSchema, breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Gallery", url: "/gallery" }])]}
       />
 
       {/* Hero */}

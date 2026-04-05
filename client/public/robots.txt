@@ -8,6 +8,9 @@ Disallow: /portal/
 Disallow: /accept-invite
 Disallow: /reset-password
 Disallow: /forgot-password
+Disallow: /unsubscribe
+
+Crawl-delay: 1
 
 # Sitemap
 Sitemap: https://detailinglabswi.com/sitemap.xml

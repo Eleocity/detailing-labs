@@ -244,6 +244,12 @@ async function startServer() {
 
   registerOAuthRoutes(app);
 
+  // ── SEO / utility redirects ───────────────────────────────────────────────
+  // Google review shortlink — update the URL with your actual Google review link
+  app.get("/review", (_req, res) => {
+    res.redirect(301, "https://search.google.com/local/writereview?placeid=YOUR_PLACE_ID");
+  });
+
   app.use(
     "/api/trpc",
     createExpressMiddleware({ router: appRouter, createContext })

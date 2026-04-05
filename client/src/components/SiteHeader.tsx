@@ -53,7 +53,9 @@ export default function SiteHeader() {
             <div className="flex items-center cursor-pointer">
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png"
-                alt="Detailing Labs"
+                alt="Detailing Labs — Professional Mobile Auto Detailing"
+                width="200"
+                height="80"
                 className="h-20 sm:h-24 lg:h-28 w-auto object-contain"
               />
             </div>

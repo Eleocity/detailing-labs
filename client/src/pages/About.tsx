@@ -4,7 +4,7 @@ import { ChevronRight, Shield, MapPin, Sparkles, CheckCircle2, Zap, Star } from 
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
-import SEO, { breadcrumbSchema } from "@/components/SEO";
+import SEO, { breadcrumbSchema, localBusinessSchema } from "@/components/SEO";
 
 const fadeUp = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55 } } };
 const stagger = { visible: { transition: { staggerChildren: 0.10 } } };
@@ -25,7 +25,10 @@ export default function About() {
         title="About Detailing Labs — Mobile Detailing in Southeast Wisconsin"
         description="Detailing Labs is a mobile detailing company based in Sturtevant, WI serving Racine County and surrounding areas. Learn about who we are and how we work."
         canonical="/about"
-        jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "About", url: "/about" }])}
+        jsonLd={[
+          localBusinessSchema,
+          breadcrumbSchema([{ name: "Home", url: "/" }, { name: "About", url: "/about" }]),
+        ]}
       />
 
       {/* Hero */}

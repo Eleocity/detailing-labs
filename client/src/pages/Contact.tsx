@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { trpc } from "@/lib/trpc";
-import SEO, { breadcrumbSchema } from "@/components/SEO";
+import SEO, { breadcrumbSchema, localBusinessSchema } from "@/components/SEO";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -53,9 +53,12 @@ export default function Contact() {
       <SiteHeader />
       <SEO
         title="Contact Detailing Labs — Racine County, WI"
-        description="Contact Detailing Labs — professional mobile detailing in Southeast Wisconsin. Call, text, or message us. We serve Racine County, Kenosha, and surrounding areas."
+        description="Contact Detailing Labs — mobile detailing in SE Wisconsin. Call, text, or message us. Serving Racine County, Kenosha, and surrounding areas."
         canonical="/contact"
-        jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Contact", url: "/contact" }])}
+        jsonLd={[
+          localBusinessSchema,
+          breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Contact", url: "/contact" }]),
+        ]}
       />
 
       {/* Hero */}

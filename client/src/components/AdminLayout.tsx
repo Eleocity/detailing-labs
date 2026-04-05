@@ -60,6 +60,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <img
             src="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png"
             alt="Detailing Labs"
+            width="160"
+            height="80"
             className="h-20 w-auto object-contain"
           />
           <h1 className="text-2xl font-display font-bold mb-1">Admin Access Required</h1>

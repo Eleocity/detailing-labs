@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
-import SEO, { breadcrumbSchema } from "@/components/SEO";
+import SEO, { breadcrumbSchema, serviceSchema, localBusinessSchema } from "@/components/SEO";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 
@@ -175,9 +175,13 @@ export default function Pricing() {
       <SiteHeader />
       <SEO
         title="Detailing Packages & Pricing | Racine County, WI"
-        description="Transparent pricing on all our mobile detailing packages in Southeast Wisconsin. Interior, exterior, and full-service from $129. Ceramic coating quoted on request."
+        description="Transparent mobile detailing pricing in SE Wisconsin. Interior & exterior packages from $129. Ceramic coating custom-quoted. No hidden fees."
         canonical="/pricing"
-        jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Pricing", url: "/pricing" }])}
+        jsonLd={[
+          localBusinessSchema,
+          serviceSchema("Mobile Auto Detailing Packages", "Transparent pricing on interior, exterior, and full-service mobile detailing packages in Southeast Wisconsin. From $129.", "129"),
+          breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Pricing", url: "/pricing" }]),
+        ]}
       />
 
       {/* Hero */}
