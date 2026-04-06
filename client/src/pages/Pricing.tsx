@@ -386,7 +386,7 @@ export default function Pricing() {
                           <span className={cn("text-sm font-bold leading-tight", vehicleSize === opt.id ? "text-primary" : "text-muted-foreground")}>
                             {opt.label}
                           </span>
-                          <span className={cn("text-[11px] leading-tight", vehicleSize === opt.id ? "text-primary/70" : "text-muted-foreground/60")}>
+                          <span className={cn("text-xs leading-tight", vehicleSize === opt.id ? "text-primary/70" : "text-muted-foreground/60")}>
                             {opt.sub}
                           </span>
                         </button>
@@ -506,7 +506,7 @@ export default function Pricing() {
                           </div>
                           <div className="text-sm font-medium text-foreground mb-0.5">{addon.name}</div>
                           {(addon as any).description && (
-                            <div className="text-[11px] text-muted-foreground leading-tight">{(addon as any).description}</div>
+                            <div className="text-xs text-muted-foreground leading-tight">{(addon as any).description}</div>
                           )}
                         </div>
                       ))}

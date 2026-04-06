@@ -212,15 +212,25 @@ async function startServer() {
     }
   });
 
-  // ── Force HTTPS in production ──
+  // ── Force HTTPS + www → non-www in production ──────────────────────────
   // Railway terminates TLS at the edge and sets x-forwarded-proto
   app.use((req, res, next) => {
-    if (
-      process.env.NODE_ENV === "production" &&
-      req.headers["x-forwarded-proto"] === "http"
-    ) {
-      return res.redirect(301, `https://${req.headers.host}${req.url}`);
+    if (process.env.NODE_ENV !== "production") return next();
+
+    const host = String(req.headers.host ?? "");
+    const proto = req.headers["x-forwarded-proto"];
+
+    // www → non-www redirect (canonical domain)
+    if (host.startsWith("www.")) {
+      const canonicalHost = host.replace(/^www\./, "");
+      return res.redirect(301, `https://${canonicalHost}${req.url}`);
     }
+
+    // HTTP → HTTPS redirect
+    if (proto === "http") {
+      return res.redirect(301, `https://${host}${req.url}`);
+    }
+
     next();
   });
 

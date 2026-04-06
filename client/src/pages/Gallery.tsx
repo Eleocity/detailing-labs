@@ -166,7 +166,25 @@ export default function Gallery() {
         </div>
       )}
 
-      <SiteFooter />
+      {/* SEO content section */}
+      <section className="py-12 bg-[oklch(0.06_0.004_280)] border-t border-border">
+        <div className="container max-w-3xl mx-auto">
+          <h2 className="text-2xl font-display font-bold mb-4 text-center">Real Results from Real Jobs</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed mb-4 text-center">
+            Every photo in this gallery is from an actual Detailing Labs appointment in Southeast Wisconsin.
+            We photograph before and after every single job — not to show off, but because transparency
+            matters. You should be able to see exactly what we do.
+          </p>
+          <p className="text-muted-foreground text-sm leading-relaxed text-center">
+            Our work spans interior deep refreshes, exterior decontamination and protection treatments,
+            full showroom resets, and professional ceramic coating applications across Racine County,
+            Kenosha County, and the greater Milwaukee metro. If you'd like to see your vehicle here,
+            book your appointment online.
+          </p>
+        </div>
+      </section>
+
+            <SiteFooter />
     </div>
   );
 }

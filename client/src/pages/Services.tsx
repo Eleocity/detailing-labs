@@ -4,7 +4,7 @@ import { ChevronRight, CheckCircle2, Car, Droplets, Sparkles, Zap, Shield, Wrenc
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
-import SEO, { breadcrumbSchema, serviceSchema } from "@/components/SEO";
+import SEO, { breadcrumbSchema, serviceSchema, localBusinessSchema } from "@/components/SEO";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -165,7 +165,13 @@ export default function Services() {
         title="Auto Detailing Services — Racine County, WI"
         description="Professional mobile detailing services in SE Wisconsin. Interior, exterior & full-service packages. Serving Racine County, Kenosha & surrounding areas."
         canonical="/services"
-        jsonLd={[serviceSchema("Mobile Auto Detailing", "Professional interior and exterior auto detailing services delivered to your location in Racine County, WI."), breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Services", url: "/services" }])]}
+        jsonLd={[
+          localBusinessSchema,
+          serviceSchema("Mobile Auto Detailing", "Professional interior and exterior auto detailing services delivered to your location in Racine County, WI.", "129"),
+          serviceSchema("Ceramic Coating", "Professional ceramic coating application for long-term paint protection. Custom quoted per vehicle."),
+          serviceSchema("Paint Correction", "Remove swirl marks, scratches, and oxidation from your vehicle's paint. Custom quoted per condition."),
+          breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Services", url: "/services" }]),
+        ]}
       />
 
       {/* Hero */}

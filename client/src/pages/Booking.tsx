@@ -129,7 +129,7 @@ function LocationMap({address,onGeocode}:{address:string;onGeocode?:(p:{street:s
     if (w.__gmaps==="loading"){const t=setInterval(()=>{if(w.__gmaps==="ready"){setReady(true);clearInterval(t);}},150);return()=>clearInterval(t);}
     w.__gmaps="loading";
     const s=document.createElement("script");
-    s.src=`https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&v=weekly`;
+    s.src=`https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&v=weekly&loading=async`;
     s.async=true;
     s.onload=()=>{w.__gmaps="ready";setReady(true);};
     s.onerror=()=>{w.__gmaps="error";setError(true);};

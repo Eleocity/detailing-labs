@@ -194,6 +194,24 @@ export default function Contact() {
         </div>
       </section>
 
+      {/* Service area + quick FAQ for SEO content */}
+      <section className="py-12 bg-[oklch(0.06_0.004_280)] border-t border-border">
+        <div className="container max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl font-display font-bold mb-4">Serving Southeast Wisconsin</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+            Detailing Labs is based in Sturtevant, WI and serves all of Racine County, Kenosha County,
+            and the greater Milwaukee metro area. We operate a fully self-contained mobile detailing rig —
+            our own water tank, our own generator — so we can work at any driveway, parking lot, or facility.
+            No hookups required from you.
+          </p>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            We serve clients in Racine, Kenosha, Mount Pleasant, Caledonia, Oak Creek, Sturtevant,
+            Wind Point, Burlington, and surrounding communities. If you're unsure whether we cover your area,
+            enter your address when booking and we'll confirm before your appointment.
+          </p>
+        </div>
+      </section>
+
       <SiteFooter />
     </div>
   );
