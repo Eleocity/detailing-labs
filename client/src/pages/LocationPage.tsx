@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import {
   ChevronRight, Star, MapPin, CheckCircle2, Phone,
-  Sparkles, Shield, ArrowRight,
+  Sparkles, Shield, ArrowRight, Wrench, Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
@@ -211,8 +211,10 @@ function LocationPage({ location }: { location: LocationData }) {
                   "Exterior Decon & Shield — from $129",
                   "Interior Deep Refresh — from $129",
                   "Full Showroom Reset — from $229",
+                  "The Lab Grade Detail — from $449",
                   "Ceramic Coating — custom quoted",
-                  "Specialty add-ons available",
+                  "Paint Correction — custom quoted",
+                  "Fleet Services — custom programs",
                 ].map(item => (
                   <div key={item} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                     <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
@@ -275,7 +277,7 @@ function LocationPage({ location }: { location: LocationData }) {
             <p className="text-primary text-xs font-semibold tracking-widest uppercase mb-2">Services in {location.city}</p>
             <h2 className="text-2xl sm:text-3xl font-display font-bold">What We Offer</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
             <Link href="/pricing?tab=detailing">
               <div className="group flex flex-col gap-4 p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/60 hover:bg-primary/4 transition-all cursor-pointer h-full">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -283,13 +285,14 @@ function LocationPage({ location }: { location: LocationData }) {
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-base mb-1">Detailing Packages</h3>
-                  <p className="text-muted-foreground text-sm">Interior, exterior, and full-service from $129.</p>
+                  <p className="text-muted-foreground text-sm">Interior, exterior, and full-service from $129. Transparent pricing by vehicle size.</p>
                 </div>
                 <div className="flex items-center gap-1 text-xs font-semibold text-primary mt-auto">
                   View pricing <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </div>
             </Link>
+
             <Link href="/pricing?tab=ceramic">
               <div className="group flex flex-col gap-4 p-6 rounded-2xl border-2 border-border bg-card hover:border-amber-500/50 hover:bg-amber-500/3 transition-all cursor-pointer h-full">
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
@@ -297,9 +300,39 @@ function LocationPage({ location }: { location: LocationData }) {
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-base mb-1">Ceramic Coating</h3>
-                  <p className="text-muted-foreground text-sm">Custom-quoted to your vehicle. Long-term protection.</p>
+                  <p className="text-muted-foreground text-sm">Long-term paint protection for {location.city} vehicles. Custom-quoted based on size and condition.</p>
                 </div>
                 <div className="flex items-center gap-1 text-xs font-semibold text-amber-500 mt-auto">
+                  Get a quote <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/pricing?tab=paint">
+              <div className="group flex flex-col gap-4 p-6 rounded-2xl border-2 border-border bg-card hover:border-rose-500/50 hover:bg-rose-500/3 transition-all cursor-pointer h-full">
+                <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center group-hover:bg-rose-500/20 transition-colors">
+                  <Wrench className="w-5 h-5 text-rose-400" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-base mb-1">Paint Correction</h3>
+                  <p className="text-muted-foreground text-sm">Remove swirl marks, scratches, and oxidation. Quoted based on your paint's condition.</p>
+                </div>
+                <div className="flex items-center gap-1 text-xs font-semibold text-rose-400 mt-auto">
+                  Get a quote <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/pricing?tab=fleet">
+              <div className="group flex flex-col gap-4 p-6 rounded-2xl border-2 border-border bg-card hover:border-sky-500/50 hover:bg-sky-500/3 transition-all cursor-pointer h-full">
+                <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center group-hover:bg-sky-500/20 transition-colors">
+                  <Zap className="w-5 h-5 text-sky-500" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-base mb-1">Fleet Services</h3>
+                  <p className="text-muted-foreground text-sm">Custom programs for businesses, dealerships, and property managers in {location.city}.</p>
+                </div>
+                <div className="flex items-center gap-1 text-xs font-semibold text-sky-500 mt-auto">
                   Get a quote <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </div>
