@@ -1,37 +1,73 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { X, ZoomIn } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ZoomIn, Camera } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import SEO, { breadcrumbSchema, localBusinessSchema } from "@/components/SEO";
+import { trpc } from "@/lib/trpc";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.55 } },
+  hidden:   { opacity: 0, y: 24 },
+  visible:  { opacity: 1, y: 0, transition: { duration: 0.55 } },
 };
 
-// Placeholder gallery items — replace with real S3 URLs
-const galleryItems = [
-  { id: 1, label: "After", category: "Exterior", caption: "BMW M4 — Full Detail", color: "from-purple-900/60 to-black/80" },
-  { id: 2, label: "Before", category: "Exterior", caption: "Range Rover — Before Detail", color: "from-gray-800/60 to-black/80" },
-  { id: 3, label: "After", category: "Interior", caption: "Porsche Cayenne — Interior Detail", color: "from-purple-800/60 to-black/80" },
-  { id: 4, label: "After", category: "Ceramic", caption: "Tesla Model S — Ceramic Coating", color: "from-indigo-900/60 to-black/80" },
-  { id: 5, label: "Before", category: "Interior", caption: "Ford F-150 — Before Interior", color: "from-gray-700/60 to-black/80" },
-  { id: 6, label: "After", category: "Interior", caption: "Ford F-150 — After Interior", color: "from-purple-900/60 to-black/80" },
-  { id: 7, label: "After", category: "Exterior", caption: "Mercedes C63 — Paint Decon", color: "from-violet-900/60 to-black/80" },
-  { id: 8, label: "After", category: "Ceramic", caption: "Audi RS7 — Ceramic Coating", color: "from-purple-800/60 to-black/80" },
-  { id: 9, label: "After", category: "Exterior", caption: "Corvette C8 — Full Detail", color: "from-indigo-800/60 to-black/80" },
+// Placeholder gradient items shown while real photos are loading or not yet uploaded
+const PLACEHOLDER_ITEMS = [
+  { id: -1,  label: "after",  caption: "BMW M4 — Full Detail",          category: "Exterior", color: "from-purple-900/60 to-black/80" },
+  { id: -2,  label: "before", caption: "Range Rover — Before Detail",   category: "Exterior", color: "from-gray-800/60 to-black/80"   },
+  { id: -3,  label: "after",  caption: "Porsche Cayenne — Interior",    category: "Interior", color: "from-purple-800/60 to-black/80" },
+  { id: -4,  label: "after",  caption: "Tesla Model S — Ceramic",       category: "Ceramic",  color: "from-indigo-900/60 to-black/80" },
+  { id: -5,  label: "before", caption: "Ford F-150 — Before Interior",  category: "Interior", color: "from-gray-700/60 to-black/80"   },
+  { id: -6,  label: "after",  caption: "Ford F-150 — After Interior",   category: "Interior", color: "from-purple-900/60 to-black/80" },
+  { id: -7,  label: "after",  caption: "Mercedes C63 — Paint Decon",    category: "Exterior", color: "from-violet-900/60 to-black/80" },
+  { id: -8,  label: "after",  caption: "Audi RS7 — Ceramic Coating",    category: "Ceramic",  color: "from-purple-800/60 to-black/80" },
+  { id: -9,  label: "after",  caption: "Corvette C8 — Full Detail",     category: "Exterior", color: "from-indigo-800/60 to-black/80" },
 ];
 
-const categories = ["All", "Exterior", "Interior", "Ceramic"];
+function inferCategory(caption: string | null): string {
+  const c = (caption ?? "").toLowerCase();
+  if (c.includes("interior") || c.includes("cabin") || c.includes("seat")) return "Interior";
+  if (c.includes("ceramic") || c.includes("coating")) return "Ceramic";
+  if (c.includes("paint") || c.includes("correction")) return "Paint";
+  return "Exterior";
+}
+
+const CATEGORIES = ["All", "Exterior", "Interior", "Ceramic", "Paint"];
 
 export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selectedId, setSelectedId]         = useState<number | null>(null);
+
+  const { data: dbPhotos, isLoading } = trpc.media.listPublicGallery.useQuery();
+
+  // Build display items — real photos if available, otherwise placeholders
+  const realItems = (dbPhotos ?? []).map(p => ({
+    id:       p.id,
+    url:      p.url ?? "",
+    label:    p.label ?? "after",
+    caption:  p.caption ?? "",
+    category: inferCategory(p.caption),
+    isReal:   true,
+  }));
+
+  const displayItems = realItems.length > 0
+    ? realItems
+    : PLACEHOLDER_ITEMS.map(p => ({ ...p, url: "", isReal: false }));
 
   const filtered = activeCategory === "All"
-    ? galleryItems
-    : galleryItems.filter((g) => g.category === activeCategory);
+    ? displayItems
+    : displayItems.filter(g => g.category === activeCategory);
+
+  const selectedItem = selectedId !== null
+    ? displayItems.find(i => i.id === selectedId)
+    : null;
+
+  const labelColor: Record<string, string> = {
+    before:    "bg-black/60 text-white/80 border border-white/20",
+    after:     "bg-primary/80 text-white",
+    completed: "bg-green-600/80 text-white",
+    progress:  "bg-yellow-600/80 text-white",
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -39,7 +75,6 @@ export default function Gallery() {
       <SEO
         title="Before & After Gallery | Detailing Labs — Racine County, WI"
         description="Real before and after photos from Detailing Labs mobile detailing jobs in Southeast Wisconsin. Interior details, exterior decon, and ceramic coatings."
-
         canonical="/gallery"
         jsonLd={[localBusinessSchema, breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Gallery", url: "/gallery" }])]}
       />
@@ -55,16 +90,16 @@ export default function Gallery() {
               Photo Gallery
             </motion.h1>
             <motion.p variants={fadeUp} className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Real results from real vehicles. Browse our before & after transformations and completed work.
+              Real results from real vehicles. Browse our before & after transformations.
             </motion.p>
           </motion.div>
         </div>
       </section>
 
-      {/* Filter */}
+      {/* Category filter */}
       <section className="py-8 border-b border-border">
         <div className="container flex items-center justify-center gap-2 flex-wrap">
-          {categories.map((cat) => (
+          {CATEGORIES.map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
@@ -83,108 +118,156 @@ export default function Gallery() {
       {/* Grid */}
       <section className="py-16">
         <div className="container">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((item, i) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.06, duration: 0.4 }}
-                className="group relative aspect-[4/3] rounded-xl overflow-hidden border border-border cursor-pointer"
-                onClick={() => setSelected(item.id)}
-              >
-                {/* Placeholder gradient background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${item.color}`} />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-2xl sm:text-4xl font-display font-bold text-white/20 mb-2">{item.category}</div>
-                    <div className="text-white/40 text-sm">Photo Placeholder</div>
-                  </div>
-                </div>
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="aspect-[4/3] rounded-xl border border-border bg-muted/20 animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <AnimatePresence mode="popLayout">
+                {filtered.map((item, i) => (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: i * 0.04, duration: 0.35 }}
+                    className="group relative aspect-[4/3] rounded-xl overflow-hidden border border-border cursor-pointer"
+                    onClick={() => setSelectedId(item.id)}
+                  >
+                    {item.isReal && item.url ? (
+                      <img
+                        src={item.url}
+                        alt={item.caption || `${item.label} detail photo`}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                        width="600"
+                        height="450"
+                      />
+                    ) : (
+                      <div className={`absolute inset-0 bg-gradient-to-br ${'color' in item ? item.color : 'from-purple-900/60 to-black/80'} flex items-center justify-center`}>
+                        <div className="text-center text-white/20">
+                          <Camera className="w-10 h-10 mx-auto mb-2" />
+                          <p className="text-xs font-medium">Photo coming soon</p>
+                        </div>
+                      </div>
+                    )}
 
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
-                  <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                      <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
 
-                {/* Labels */}
-                <div className="absolute top-3 left-3">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                    item.label === "After"
-                      ? "bg-primary/80 text-primary-foreground"
-                      : "bg-black/60 text-white/80 border border-white/20"
-                  }`}>
-                    {item.label}
-                  </span>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                  <p className="text-white text-sm font-medium">{item.caption}</p>
-                  <p className="text-white/60 text-xs">{item.category}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                    {/* Label badge */}
+                    <div className="absolute top-3 left-3">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${labelColor[item.label] ?? labelColor.after}`}>
+                        {item.label}
+                      </span>
+                    </div>
 
-          <div className="text-center mt-12">
-            <p className="text-muted-foreground text-sm">
-              More photos coming soon. Follow us on{" "}
-              <a href="https://instagram.com/detailinglabs" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-                Instagram
-              </a>{" "}
-              for the latest work.
-            </p>
-          </div>
+                    {/* Caption */}
+                    {item.caption && (
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                        <p className="text-white text-sm font-medium">{item.caption}</p>
+                        <p className="text-white/60 text-xs mt-0.5">{item.category}</p>
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!isLoading && filtered.length === 0 && (
+            <div className="text-center py-16">
+              <Camera className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-muted-foreground text-sm">No photos in this category yet.</p>
+            </div>
+          )}
+
+          {/* Coming soon note if still using placeholders */}
+          {!isLoading && realItems.length === 0 && (
+            <div className="text-center mt-10">
+              <p className="text-muted-foreground text-sm">
+                Real photos coming soon. Follow us on{" "}
+                <a href="https://instagram.com/detailinglabs" target="_blank" rel="noopener noreferrer"
+                  className="text-primary hover:underline">Instagram</a>{" "}for updates.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
       {/* Lightbox */}
-      {selected !== null && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setSelected(null)}
-        >
-          <button
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-            onClick={() => setSelected(null)}
+      <AnimatePresence>
+        {selectedItem && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+            onClick={() => setSelectedId(null)}
           >
-            <X className="w-5 h-5" />
-          </button>
-          <div className="max-w-3xl w-full">
-            {(() => {
-              const item = galleryItems.find((g) => g.id === selected);
-              if (!item) return null;
-              return (
-                <div className={`aspect-[4/3] rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center`}>
-                  <div className="text-center text-white/40">
-                    <div className="text-3xl sm:text-5xl font-display font-bold mb-2">{item.category}</div>
-                    <div>{item.caption}</div>
+            <button
+              className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors z-10"
+              onClick={() => setSelectedId(null)}
+              aria-label="Close"
+            >
+              <X className="w-7 h-7" />
+            </button>
+
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              className="max-w-4xl w-full max-h-[85vh] rounded-2xl overflow-hidden border border-white/10"
+              onClick={e => e.stopPropagation()}
+            >
+              {selectedItem.isReal && selectedItem.url ? (
+                <img
+                  src={selectedItem.url}
+                  alt={selectedItem.caption || "Detail photo"}
+                  className="w-full h-full object-contain max-h-[75vh]"
+                />
+              ) : (
+                <div className={`aspect-[4/3] bg-gradient-to-br ${'color' in selectedItem ? selectedItem.color : 'from-purple-900/60 to-black/80'} flex items-center justify-center`}>
+                  <div className="text-center text-white/20">
+                    <Camera className="w-16 h-16 mx-auto mb-3" />
+                    <p className="text-sm font-medium">Photo coming soon</p>
                   </div>
                 </div>
-              );
-            })()}
-          </div>
-        </div>
-      )}
+              )}
+              {selectedItem.caption && (
+                <div className="bg-[oklch(0.10_0.008_280)] px-6 py-4 border-t border-white/10">
+                  <p className="text-white font-medium">{selectedItem.caption}</p>
+                  <p className="text-white/50 text-sm mt-0.5 capitalize">{selectedItem.label} · {selectedItem.category}</p>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* SEO content section */}
+      {/* SEO content */}
       <section className="py-12 bg-[oklch(0.06_0.004_280)] border-t border-border">
         <div className="container max-w-3xl mx-auto">
           <h2 className="text-2xl font-display font-bold mb-4 text-center">Real Results from Real Jobs</h2>
           <p className="text-muted-foreground text-sm leading-relaxed mb-4 text-center">
             Every photo in this gallery is from an actual Detailing Labs appointment in Southeast Wisconsin.
-            We photograph before and after every single job — not to show off, but because transparency
-            matters. You should be able to see exactly what we do.
+            We photograph before and after every single job — so you can see exactly what we do.
           </p>
           <p className="text-muted-foreground text-sm leading-relaxed text-center">
-            Our work spans interior deep refreshes, exterior decontamination and protection treatments,
-            full showroom resets, and professional ceramic coating applications across Racine County,
-            Kenosha County, and the greater Milwaukee metro. If you'd like to see your vehicle here,
-            book your appointment online.
+            Our work spans interior deep refreshes, exterior decontamination, full showroom resets, and ceramic
+            coating applications across Racine County, Kenosha County, and the greater Milwaukee metro.
           </p>
         </div>
       </section>
 
-            <SiteFooter />
+      <SiteFooter />
     </div>
   );
 }

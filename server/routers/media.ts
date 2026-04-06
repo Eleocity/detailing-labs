@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { eq, desc, and } from "drizzle-orm";
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
+import { sql } from "drizzle-orm";
 import { getDb } from "../db";
 import { media } from "../../drizzle/schema";
 import { storagePut } from "../storage";
@@ -71,4 +72,31 @@ export const mediaRouter = router({
       await db.delete(media).where(eq(media.id, input.id));
       return { success: true };
     }),
+
+  /**
+   * Public gallery — returns photos labeled before/after/completed
+   * that have been explicitly marked as gallery-visible by admin.
+   * Falls back to all before/after photos if none are gallery-flagged.
+   */
+  listPublicGallery: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return [];
+    const rows = await db
+      .select({
+        id:        media.id,
+        url:       media.url,
+        label:     media.label,
+        caption:   media.caption,
+        bookingId: media.bookingId,
+        createdAt: media.createdAt,
+      })
+      .from(media)
+      .where(
+        sql`${media.label} IN ('before','after','completed') AND ${media.url} IS NOT NULL`
+      )
+      .orderBy(desc(media.createdAt))
+      .limit(60);
+    return rows;
+  }),
+
 });

@@ -12,6 +12,7 @@ import { contentRouter } from "./routers/content";
 import { usersRouter } from "./routers/users";
 import { invitationsRouter } from "./routers/invitations";
 import { automationsRouter, customAutomationsRouter } from "./routers/automations";
+import { reviewsRouter } from "./routers/reviews";
 
 export const appRouter = router({
   system: systemRouter,
@@ -28,6 +29,7 @@ export const appRouter = router({
   invitations: invitationsRouter,
   automations: automationsRouter,
   customAutomations: customAutomationsRouter,
+  reviews: reviewsRouter,
 });
 
 export type AppRouter = typeof appRouter;
