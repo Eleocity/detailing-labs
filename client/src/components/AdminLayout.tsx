@@ -10,7 +10,8 @@ import {
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard, Calendar, Users, UserCheck, MapPin, FileText,
-  Camera, Star, LogOut, PanelLeft, ChevronRight, Bell, Globe, Settings, Zap, Mail
+  Camera, Star, LogOut, PanelLeft, ChevronRight, Bell, Globe,
+  Settings, Zap, Mail, ClipboardList, UsersRound, Receipt,
 } from "lucide-react";
 import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { CSSProperties, useEffect, useRef, useState } from "react";
@@ -19,19 +20,19 @@ import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
-  { icon: Calendar, label: "Schedule", path: "/admin/schedule" },
-  { icon: Users, label: "Bookings", path: "/admin/bookings" },
-  { icon: UserCheck, label: "CRM", path: "/admin/crm" },
-  { icon: Users, label: "Employees", path: "/admin/employees" },
-  { icon: MapPin, label: "Route Planner", path: "/admin/route-planner" },
-  { icon: FileText, label: "Invoices", path: "/admin/invoices" },
-  { icon: Camera, label: "Media", path: "/admin/media" },
-  { icon: Star, label: "Reviews", path: "/admin/reviews" },
-  { icon: Zap, label: "Urable Sync", path: "/admin/urable" },
-  { icon: Mail, label: "Automations", path: "/admin/automations" },
-  { icon: Globe, label: "Site Editor", path: "/admin/site-editor" },
-  { icon: Users, label: "Users", path: "/admin/users" },
+  { icon: LayoutDashboard, label: "Dashboard",     path: "/admin" },
+  { icon: Calendar,        label: "Schedule",      path: "/admin/schedule" },
+  { icon: ClipboardList,   label: "Bookings",      path: "/admin/bookings" },
+  { icon: UserCheck,       label: "CRM",           path: "/admin/crm" },
+  { icon: Receipt,         label: "Invoices",      path: "/admin/invoices" },
+  { icon: Mail,            label: "Automations",   path: "/admin/automations" },
+  { icon: Camera,          label: "Media",         path: "/admin/media" },
+  { icon: Globe,           label: "Site Editor",   path: "/admin/site-editor" },
+  { icon: MapPin,          label: "Route Planner", path: "/admin/route-planner" },
+  { icon: UsersRound,      label: "Employees",     path: "/admin/employees" },
+  { icon: Star,            label: "Reviews",       path: "/admin/reviews" },
+  { icon: Zap,             label: "Urable Sync",   path: "/admin/urable" },
+  { icon: Users,           label: "Users",         path: "/admin/users" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "dl-admin-sidebar-width";
