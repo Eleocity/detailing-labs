@@ -167,55 +167,7 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
-    // Increase chunk warning limit slightly (we have a large app)
     chunkSizeWarningLimit: 800,
-    rollupOptions: {
-      output: {
-        // Manual chunking for better caching — vendor libs rarely change
-        manualChunks: (id) => {
-          // Core React runtime — tiny, changes rarely
-          if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/")) {
-            return "react";
-          }
-          // Router
-          if (id.includes("node_modules/wouter")) {
-            return "router";
-          }
-          // UI animations — framer-motion is large
-          if (id.includes("node_modules/framer-motion")) {
-            return "motion";
-          }
-          // Radix UI components
-          if (id.includes("node_modules/@radix-ui")) {
-            return "radix";
-          }
-          // tRPC + query client
-          if (id.includes("node_modules/@trpc") || id.includes("node_modules/@tanstack")) {
-            return "trpc";
-          }
-          // Icons
-          if (id.includes("node_modules/lucide-react")) {
-            return "icons";
-          }
-          // Charts
-          if (id.includes("node_modules/recharts") || id.includes("node_modules/d3")) {
-            return "charts";
-          }
-          // Maps
-          if (id.includes("node_modules/@vis.gl") || id.includes("node_modules/@googlemaps")) {
-            return "maps";
-          }
-          // Everything else in node_modules → vendor chunk
-          if (id.includes("node_modules/")) {
-            return "vendor";
-          }
-        },
-        // Consistent chunk naming for long-term caching
-        chunkFileNames: "assets/[name]-[hash].js",
-        entryFileNames: "assets/[name]-[hash].js",
-        assetFileNames: "assets/[name]-[hash].[ext]",
-      },
-    },
   },
   server: {
     host: true,
