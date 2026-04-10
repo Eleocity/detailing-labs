@@ -356,3 +356,228 @@ export function coatingAnniversaryEmail(params: {
     text,
   };
 }
+
+
+// ─── Booking Request Received (pending review) ────────────────────────────────
+
+export function bookingRequestReceivedEmail(params: {
+  customerFirstName: string;
+  customerEmail:     string;
+  bookingNumber:     string;
+  packageName?:      string | null;
+  preferredDate:     string;
+  alternateDate?:    string | null;
+  serviceAddress:    string;
+  vehicleMake?:      string | null;
+  vehicleModel?:     string | null;
+  vehicleYear?:      number | null;
+  totalEstimate?:    number | null;
+}): { subject: string; html: string; text: string } {
+  const vehicle = [params.vehicleYear, params.vehicleMake, params.vehicleModel].filter(Boolean).join(" ") || "your vehicle";
+  const BASE_URL = "https://detailinglabswi.com";
+  const PHONE    = process.env.CONTACT_PHONE || "(262) 260-9474";
+  const BIZ_EMAIL = process.env.CONTACT_EMAIL || "hello@detailinglabswi.com";
+
+  const subject = `Booking Request Received — We'll Be in Touch Soon`;
+  const preheader = `Your request is pending review. We typically confirm within a few hours.`;
+
+  const body = `
+    <!-- Pending badge -->
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="display:inline-block;background:#1e1a00;border:1px solid #ca8a04;border-radius:100px;padding:8px 20px">
+        <span style="color:#fbbf24;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase">⏳ Pending Review</span>
+      </div>
+    </div>
+
+    <p style="margin:0 0 6px;color:#e0e0ff;font-size:22px;font-weight:800">We received your request, ${params.customerFirstName}.</p>
+    <p style="margin:0 0 24px;color:#6b6b9a;font-size:14px;line-height:1.7">
+      Your booking request has been received and is currently pending review. We typically confirm
+      or follow up within a few hours during business hours.
+    </p>
+
+    <!-- What this means -->
+    <div style="background:#0c0c20;border:1px solid #1c1c34;border-left:3px solid #ca8a04;border-radius:0 10px 10px 0;padding:16px 20px;margin:0 0 24px">
+      <p style="margin:0 0 6px;color:#fbbf24;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px">What happens next</p>
+      <p style="margin:0;color:#8080a0;font-size:13px;line-height:1.8">
+        We'll review your request and reach out to confirm availability for your preferred date.
+        <strong style="color:#c8c8e8">This is not a confirmed appointment yet.</strong>
+        You'll receive a separate confirmation once we've approved your booking.
+      </p>
+    </div>
+
+    <!-- Request summary -->
+    <p style="margin:0 0 10px;color:#a0a0c0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Your Request Summary</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#080815;border-radius:10px;overflow:hidden;border:1px solid #1a1a2e;margin:0 0 24px">
+      <tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;width:130px;border-bottom:1px solid #141428">Booking #</td><td style="padding:12px 16px;color:#d0d0f0;font-size:13px;font-family:monospace;border-bottom:1px solid #141428">${params.bookingNumber}</td></tr>
+      <tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #141428">Vehicle</td><td style="padding:12px 16px;color:#d0d0f0;font-size:13px;border-bottom:1px solid #141428">${vehicle}</td></tr>
+      <tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #141428">Service</td><td style="padding:12px 16px;color:#d0d0f0;font-size:13px;border-bottom:1px solid #141428">${params.packageName ?? "Mobile Detailing"}</td></tr>
+      <tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #141428">Preferred Date</td><td style="padding:12px 16px;color:#d0d0f0;font-size:13px;border-bottom:1px solid #141428">${params.preferredDate}</td></tr>
+      ${params.alternateDate ? `<tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #141428">Alternate Date</td><td style="padding:12px 16px;color:#d0d0f0;font-size:13px;border-bottom:1px solid #141428">${params.alternateDate}</td></tr>` : ""}
+      <tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;${params.totalEstimate ? "border-bottom:1px solid #141428;" : ""}">Location</td><td style="padding:12px 16px;color:#d0d0f0;font-size:13px;${params.totalEstimate ? "border-bottom:1px solid #141428;" : ""}">${params.serviceAddress}</td></tr>
+      ${params.totalEstimate ? `<tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Estimate</td><td style="padding:12px 16px;color:#a78bfa;font-size:14px;font-weight:700">$${params.totalEstimate.toFixed(2)}</td></tr>` : ""}
+    </table>
+
+    <p style="margin:0 0 20px;color:#6b6b9a;font-size:13px;line-height:1.7;text-align:center">
+      Questions in the meantime? Call or text us at
+      <a href="tel:${PHONE.replace(/\D/g,"")}" style="color:#7c3aed;text-decoration:none">${PHONE}</a>
+      or reply to this email.
+    </p>
+
+    <div style="height:1px;background:#141428;margin:24px 0"></div>
+    <p style="margin:0;color:#3a3a5a;font-size:11px;text-align:center">
+      © ${new Date().getFullYear()} Detailing Labs · Sturtevant, WI ·
+      <a href="${BASE_URL}" style="color:#5b21b6;text-decoration:none">detailinglabswi.com</a>
+    </p>`;
+
+  const shell = (pre: string, b: string) => `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#09090f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif">
+  <div style="display:none;max-height:0;overflow:hidden">${pre}&nbsp;‌&nbsp;‌&nbsp;‌</div>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#09090f;padding:32px 16px">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
+        <tr><td style="background:#0e0e1c;border-radius:16px 16px 0 0;border:1px solid #1c1c30;border-bottom:none;padding:24px 40px;text-align:center">
+          <p style="margin:0;color:#fff;font-size:20px;font-weight:800">Detailing Labs</p>
+          <p style="margin:2px 0 0;color:#6b6b9a;font-size:12px">Professional Mobile Detailing · SE Wisconsin</p>
+        </td></tr>
+        <tr><td style="height:3px;background:linear-gradient(90deg,#4f1d96,#7c3aed,#a78bfa);border-left:1px solid #1c1c30;border-right:1px solid #1c1c30"></td></tr>
+        <tr><td style="background:#0e0e1c;padding:40px;border:1px solid #1c1c30;border-top:none;border-bottom:none">${b}</td></tr>
+        <tr><td style="background:#070710;border-radius:0 0 16px 16px;border:1px solid #1c1c30;border-top:1px solid #181828;padding:16px 40px;text-align:center">
+          <p style="margin:0;color:#2a2a40;font-size:11px">
+            <a href="${BASE_URL}/unsubscribe?email=${encodeURIComponent(params.customerEmail)}" style="color:#3a3a5a;text-decoration:underline">Unsubscribe</a>
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+
+  const text = `Hi ${params.customerFirstName},\n\nYour booking request has been received and is pending review.\n\nThis is NOT a confirmed appointment yet. We'll reach out to confirm availability.\n\nBooking #: ${params.bookingNumber}\nVehicle: ${vehicle}\nService: ${params.packageName ?? "Mobile Detailing"}\nPreferred Date: ${params.preferredDate}\nLocation: ${params.serviceAddress}\n${params.totalEstimate ? `Estimate: $${params.totalEstimate.toFixed(2)}\n` : ""}\nQuestions? ${PHONE}\n\n— Detailing Labs`;
+
+  return { subject, html: shell(preheader, body), text };
+}
+
+// ─── Booking Approved ─────────────────────────────────────────────────────────
+
+export function bookingApprovedEmail(params: {
+  customerFirstName: string;
+  customerEmail:     string;
+  bookingNumber:     string;
+  packageName?:      string | null;
+  confirmedDate:     string;
+  serviceAddress:    string;
+  vehicleMake?:      string | null;
+  vehicleModel?:     string | null;
+  vehicleYear?:      number | null;
+  totalAmount?:      number | null;
+}): { subject: string; html: string; text: string } {
+  const vehicle   = [params.vehicleYear, params.vehicleMake, params.vehicleModel].filter(Boolean).join(" ") || "your vehicle";
+  const BASE_URL  = "https://detailinglabswi.com";
+  const PHONE     = process.env.CONTACT_PHONE || "(262) 260-9474";
+  const BIZ_EMAIL = process.env.CONTACT_EMAIL || "hello@detailinglabswi.com";
+
+  const subject   = `Booking Confirmed — ${params.confirmedDate} | Detailing Labs`;
+  const preheader = `Your detail is confirmed for ${params.confirmedDate}. We'll see you then.`;
+
+  const body = `
+    <!-- Confirmed badge -->
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="display:inline-block;background:#0a1f0f;border:1px solid #166534;border-radius:100px;padding:8px 20px">
+        <span style="color:#4ade80;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase">✓ Booking Confirmed</span>
+      </div>
+    </div>
+
+    <p style="margin:0 0 6px;color:#e0e0ff;font-size:22px;font-weight:800">You're all set, ${params.customerFirstName}.</p>
+    <p style="margin:0 0 24px;color:#6b6b9a;font-size:14px;line-height:1.7">
+      Your booking has been reviewed and confirmed. We'll show up at your location on the date below — fully equipped, no hookups needed from you.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#080815;border-radius:10px;overflow:hidden;border:1px solid #1a1a2e;margin:0 0 24px">
+      <tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;width:130px;border-bottom:1px solid #141428">Booking #</td><td style="padding:12px 16px;color:#d0d0f0;font-size:13px;font-family:monospace;border-bottom:1px solid #141428">${params.bookingNumber}</td></tr>
+      <tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #141428">Service</td><td style="padding:12px 16px;color:#d0d0f0;font-size:13px;border-bottom:1px solid #141428">${params.packageName ?? "Mobile Detailing"}</td></tr>
+      <tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #141428">Date</td><td style="padding:12px 16px;color:#4ade80;font-size:13px;font-weight:700;border-bottom:1px solid #141428">${params.confirmedDate}</td></tr>
+      <tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #141428">Vehicle</td><td style="padding:12px 16px;color:#d0d0f0;font-size:13px;border-bottom:1px solid #141428">${vehicle}</td></tr>
+      <tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px${params.totalAmount ? ";border-bottom:1px solid #141428" : ""}">Location</td><td style="padding:12px 16px;color:#d0d0f0;font-size:13px${params.totalAmount ? ";border-bottom:1px solid #141428" : ""}">${params.serviceAddress}</td></tr>
+      ${params.totalAmount ? `<tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Total</td><td style="padding:12px 16px;color:#a78bfa;font-size:15px;font-weight:800">$${params.totalAmount.toFixed(2)}</td></tr>` : ""}
+    </table>
+
+    <div style="background:#0c0c20;border:1px solid #1c1c34;border-radius:10px;padding:16px 20px;margin:0 0 24px">
+      <p style="margin:0 0 8px;color:#a0a0c0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px">What to expect</p>
+      <ul style="margin:0;padding:0 0 0 18px;color:#7070a0;font-size:13px;line-height:2.2">
+        <li>Make sure ${vehicle} is accessible at the address above</li>
+        <li>You don't need to be present for the full appointment</li>
+        <li>We bring our own water and power — no hookups needed from you</li>
+        <li>We'll photograph before and after — you'll see the results</li>
+      </ul>
+    </div>
+
+    <p style="margin:0 0 4px;color:#6b6b9a;font-size:13px;text-align:center">Need to reschedule or have questions?</p>
+    <p style="margin:0;color:#4a4a6a;font-size:12px;text-align:center">
+      <a href="tel:${PHONE.replace(/\D/g,"")}" style="color:#7c3aed;text-decoration:none">${PHONE}</a>
+      &nbsp;·&nbsp;
+      <a href="mailto:${BIZ_EMAIL}" style="color:#7c3aed;text-decoration:none">${BIZ_EMAIL}</a>
+    </p>
+
+    <div style="height:1px;background:#141428;margin:24px 0"></div>
+    <p style="margin:0;color:#3a3a5a;font-size:11px;text-align:center">© ${new Date().getFullYear()} Detailing Labs · Sturtevant, WI · <a href="${BASE_URL}" style="color:#5b21b6;text-decoration:none">detailinglabswi.com</a></p>`;
+
+  const shell2 = (pre: string, b: string) => `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:0;background:#09090f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"><div style="display:none;max-height:0;overflow:hidden">${pre}&nbsp;‌&nbsp;‌</div><table width="100%" cellpadding="0" cellspacing="0" style="background:#09090f;padding:32px 16px"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%"><tr><td style="background:#0e0e1c;border-radius:16px 16px 0 0;border:1px solid #1c1c30;border-bottom:none;padding:24px 40px;text-align:center"><p style="margin:0;color:#fff;font-size:20px;font-weight:800">Detailing Labs</p><p style="margin:2px 0 0;color:#6b6b9a;font-size:12px">Professional Mobile Detailing · SE Wisconsin</p></td></tr><tr><td style="height:3px;background:linear-gradient(90deg,#4f1d96,#7c3aed,#a78bfa);border-left:1px solid #1c1c30;border-right:1px solid #1c1c30"></td></tr><tr><td style="background:#0e0e1c;padding:40px;border:1px solid #1c1c30;border-top:none;border-bottom:none">${b}</td></tr><tr><td style="background:#070710;border-radius:0 0 16px 16px;border:1px solid #1c1c30;border-top:1px solid #181828;padding:16px 40px;text-align:center"><p style="margin:0;color:#2a2a40;font-size:11px"><a href="${BASE_URL}/unsubscribe?email=${encodeURIComponent(params.customerEmail)}" style="color:#3a3a5a;text-decoration:underline">Unsubscribe</a></p></td></tr></table></td></tr></table></body></html>`;
+
+  const text = `Hi ${params.customerFirstName},\n\nGreat news — your booking has been confirmed.\n\nBooking #: ${params.bookingNumber}\nService: ${params.packageName ?? "Mobile Detailing"}\nDate: ${params.confirmedDate}\nVehicle: ${vehicle}\nLocation: ${params.serviceAddress}\n${params.totalAmount ? `Total: $${params.totalAmount.toFixed(2)}\n` : ""}\nWe'll arrive fully equipped — water, power, everything. No hookups needed from you.\n\nQuestions? ${PHONE} · ${BIZ_EMAIL}\n\n— Detailing Labs`;
+
+  return { subject, html: shell2(preheader, body), text };
+}
+
+// ─── Booking Declined ─────────────────────────────────────────────────────────
+
+export function bookingDeclinedEmail(params: {
+  customerFirstName: string;
+  customerEmail:     string;
+  bookingNumber:     string;
+  declineReason?:    string | null;
+}): { subject: string; html: string; text: string } {
+  const BASE_URL  = "https://detailinglabswi.com";
+  const PHONE     = process.env.CONTACT_PHONE || "(262) 260-9474";
+  const reason    = params.declineReason || "We're unable to accommodate your requested dates at this time.";
+
+  const subject   = `Regarding Your Booking Request — Detailing Labs`;
+  const preheader = `An update on your booking request.`;
+
+  const body = `
+    <p style="margin:0 0 6px;color:#e0e0ff;font-size:22px;font-weight:800">An update on your request.</p>
+    <p style="margin:0 0 24px;color:#6b6b9a;font-size:14px;line-height:1.7">
+      Hi ${params.customerFirstName}, thank you for reaching out to Detailing Labs.
+      Unfortunately we're unable to take your booking request <span style="color:#c8c8e8;font-family:monospace">${params.bookingNumber}</span> at this time.
+    </p>
+
+    <div style="background:#0c0c20;border:1px solid #1c1c34;border-left:3px solid #ef4444;border-radius:0 10px 10px 0;padding:16px 20px;margin:0 0 24px">
+      <p style="margin:0 0 4px;color:#f87171;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Reason</p>
+      <p style="margin:0;color:#8080a0;font-size:13px;line-height:1.7">${reason}</p>
+    </div>
+
+    <p style="margin:0 0 20px;color:#6b6b9a;font-size:13px;line-height:1.7">
+      We'd love to find a time that works. Feel free to submit a new request with different dates,
+      or call us directly and we'll do our best to get you scheduled.
+    </p>
+
+    <table cellpadding="0" cellspacing="0" style="margin:0 auto 24px">
+      <tr><td style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border-radius:10px">
+        <a href="${BASE_URL}/booking" style="display:inline-block;padding:14px 36px;color:#fff;font-size:14px;font-weight:700;text-decoration:none">
+          Submit a New Request →
+        </a>
+      </td></tr>
+    </table>
+
+    <p style="margin:0;color:#4a4a6a;font-size:12px;text-align:center">
+      Or call us at <a href="tel:${PHONE.replace(/\D/g,"")}" style="color:#7c3aed;text-decoration:none">${PHONE}</a> — we'll sort it out directly.
+    </p>
+
+    <div style="height:1px;background:#141428;margin:24px 0"></div>
+    <p style="margin:0;color:#3a3a5a;font-size:11px;text-align:center">© ${new Date().getFullYear()} Detailing Labs · Sturtevant, WI</p>`;
+
+  const shell3 = (pre: string, b: string) => `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#09090f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"><div style="display:none;max-height:0;overflow:hidden">${pre}&nbsp;‌</div><table width="100%" cellpadding="0" cellspacing="0" style="background:#09090f;padding:32px 16px"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%"><tr><td style="background:#0e0e1c;border-radius:16px 16px 0 0;border:1px solid #1c1c30;border-bottom:none;padding:24px 40px;text-align:center"><p style="margin:0;color:#fff;font-size:20px;font-weight:800">Detailing Labs</p></td></tr><tr><td style="height:3px;background:linear-gradient(90deg,#4f1d96,#7c3aed,#a78bfa);border-left:1px solid #1c1c30;border-right:1px solid #1c1c30"></td></tr><tr><td style="background:#0e0e1c;padding:40px;border:1px solid #1c1c30;border-top:none;border-bottom:none">${b}</td></tr><tr><td style="background:#070710;border-radius:0 0 16px 16px;border:1px solid #1c1c30;border-top:1px solid #181828;padding:16px 40px;text-align:center"><p style="margin:0;color:#2a2a40;font-size:11px"><a href="${BASE_URL}/unsubscribe?email=${encodeURIComponent(params.customerEmail)}" style="color:#3a3a5a;text-decoration:underline">Unsubscribe</a></p></td></tr></table></td></tr></table></body></html>`;
+
+  const text = `Hi ${params.customerFirstName},\n\nThank you for reaching out. Unfortunately we're unable to take your booking request ${params.bookingNumber} at this time.\n\nReason: ${reason}\n\nWe'd love to find a time that works. Submit a new request at ${BASE_URL}/booking or call us at ${PHONE}.\n\n— Detailing Labs`;
+
+  return { subject, html: shell3(preheader, body), text };
+}

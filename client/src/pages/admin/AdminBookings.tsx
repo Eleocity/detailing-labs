@@ -217,6 +217,19 @@ export function AdminBookingDetail() {
     onError: (err) => toast.error(err.message),
   });
 
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+
+  const approve = trpc.bookings.approve.useMutation({
+    onSuccess: () => { toast.success("Booking approved — confirmation email sent"); refetch(); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const decline = trpc.bookings.decline.useMutation({
+    onSuccess: () => { toast.success("Booking declined — customer notified"); setShowDeclineModal(false); setDeclineReason(""); refetch(); },
+    onError: (e) => toast.error(e.message),
+  });
+
   const sendReview = trpc.crm.sendReviewRequest.useMutation({
     onSuccess: () => { toast.success("Review request sent!"); refetch(); },
     onError: (err) => toast.error(err.message),
@@ -251,7 +264,29 @@ export function AdminBookingDetail() {
               {booking.customerFirstName} {booking.customerLastName} · {new Date(booking.appointmentDate).toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" })}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {/* Pending review — show approve/decline prominently */}
+            {booking.status === "pending_review" && (
+              <>
+                <Button
+                  size="sm"
+                  onClick={() => approve.mutate({ id: booking.id })}
+                  disabled={approve.isPending}
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold"
+                >
+                  {approve.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
+                  Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowDeclineModal(true)}
+                  className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                >
+                  <XCircle className="w-3 h-3 mr-1" /> Decline
+                </Button>
+              </>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -376,7 +411,37 @@ export function AdminBookingDetail() {
           </div>
         </div>
 
-        {/* Status Update Modal */}
+        {/* Decline Modal */}
+      {showDeclineModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setShowDeclineModal(false)}>
+          <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-display font-bold text-lg mb-1">Decline Booking Request</h3>
+            <p className="text-muted-foreground text-sm mb-4">The customer will receive a professional decline email. Provide a reason if you'd like it included.</p>
+            <div className="space-y-3">
+              <textarea
+                value={declineReason}
+                onChange={e => setDeclineReason(e.target.value)}
+                placeholder="e.g. We're unable to accommodate your requested dates. Please submit a new request for a different week."
+                rows={3}
+                className="w-full px-3 py-2.5 rounded-xl border border-border bg-input text-sm resize-none focus:outline-none focus:border-primary/60"
+              />
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1 bg-destructive hover:bg-destructive/90 text-white font-semibold"
+                  onClick={() => decline.mutate({ id: booking.id, declineReason: declineReason || undefined })}
+                  disabled={decline.isPending}
+                >
+                  {decline.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : null}
+                  {decline.isPending ? "Sending…" : "Decline & Notify Customer"}
+                </Button>
+                <Button variant="outline" onClick={() => setShowDeclineModal(false)}>Cancel</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Update Modal */}
         <Dialog open={showStatusModal} onOpenChange={setShowStatusModal}>
           <DialogContent className="bg-card border-border">
             <DialogHeader>

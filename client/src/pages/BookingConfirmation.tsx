@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import {
   CheckCircle2, Calendar, MapPin, Car, Phone,
   ChevronRight, Copy, Star, Share2, ExternalLink,
+  Clock, XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -81,13 +82,36 @@ export default function BookingConfirmation() {
             transition={{ duration: 0.5 }}
             className="text-center mb-8"
           >
-            <div className="w-20 h-20 rounded-full bg-green-500/15 border-2 border-green-500/30 flex items-center justify-center mx-auto mb-5">
-              <CheckCircle2 className="w-10 h-10 text-green-500" />
-            </div>
-            <h1 className="text-3xl font-display font-bold mb-2">You're booked.</h1>
-            <p className="text-muted-foreground">
-              We'll confirm your appointment within a few hours.
-            </p>
+            {booking?.status === "confirmed" ? (
+              <>
+                <div className="w-20 h-20 rounded-full bg-green-500/15 border-2 border-green-500/30 flex items-center justify-center mx-auto mb-5">
+                  <CheckCircle2 className="w-10 h-10 text-green-500" />
+                </div>
+                <h1 className="text-3xl font-display font-bold mb-2">Booking Confirmed.</h1>
+                <p className="text-muted-foreground">Your appointment is confirmed. We'll see you then.</p>
+              </>
+            ) : booking?.status === "declined" ? (
+              <>
+                <div className="w-20 h-20 rounded-full bg-destructive/15 border-2 border-destructive/30 flex items-center justify-center mx-auto mb-5">
+                  <XCircle className="w-10 h-10 text-destructive" />
+                </div>
+                <h1 className="text-3xl font-display font-bold mb-2">Request Declined</h1>
+                <p className="text-muted-foreground">We couldn't accommodate this request. Please call us or submit a new request.</p>
+              </>
+            ) : (
+              <>
+                <div className="w-20 h-20 rounded-full bg-yellow-500/15 border-2 border-yellow-500/30 flex items-center justify-center mx-auto mb-5">
+                  <Clock className="w-10 h-10 text-yellow-500" />
+                </div>
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs font-semibold uppercase tracking-wider mb-4">
+                  ⏳ Pending Review
+                </div>
+                <h1 className="text-3xl font-display font-bold mb-2">Request Received.</h1>
+                <p className="text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                  Your booking request is pending review. This is <strong>not a confirmed appointment yet</strong> — we'll confirm it within a few hours.
+                </p>
+              </>
+            )}
           </motion.div>
 
           {/* Booking Number */}
@@ -97,7 +121,7 @@ export default function BookingConfirmation() {
             transition={{ delay: 0.15 }}
             className="p-5 rounded-xl border border-primary/30 bg-primary/5 text-center mb-5"
           >
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Booking Number</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{booking?.status === "confirmed" ? "Confirmed Booking" : "Request Reference"}</p>
             <div className="flex items-center justify-center gap-2">
               <span className="text-2xl font-display font-bold text-primary font-mono">{bookingNumber}</span>
               <button onClick={copyBookingNumber} className="text-muted-foreground hover:text-primary transition-colors" title="Copy">
@@ -204,14 +228,21 @@ export default function BookingConfirmation() {
             transition={{ delay: 0.4 }}
             className="p-6 rounded-2xl border border-border bg-card mb-5"
           >
-            <h2 className="font-display font-semibold mb-4">What Happens Next</h2>
+            <h2 className="font-display font-semibold mb-4">
+              {booking?.status === "confirmed" ? "What to Expect" : "What Happens Next"}
+            </h2>
             <div className="space-y-3">
-              {[
-                { step: "1", text: "We'll review your booking and confirm availability within a few hours." },
-                { step: "2", text: "You'll get a confirmation call or text with your appointment details." },
-                { step: "3", text: "We arrive fully equipped — water, power, everything. You don't need to provide anything." },
-                { step: "4", text: "We photograph before and after. You'll see exactly what was done." },
-              ].map((item) => (
+              {(booking?.status === "confirmed" ? [
+                { step: "1", text: "We've confirmed your slot — the date and time are locked in." },
+                { step: "2", text: "We arrive fully equipped — water, power, everything. No hookups needed from you." },
+                { step: "3", text: "We photograph before and after. You'll see exactly what was done." },
+                { step: "4", text: "Payment is collected on completion. You inspect the work first." },
+              ] : [
+                { step: "1", text: "We'll review your request and check availability for your preferred date." },
+                { step: "2", text: "You'll receive a confirmation email once we've approved your booking." },
+                { step: "3", text: "If your preferred date isn't available, we'll reach out to find an alternative." },
+                { step: "4", text: "Once confirmed, we show up fully equipped — no hookups, no hassle." },
+              ]).map((item) => (
                 <div key={item.step} className="flex gap-3">
                   <div className="w-6 h-6 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-primary text-xs font-bold flex-shrink-0 mt-0.5">
                     {item.step}

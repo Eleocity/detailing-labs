@@ -224,9 +224,11 @@ export const bookings = mysqlTable("bookings", {
   totalAmount: decimal("totalAmount", { precision: 10, scale: 2 }),
   // Status
   status: mysqlEnum("status", [
+    "pending_review",
     "new", "confirmed", "assigned", "en_route",
-    "in_progress", "completed", "cancelled", "no_show"
-  ]).default("new").notNull(),
+    "in_progress", "completed", "cancelled", "no_show",
+    "declined",
+  ]).default("pending_review").notNull(),
   paymentStatus: mysqlEnum("paymentStatus", [
     "unpaid", "deposit_paid", "paid", "refunded"
   ]).default("unpaid"),
@@ -234,6 +236,15 @@ export const bookings = mysqlTable("bookings", {
   source: varchar("source", { length: 100 }),
   notes: text("notes"),
   internalNotes: text("internalNotes"),
+  // Approval workflow fields
+  alternateDate:         timestamp("alternateDate"),
+  vehicleConditionNotes: text("vehicleConditionNotes"),
+  serviceType:           varchar("serviceType", { length: 20 }).default("mobile"),
+  reviewedAt:            timestamp("reviewedAt"),
+  reviewedBy:            int("reviewedBy"),
+  declineReason:         text("declineReason"),
+  zapierWebhookSent:     boolean("zapierWebhookSent").default(false),
+  approvalToken:         varchar("approvalToken", { length: 64 }),
   howHeard: varchar("howHeard", { length: 100 }),
   reviewRequestSent: boolean("reviewRequestSent").default(false),
   urableJobId: varchar("urableJobId", { length: 100 }),  // Urable job ID for sync

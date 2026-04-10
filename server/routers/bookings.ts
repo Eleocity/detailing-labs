@@ -121,8 +121,11 @@ export const bookingsRouter = router({
         taxAmount: (input.taxAmount ?? 0).toFixed(2) as any,
         totalAmount: input.totalAmount?.toFixed(2) as any,
         notes: input.notes || null,
+        alternateDate: input.alternateDate ? new Date(input.alternateDate) : null,
+        vehicleConditionNotes: input.vehicleConditionNotes || null,
+        serviceType: input.serviceType || "mobile",
         howHeard: input.howHeard || null,
-        status: "new",
+        status: "pending_review",
         paymentStatus: "unpaid",
         source: "website",
       });
@@ -250,6 +253,68 @@ export const bookingsRouter = router({
         });
       }
 
+      // ── Fire Zapier webhook (non-blocking) ─────────────────────────────────
+      if (newBooking) {
+        const { notifyZapier } = await import("../zapier");
+        const apt = new Date(input.appointmentDate);
+        const altApt = input.alternateDate ? new Date(input.alternateDate) : null;
+        const BASE = "https://detailinglabswi.com";
+
+        notifyZapier({
+          event:            "booking.request.submitted",
+          submitted_at:     new Date().toISOString(),
+          booking_number:   bookingNumber,
+          customer_name:    `${input.customerFirstName} ${input.customerLastName}`,
+          customer_email:   input.customerEmail ?? "",
+          customer_phone:   input.customerPhone ?? "",
+          vehicle_year:     input.vehicleYear ?? null,
+          vehicle_make:     input.vehicleMake ?? "",
+          vehicle_model:    input.vehicleModel ?? "",
+          vehicle_color:    input.vehicleColor ?? "",
+          vehicle_condition: input.vehicleConditionNotes ?? "",
+          service_package:  input.packageName ?? "Mobile Detailing",
+          add_ons:          input.addOnIds ?? [],
+          service_type:     input.serviceType ?? "mobile",
+          special_requests: input.notes ?? "",
+          preferred_date:   apt.toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" }),
+          alternate_date:   altApt ? altApt.toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" }) : "",
+          address:          input.serviceAddress,
+          city:             input.serviceCity ?? "",
+          state:            input.serviceState ?? "",
+          zip_code:         input.serviceZip ?? "",
+          price_estimate:   `$${(input.subtotal ?? 0).toFixed(2)}`,
+          travel_fee:       `$${(input.travelFee ?? 0).toFixed(2)}`,
+          total_estimate:   `$${(input.totalAmount ?? 0).toFixed(2)}`,
+          referral_source:  input.howHeard ?? "",
+          admin_review_url: `${BASE}/admin/bookings/${newBooking.id}`,
+          admin_approve_url: `${BASE}/admin/bookings/${newBooking.id}?action=approve`,
+          admin_decline_url: `${BASE}/admin/bookings/${newBooking.id}?action=decline`,
+          booking_status:   "pending_review",
+        }).catch(() => {});
+      }
+
+      // ── Send pending review email to customer ────────────────────────────
+      if (newBooking && input.customerEmail) {
+        const { bookingRequestReceivedEmail } = await import("../emailMarketing");
+        const { sendEmail } = await import("../email");
+        const apt = new Date(input.appointmentDate);
+        const altApt = input.alternateDate ? new Date(input.alternateDate) : null;
+        const emailContent = bookingRequestReceivedEmail({
+          customerFirstName: input.customerFirstName,
+          customerEmail:     input.customerEmail,
+          bookingNumber,
+          packageName:       input.packageName,
+          preferredDate:     apt.toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" }),
+          alternateDate:     altApt ? altApt.toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" }) : null,
+          serviceAddress:    input.serviceAddress,
+          vehicleMake:       input.vehicleMake,
+          vehicleModel:      input.vehicleModel,
+          vehicleYear:       input.vehicleYear,
+          totalEstimate:     input.totalAmount ?? null,
+        });
+        sendEmail({ to: input.customerEmail, ...emailContent }).catch(() => {});
+      }
+
       return { bookingNumber, bookingId: newBooking?.id };
     }),
 
@@ -353,7 +418,7 @@ export const bookingsRouter = router({
     .input(
       z.object({
         id: z.number().int(),
-        status: z.enum(["new", "confirmed", "assigned", "en_route", "in_progress", "completed", "cancelled", "no_show"]),
+        status: z.enum(["pending_review", "new", "confirmed", "assigned", "en_route", "in_progress", "completed", "cancelled", "no_show", "declined"]),
         notes: z.string().optional(),
       })
     )
@@ -416,6 +481,114 @@ export const bookingsRouter = router({
       }
 
       return { success: true };
+    }),
+
+  // ── Admin: Approve booking request ───────────────────────────────────────
+  approve: protectedProcedure
+    .input(z.object({
+      id:            z.number().int(),
+      confirmedDate: z.string().optional(), // if different from requested date
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED" });
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const [booking] = await db.select().from(bookings).where(eq(bookings.id, input.id)).limit(1);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      if (booking.status !== "pending_review") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: `Cannot approve booking with status: ${booking.status}` });
+      }
+
+      const confirmedDate = input.confirmedDate
+        ? new Date(input.confirmedDate)
+        : new Date(booking.appointmentDate);
+
+      await db.update(bookings).set({
+        status:      "confirmed" as any,
+        reviewedAt:  new Date(),
+        reviewedBy:  ctx.user.id,
+        ...(input.confirmedDate ? { appointmentDate: confirmedDate } : {}),
+      }).where(eq(bookings.id, input.id));
+
+      await db.insert(bookingStatusHistory).values({
+        bookingId:  input.id,
+        fromStatus: "pending_review",
+        toStatus:   "confirmed",
+        changedBy:  ctx.user.id,
+        notes:      "Approved by admin",
+      });
+
+      // Send confirmation email to customer
+      if (booking.customerEmail) {
+        const { bookingApprovedEmail } = await import("../emailMarketing");
+        const { sendEmail } = await import("../email");
+        const emailContent = bookingApprovedEmail({
+          customerFirstName: booking.customerFirstName,
+          customerEmail:     booking.customerEmail,
+          bookingNumber:     booking.bookingNumber,
+          packageName:       booking.packageName,
+          confirmedDate:     confirmedDate.toLocaleDateString("en-US", {
+            weekday: "long", month: "long", day: "numeric", year: "numeric",
+            hour: "numeric", minute: "2-digit",
+          }),
+          serviceAddress:    booking.serviceAddress,
+          vehicleMake:       booking.vehicleMake,
+          vehicleModel:      booking.vehicleModel,
+          vehicleYear:       booking.vehicleYear,
+          totalAmount:       booking.totalAmount ? Number(booking.totalAmount) : null,
+        });
+        sendEmail({ to: booking.customerEmail, ...emailContent }).catch(() => {});
+      }
+
+      console.log(`[Booking] ✅ Approved: ${booking.bookingNumber} by user ${ctx.user.id}`);
+      return { success: true, bookingNumber: booking.bookingNumber };
+    }),
+
+  // ── Admin: Decline booking request ───────────────────────────────────────
+  decline: protectedProcedure
+    .input(z.object({
+      id:            z.number().int(),
+      declineReason: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED" });
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const [booking] = await db.select().from(bookings).where(eq(bookings.id, input.id)).limit(1);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+
+      await db.update(bookings).set({
+        status:        "declined" as any,
+        reviewedAt:    new Date(),
+        reviewedBy:    ctx.user.id,
+        declineReason: input.declineReason || null,
+      }).where(eq(bookings.id, input.id));
+
+      await db.insert(bookingStatusHistory).values({
+        bookingId:  input.id,
+        fromStatus: booking.status,
+        toStatus:   "declined",
+        changedBy:  ctx.user.id,
+        notes:      input.declineReason || "Declined by admin",
+      });
+
+      // Send decline email to customer
+      if (booking.customerEmail) {
+        const { bookingDeclinedEmail } = await import("../emailMarketing");
+        const { sendEmail } = await import("../email");
+        const emailContent = bookingDeclinedEmail({
+          customerFirstName: booking.customerFirstName,
+          customerEmail:     booking.customerEmail,
+          bookingNumber:     booking.bookingNumber,
+          declineReason:     input.declineReason,
+        });
+        sendEmail({ to: booking.customerEmail, ...emailContent }).catch(() => {});
+      }
+
+      console.log(`[Booking] ❌ Declined: ${booking.bookingNumber} by user ${ctx.user.id}`);
+      return { success: true, bookingNumber: booking.bookingNumber };
     }),
 
   // ── Admin: Update booking (full edit) ────────────────────────────────────
