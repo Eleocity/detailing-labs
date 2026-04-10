@@ -27,6 +27,7 @@ interface BookingData {
   vehicleColor: string; vehicleLicensePlate: string;
   firstName: string; lastName: string; email: string; phone: string;
   howHeard: string; recurringInterval: string;
+  smsConsent: boolean;
 }
 
 type Step = "location" | "package" | "addons" | "schedule" | "recurring" | "vehicle_info" | "contact";
@@ -556,7 +557,7 @@ function StepContact({data,onUpdate,onSubmit,isPending}:{data:BookingData;onUpda
   const [emailTouched,setEmailTouched]=useState(false);
   const dateLabel=data.appointmentDate?formatDateLabel(data.appointmentDate,data.appointmentTime):undefined;
   const emailError=emailTouched&&data.email&&!isEmailValid(data.email)?"Enter a valid email address":null;
-  const canSubmit=data.firstName.trim().length>0&&data.lastName.trim().length>0&&isPhoneComplete(data.phone)&&(!data.email||isEmailValid(data.email));
+  const canSubmit=data.firstName.trim().length>0&&data.lastName.trim().length>0&&isPhoneComplete(data.phone)&&(!data.email||isEmailValid(data.email))&&(data.smsConsent||!isPhoneComplete(data.phone));
   return (
     <div>
       <PageTitle title="Your Details"/>
@@ -579,6 +580,23 @@ function StepContact({data,onUpdate,onSubmit,isPending}:{data:BookingData;onUpda
             className={cn("bg-input border-border",data.phone&&!isPhoneComplete(data.phone)&&"border-destructive/60")}/>
           {data.phone&&!isPhoneComplete(data.phone)&&<p className="text-xs text-destructive">Enter a 10-digit phone number</p>}
         </div>
+
+        {/* SMS consent — required when phone is provided */}
+        {data.phone&&isPhoneComplete(data.phone)&&(
+          <label className="flex items-start gap-3 cursor-pointer select-none p-3 rounded-xl border border-border bg-card hover:border-primary/30 transition-colors">
+            <input
+              type="checkbox"
+              checked={data.smsConsent}
+              onChange={(e)=>onUpdate({smsConsent:e.target.checked})}
+              className="mt-0.5 w-4 h-4 rounded accent-primary flex-shrink-0"
+            />
+            <span className="text-xs text-muted-foreground leading-relaxed">
+              By providing your phone number, you agree to receive SMS messages from Detailing Labs
+              regarding your booking. Message &amp; data rates may apply. Reply STOP to opt out.
+            </span>
+          </label>
+        )}
+
         <div className="space-y-1.5">
           <Label className="text-xs font-medium">Email <span className="text-muted-foreground font-normal">(booking confirmation sent here)</span></Label>
           <Input placeholder="you@example.com" value={data.email}
@@ -620,7 +638,7 @@ export default function Booking() {
     appointmentDate:"",appointmentTime:"",
     gateInstructions:"",vehicleLocationDetails:"",specialRequests:"",petChildUse:"",vehicleCondition:"",
     vehicleMake:"",vehicleModel:"",vehicleYear:"",vehicleColor:"",vehicleLicensePlate:"",
-    firstName:"",lastName:"",email:"",phone:"",howHeard:"",recurringInterval:"",
+    firstName:"",lastName:"",email:"",phone:"",howHeard:"",recurringInterval:"",smsConsent:false,
   });
 
   const {data:addOnsData=[]}=trpc.bookings.getAddOns.useQuery();
