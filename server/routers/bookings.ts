@@ -315,6 +315,81 @@ export const bookingsRouter = router({
         sendEmail({ to: input.customerEmail, ...emailContent }).catch(() => {});
       }
 
+      // ── Send internal notification to business email ──────────────────────
+      if (newBooking) {
+        const { sendEmail } = await import("../email");
+        const internalTo = process.env.INTERNAL_NOTIFY_EMAIL
+                        || process.env.CONTACT_EMAIL
+                        || "hello@detailinglabswi.com";
+        const apt = new Date(input.appointmentDate);
+        const vehicle = [input.vehicleYear, input.vehicleMake, input.vehicleModel].filter(Boolean).join(" ") || "Unknown vehicle";
+        const adminUrl = `https://detailinglabswi.com/admin/bookings/${newBooking.id}`;
+
+        sendEmail({
+          to:      internalTo,
+          subject: `📋 New Booking Request — ${bookingNumber} | ${input.customerFirstName} ${input.customerLastName}`,
+          html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:24px;background:#09090f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#d0d0f0">
+  <div style="max-width:560px;margin:0 auto">
+    <div style="background:#1e1a00;border:1px solid #ca8a04;border-radius:12px;padding:16px 20px;margin-bottom:20px;text-align:center">
+      <span style="color:#fbbf24;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase">⏳ New Booking Request Pending Review</span>
+    </div>
+
+    <div style="background:#0e0e1c;border:1px solid #1c1c30;border-radius:12px;padding:20px;margin-bottom:16px">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="padding:8px 0;color:#6b6b9a;font-size:12px;width:130px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1a1a2e">Booking #</td><td style="padding:8px 0;color:#d0d0f0;font-family:monospace;border-bottom:1px solid #1a1a2e">${bookingNumber}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b6b9a;font-size:12px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1a1a2e">Customer</td><td style="padding:8px 0;color:#d0d0f0;border-bottom:1px solid #1a1a2e">${input.customerFirstName} ${input.customerLastName}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b6b9a;font-size:12px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1a1a2e">Phone</td><td style="padding:8px 0;border-bottom:1px solid #1a1a2e"><a href="tel:${(input.customerPhone ?? "").replace(/\D/g,"")}" style="color:#a78bfa;text-decoration:none">${input.customerPhone ?? "—"}</a></td></tr>
+        <tr><td style="padding:8px 0;color:#6b6b9a;font-size:12px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1a1a2e">Email</td><td style="padding:8px 0;border-bottom:1px solid #1a1a2e"><a href="mailto:${input.customerEmail ?? ""}" style="color:#a78bfa;text-decoration:none">${input.customerEmail ?? "—"}</a></td></tr>
+        <tr><td style="padding:8px 0;color:#6b6b9a;font-size:12px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1a1a2e">Vehicle</td><td style="padding:8px 0;color:#d0d0f0;border-bottom:1px solid #1a1a2e">${vehicle}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b6b9a;font-size:12px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1a1a2e">Service</td><td style="padding:8px 0;color:#d0d0f0;border-bottom:1px solid #1a1a2e">${input.packageName ?? "—"}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b6b9a;font-size:12px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1a1a2e">Date</td><td style="padding:8px 0;color:#d0d0f0;border-bottom:1px solid #1a1a2e">${apt.toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" })}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b6b9a;font-size:12px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1a1a2e">Location</td><td style="padding:8px 0;color:#d0d0f0;border-bottom:1px solid #1a1a2e">${input.serviceAddress}${input.serviceCity ? `, ${input.serviceCity}` : ""}${input.serviceState ? `, ${input.serviceState}` : ""}</td></tr>
+        ${input.totalAmount ? `<tr><td style="padding:8px 0;color:#6b6b9a;font-size:12px;text-transform:uppercase;letter-spacing:1px">Total</td><td style="padding:8px 0;color:#a78bfa;font-weight:700;font-size:16px">$${Number(input.totalAmount).toFixed(2)}</td></tr>` : ""}
+      </table>
+    </div>
+
+    ${input.notes ? `<div style="background:#0e0e1c;border:1px solid #1c1c30;border-left:3px solid #7c3aed;border-radius:0 10px 10px 0;padding:14px 18px;margin-bottom:16px"><p style="margin:0 0 4px;color:#6b6b9a;font-size:11px;text-transform:uppercase;letter-spacing:1px">Special Requests</p><p style="margin:0;color:#c0c0e0;font-size:13px">${input.notes}</p></div>` : ""}
+
+    <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:12px">
+      <tr>
+        <td style="padding-right:6px">
+          <a href="${adminUrl}?action=approve" style="display:block;text-align:center;padding:14px;background:#16a34a;color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:10px">
+            ✓ Approve
+          </a>
+        </td>
+        <td style="padding-left:6px">
+          <a href="${adminUrl}?action=decline" style="display:block;text-align:center;padding:14px;background:#dc2626;color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:10px">
+            ✕ Decline
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <a href="${adminUrl}" style="display:block;text-align:center;padding:12px;background:#0e0e1c;border:1px solid #1c1c30;color:#a78bfa;font-size:13px;text-decoration:none;border-radius:10px">
+      View Full Booking in Admin →
+    </a>
+
+    <p style="margin:20px 0 0;color:#3a3a5a;font-size:11px;text-align:center">Detailing Labs · Internal Notification · Do not reply</p>
+  </div>
+</body></html>`,
+          text: `New Booking Request — ${bookingNumber}
+
+Customer: ${input.customerFirstName} ${input.customerLastName}
+Phone: ${input.customerPhone ?? "—"}
+Email: ${input.customerEmail ?? "—"}
+Vehicle: ${vehicle}
+Service: ${input.packageName ?? "—"}
+Date: ${apt.toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" })}
+Location: ${input.serviceAddress}${input.serviceCity ? `, ${input.serviceCity}` : ""}
+${input.totalAmount ? `Total: $${Number(input.totalAmount).toFixed(2)}
+` : ""}${input.notes ? `Notes: ${input.notes}
+` : ""}
+Review: ${adminUrl}`,
+        }).catch(() => {});
+      }
+
       return { bookingNumber, bookingId: newBooking?.id };
     }),
 
