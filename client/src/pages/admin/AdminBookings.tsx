@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import {
   Search, Filter, ChevronLeft, Car, Calendar, MapPin, Phone,
-  Mail, User, CheckCircle2, Clock, AlertCircle, Edit, Trash2,
+  Mail, User, CheckCircle2, XCircle, Clock, AlertCircle, Edit, Trash2,
   UserCheck, DollarSign, Camera, Star, ChevronRight, Plus, Loader2, FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
