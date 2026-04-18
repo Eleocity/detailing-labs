@@ -621,10 +621,10 @@ function StepContact({data,onUpdate,onSubmit,isPending}:{data:BookingData;onUpda
           </div>
         </div>
         <p className="text-[11px] text-muted-foreground leading-relaxed">
-          By submitting this booking you agree to our cancellation policy. We require 24-hour notice for any rescheduling or cancellations.
+          By submitting this request you agree to our cancellation policy — 24-hour notice required for rescheduling or cancellations.
         </p>
       </div>
-      <StickyBottom dateLabel={dateLabel} onNext={onSubmit} nextLabel="Confirm Booking" disabled={!canSubmit} isPending={isPending}/>
+      <StickyBottom dateLabel={dateLabel} onNext={onSubmit} nextLabel="Submit Booking Request" disabled={!canSubmit} isPending={isPending}/>
     </div>
   );
 }

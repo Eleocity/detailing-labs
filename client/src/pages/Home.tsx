@@ -455,7 +455,11 @@ export default function Home() {
               const meta = PACKAGE_META[pkg.name];
               return (
                 <motion.div key={pkg.id} variants={fadeUp}>
-                  <Link href="/booking">
+                  {(() => {
+                    const pricing_p = PRICING_PACKAGES.find(p => p.name === pkg.name);
+                    const bookHref = pricing_p ? `/booking?pkg=${pricing_p.slug}` : "/booking";
+                    return (
+                  <Link href={bookHref}>
                     <div className={`group relative flex flex-col gap-4 p-7 rounded-2xl border-2 bg-card hover:bg-primary/4 transition-all cursor-pointer h-full ${pkg.isPopular ? "border-primary/60 shadow-lg shadow-primary/10" : "border-border hover:border-primary/50"}`}>
                       {pkg.isPopular && (
                         <div className="absolute -top-3 left-6">
@@ -477,10 +481,12 @@ export default function Home() {
                         {meta && <span className="text-xs text-muted-foreground">{meta.duration}</span>}
                       </div>
                       <div className="flex items-center gap-1.5 text-sm font-semibold text-primary mt-auto">
-                        See what's included <ArrowRight className="w-4 h-4" />
+                        Book this package <ArrowRight className="w-4 h-4" />
                       </div>
                     </div>
                   </Link>
+                    );
+                  })()}
                 </motion.div>
               );
             })}

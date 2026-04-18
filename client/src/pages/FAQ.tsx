@@ -48,7 +48,7 @@ const faqs = [
       },
       {
         q: "Can I reschedule or cancel my appointment?",
-        a: "Yes. Please give us at least 24 hours' notice for rescheduling and 48 hours for cancellations to avoid any fees.",
+        a: "Yes — please give us at least 24 hours' notice for rescheduling or cancellations to avoid a late cancellation fee.",
       },
     ],
   },
