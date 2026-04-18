@@ -11,7 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
-import { PACKAGES as PRICING_PACKAGES } from "@/lib/pricing";
+import { PACKAGES as PRICING_PACKAGES, VEHICLE_SIZE_OPTIONS } from "@/lib/pricing";
+
+const VEHICLE_SIZE_PRICES: Record<string, Record<string, number>> = Object.fromEntries(
+  PRICING_PACKAGES.map(p => [p.name, { sedan: p.pricing.sedan, suv: p.pricing.suv, large: p.pricing.large }])
+);
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
 import SEO from "@/components/SEO";
@@ -27,6 +31,7 @@ interface BookingData {
   petChildUse: string; vehicleCondition: string;
   vehicleMake: string; vehicleModel: string; vehicleYear: string;
   vehicleColor: string; vehicleLicensePlate: string;
+  vehicleSize: "sedan" | "suv" | "large" | "";
   firstName: string; lastName: string; email: string; phone: string;
   howHeard: string; recurringInterval: string;
   smsConsent: boolean;
@@ -321,8 +326,15 @@ function StepAddOns({data,onUpdate,onNext}:{data:BookingData;onUpdate:(d:Partial
       )}
       <div className="sticky bottom-0 bg-background/95 backdrop-blur border-t border-border/60 p-4">
         <button onClick={onNext} className="w-full bg-primary/80 hover:bg-primary text-white font-semibold py-3.5 rounded-2xl text-sm transition-colors">
-          {totalAddOns>0?`Continue · $${total.toFixed(2)}`:"Continue — No Add-Ons"}
+          {totalAddOns > 0
+            ? `Continue · from $${total.toFixed(2)}`
+            : "Continue — No Add-Ons"}
         </button>
+        {totalAddOns === 0 && data.packageName && (
+          <p className="text-center text-xs text-muted-foreground mt-2">
+            Final price confirmed after selecting vehicle size
+          </p>
+        )}
       </div>
     </div>
   );
@@ -502,6 +514,49 @@ function StepVehicleInfo({data,onUpdate,onNext}:{data:BookingData;onUpdate:(d:Pa
     <div>
       <PageTitle title="Vehicle Information"/>
       <div className="px-5 py-4 space-y-5">
+        {/* Vehicle size — determines final pricing */}
+        <div className="space-y-2">
+          <Label className="text-sm text-primary font-semibold">
+            Vehicle Size <span className="text-destructive">*</span>
+            {data.packageName && <span className="text-xs font-normal text-muted-foreground ml-2">affects your final price</span>}
+          </Label>
+          <div className="grid grid-cols-3 gap-2">
+            {VEHICLE_SIZE_OPTIONS.map((opt) => {
+              const price = data.packageName ? VEHICLE_SIZE_PRICES[data.packageName]?.[opt.id] : null;
+              const isSelected = data.vehicleSize === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => {
+                    onUpdate({ vehicleSize: opt.id, vehicleType: opt.id });
+                    if (data.packageName && price) {
+                      onUpdate({ packagePrice: price });
+                    }
+                  }}
+                  className={cn(
+                    "flex flex-col items-center py-3 px-2 rounded-xl border-2 transition-all text-center",
+                    isSelected
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-background hover:border-primary/50"
+                  )}
+                >
+                  <span className={cn("text-sm font-bold leading-tight", isSelected ? "text-primary" : "text-muted-foreground")}>
+                    {opt.label}
+                  </span>
+                  <span className={cn("text-xs leading-tight", isSelected ? "text-primary/70" : "text-muted-foreground/60")}>
+                    {opt.sub}
+                  </span>
+                  {price && (
+                    <span className={cn("text-xs font-semibold mt-1", isSelected ? "text-primary" : "text-muted-foreground")}>
+                      ${price}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="space-y-3">
           <Label className="text-sm text-primary font-semibold">Vehicle Details</Label>
           <div className="grid grid-cols-2 gap-3">
@@ -549,7 +604,7 @@ function StepVehicleInfo({data,onUpdate,onNext}:{data:BookingData;onUpdate:(d:Pa
         </div>
       </div>
       <StickyBottom dateLabel={dateLabel} onNext={onNext}
-        disabled={!data.vehicleMake.trim()||!data.vehicleModel.trim()||!yearValid}/>
+        disabled={!data.vehicleMake.trim()||!data.vehicleModel.trim()||!yearValid||!data.vehicleSize}/>
     </div>
   );
 }
@@ -647,7 +702,7 @@ export default function Booking() {
     vehicleType:"",addOnQty:{},
     appointmentDate:"",appointmentTime:"",
     gateInstructions:"",vehicleLocationDetails:"",specialRequests:"",petChildUse:"",vehicleCondition:"",
-    vehicleMake:"",vehicleModel:"",vehicleYear:"",vehicleColor:"",vehicleLicensePlate:"",
+    vehicleMake:"",vehicleModel:"",vehicleYear:"",vehicleColor:"",vehicleLicensePlate:"",vehicleSize:"",
     firstName:"",lastName:"",email:"",phone:"",howHeard:"",recurringInterval:"",smsConsent:false,
     // Pre-populate from URL param if present
     ...(preselectedPkg ? {
@@ -697,7 +752,7 @@ export default function Booking() {
         vehicleMake:data.vehicleMake.trim(),vehicleModel:data.vehicleModel.trim(),
         vehicleYear:parseInt(data.vehicleYear,10),
         vehicleColor:data.vehicleColor.trim()||undefined,
-        vehicleType:data.vehicleType||undefined,
+        vehicleType:data.vehicleSize||data.vehicleType||undefined,
         vehicleLicensePlate:data.vehicleLicensePlate.trim()||undefined,
         packageId:data.packageId,packageName:data.packageName,
         addOnIds:addOnIds.length>0?addOnIds:undefined,
