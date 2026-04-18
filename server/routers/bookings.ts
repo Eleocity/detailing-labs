@@ -271,6 +271,7 @@ export const bookingsRouter = router({
           vehicle_make:     input.vehicleMake ?? "",
           vehicle_model:    input.vehicleModel ?? "",
           vehicle_color:    input.vehicleColor ?? "",
+          vehicle_size:     input.vehicleType ?? "",
           vehicle_condition: input.vehicleConditionNotes ?? "",
           service_package:  input.packageName ?? "Mobile Detailing",
           add_ons:          input.addOnIds ?? [],

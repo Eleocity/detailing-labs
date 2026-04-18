@@ -4,6 +4,8 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Mail, CheckCircle2, AlertCircle, ChevronRight, ArrowLeft } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 import SEO from "@/components/SEO";
 
 type State = "idle" | "loading" | "done" | "error";

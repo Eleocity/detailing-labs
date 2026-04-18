@@ -27,6 +27,7 @@ export interface ZapierBookingPayload {
   vehicle_make:        string;
   vehicle_model:       string;
   vehicle_color:       string;
+  vehicle_size:        string;   // "sedan" | "suv" | "large"
   vehicle_condition:   string;
 
   // Service

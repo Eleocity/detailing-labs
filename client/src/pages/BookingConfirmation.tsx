@@ -63,6 +63,33 @@ export default function BookingConfirmation() {
     );
   }
 
+  if (!booking && !isLoading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
+        <SiteHeader />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center py-20 max-w-md px-4">
+            <p className="text-4xl font-display font-bold text-primary/20 mb-4">?</p>
+            <h1 className="text-2xl font-display font-bold mb-3">Booking not found</h1>
+            <p className="text-muted-foreground text-sm mb-6">
+              We couldn't find booking <span className="font-mono text-foreground">{bookingNumber}</span>.
+              Check your confirmation email for the correct reference number.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/booking">
+                <Button className="bg-primary hover:bg-primary/90 font-semibold">Book Again</Button>
+              </Link>
+              <Link href="/contact">
+                <Button variant="outline" className="border-border">Contact Us</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+        <SiteFooter />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEO
