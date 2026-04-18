@@ -11,6 +11,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import SEO, { breadcrumbSchema, serviceSchema, localBusinessSchema } from "@/components/SEO";
 import { trpc } from "@/lib/trpc";
+import { PACKAGES as PRICING_PACKAGES, ADD_ONS as PRICING_ADDONS, VEHICLE_SIZE_OPTIONS, VEHICLE_SIZE_LABELS } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
 const fadeUp = {
@@ -19,122 +20,38 @@ const fadeUp = {
 };
 const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
 
-// Vehicle pricing tiers shown on package cards
-const VEHICLE_TIERS: Record<string, { label: string; price: number }[]> = {
-  "Exterior Decon & Shield": [
-    { label: "Sedan / Coupe",        price: 129.99 },
-    { label: "Small SUV / Truck",    price: 149.99 },
-    { label: "Large SUV / Minivan",  price: 199.99 },
-  ],
-  "Interior Deep Refresh": [
-    { label: "Sedan / Coupe",        price: 129.99 },
-    { label: "Small SUV / Truck",    price: 149.99 },
-    { label: "Large SUV / Minivan",  price: 199.99 },
-  ],
-  "Full Showroom Reset": [
-    { label: "Sedan / Coupe",        price: 229.99 },
-    { label: "Small SUV / Truck",    price: 269.99 },
-    { label: "Large SUV / Minivan",  price: 359.99 },
-  ],
-  "The Lab Grade Detail": [
-    { label: "Sedan / Coupe",        price: 449.99 },
-    { label: "Small SUV / Truck",    price: 529.99 },
-    { label: "Large SUV / Minivan",  price: 649.99 },
-  ],
-};
+// Package metadata — sourced from shared pricing constants
+const PACKAGE_META: Record<string, { bestFor: string }> = Object.fromEntries(
+  PRICING_PACKAGES.map(p => [p.name, { bestFor: p.bestFor }])
+);
 
-// Fallback packages (used if DB is empty / not yet configured)
-const FALLBACK_PACKAGES = [
-  {
-    id: 1,
-    name: "Exterior Decon & Shield",
-    price: "129.99",
-    duration: 120,
-    description: "Total decontamination and 3-month hydrophobic protection. From $129.",
-    features: JSON.stringify([
-      "Signature hand wash",
-      "Wheel & tire deep clean",
-      "Iron Remover treatment",
-      "Bug & Tar Removal",
-      "Hydrophobic Spray Wax (3-month protection)",
-    ]),
-    isPopular: false,
-    isActive: true,
-  },
-  {
-    id: 2,
-    name: "Interior Deep Refresh",
-    price: "129.99",
-    duration: 120,
-    description: "Complete cabin sanitization and restoration. From $129.",
-    features: JSON.stringify([
-      "Compressed air blowout",
-      "Deep vacuum (all surfaces)",
-      "Dash/console/door scrub",
-      "UV protectant treatment",
-      "Streak-free interior glass",
-      "Floor mat restoration",
-    ]),
-    isPopular: false,
-    isActive: true,
-  },
-  {
-    id: 3,
-    name: "Full Showroom Reset",
-    price: "229.99",
-    duration: 240,
-    description: "Our most popular package — total vehicle transformation inside and out. From $229.",
-    features: JSON.stringify([
-      "Everything in Exterior Decon & Shield",
-      "Everything in Interior Deep Refresh",
-      "Best value — save up to $39 vs. booking separately",
-      "Like-new vehicle experience inside and out",
-    ]),
-    isPopular: true,
-    isActive: true,
-  },
-  {
-    id: 4,
-    name: "The Lab Grade Detail",
-    price: "449.99",
-    duration: 480,
-    description: "Our most intensive single-day service. Paint-corrected, decontaminated, and coated — the highest result we offer.",
-    features: JSON.stringify([
-      "Everything in Full Showroom Reset",
-      "Iron X iron & fallout decontamination",
-      "Clay bar paint decontamination",
-      "1-stage paint correction (swirl & scratch reduction)",
-      "Ceramic spray sealant (6-month protection)",
-      "Before & after photo documentation",
-    ]),
-    isPopular: false,
-    isActive: true,
-  },
-];
+// Vehicle pricing tiers — sourced from shared pricing constants in @/lib/pricing
+const VEHICLE_TIERS: Record<string, { label: string; price: number }[]> = Object.fromEntries(
+  PRICING_PACKAGES.map(p => [p.name, [
+    { label: VEHICLE_SIZE_LABELS.sedan, price: p.pricing.sedan },
+    { label: VEHICLE_SIZE_LABELS.suv,   price: p.pricing.suv },
+    { label: VEHICLE_SIZE_LABELS.large, price: p.pricing.large },
+  ]])
+);
 
-const FALLBACK_ADDONS = [
-  { name: "Pet Hair Removal",                    price: "49.99",  description: "Starting at $49" },
-  { name: "Odor Elimination Treatment",          price: "49.99",  description: "Interior deodorizer treatment" },
-  { name: "Engine Bay Detail",                   price: "49.99",  description: "Degreased & detailed engine bay" },
-  { name: "Headlight Restoration",               price: "99.99",  description: "Restore clarity & UV protection" },
-  { name: "Seat Extraction — Front Only",        price: "49.99",  description: "$50–$75 depending on condition" },
-  { name: "Seat Extraction — Full Vehicle",      price: "99.99", description: "$100–$150 all rows" },
-  { name: "Seat Extraction — Per Seat (Spot)",   price: "24.99",  description: "$25 per seat spot treatment" },
-];
-const PACKAGE_META: Record<string, { bestFor: string }> = {
-  "Exterior Decon & Shield": {
-    bestFor: "Seasonal refresh, pre-event prep, or maintaining a clean car between full details",
-  },
-  "Interior Deep Refresh": {
-    bestFor: "Used car buyers, pet owners, or anyone whose cabin needs a proper reset",
-  },
-  "Full Showroom Reset": {
-    bestFor: "First-time clients, pre-sale prep, or when you want the full treatment in one visit",
-  },
-  "The Lab Grade Detail": {
-    bestFor: "High-end vehicles, neglected paint, or when only the highest possible result will do",
-  },
-};
+// Fallback packages — derived from shared pricing constants in @/lib/pricing
+const FALLBACK_PACKAGES = PRICING_PACKAGES.map(p => ({
+  id:          p.id,
+  name:        p.name,
+  price:       String(p.pricing.sedan),
+  duration:    p.durationMins,
+  description: `${p.tagline}. From $${p.pricing.sedan}.`,
+  features:    JSON.stringify(p.features),
+  isPopular:   p.isPopular,
+  isActive:    true,
+}));
+
+const FALLBACK_ADDONS = PRICING_ADDONS.map(a => ({
+  name:        a.name,
+  price:       String(a.price),
+  description: a.description,
+}));
+
 
 
 type Tab = "detailing" | "ceramic" | "fleet" | "paint";
@@ -371,11 +288,7 @@ export default function Pricing() {
                       <p className="font-display font-bold text-base text-foreground">What size is your vehicle?</p>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                      {([
-                        { id: "sedan", label: "Sedan", sub: "Coupe" },
-                        { id: "suv",   label: "SUV",   sub: "Small / Truck" },
-                        { id: "large", label: "SUV",   sub: "Large / Minivan" },
-                      ] as const).map((opt) => (
+                      {VEHICLE_SIZE_OPTIONS.map((opt) => (
                         <button key={opt.id} onClick={() => setVehicleSize(opt.id)}
                           className={cn(
                             "flex flex-col items-center justify-center gap-0.5 py-3 px-2 rounded-xl border-2 transition-all text-center",
@@ -474,18 +387,24 @@ export default function Pricing() {
                             ))}
                           </ul>
 
-                          <Link href="/booking">
-                            <Button
-                              className={cn(
-                                "w-full font-semibold",
-                                pkg.isPopular ? "bg-primary hover:bg-primary/90 text-primary-foreground" : ""
-                              )}
-                              variant={pkg.isPopular ? "default" : "outline"}
-                            >
-                              Book {pkg.name}
-                              <ChevronRight className="w-4 h-4 ml-1" />
-                            </Button>
-                          </Link>
+                          {(() => {
+                            const pricingPkg = PRICING_PACKAGES.find(p => p.name === pkg.name);
+                            const href = pricingPkg ? `/booking?pkg=${pricingPkg.slug}` : "/booking";
+                            return (
+                              <Link href={href}>
+                                <Button
+                                  className={cn(
+                                    "w-full font-semibold",
+                                    pkg.isPopular ? "bg-primary hover:bg-primary/90 text-primary-foreground" : ""
+                                  )}
+                                  variant={pkg.isPopular ? "default" : "outline"}
+                                >
+                                  Book This Package
+                                  <ChevronRight className="w-4 h-4 ml-1" />
+                                </Button>
+                              </Link>
+                            );
+                          })()}
                         </motion.div>
                       );
                     })}

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
+import { useSearch } from "wouter/use-browser-location";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check, MapPin, Search, ChevronLeft, ChevronRight,
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { PACKAGES as PRICING_PACKAGES } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
 import SEO from "@/components/SEO";
@@ -630,15 +632,30 @@ function StepContact({data,onUpdate,onSubmit,isPending}:{data:BookingData;onUpda
 // ─── Main ────────────────────────────────────────────────────────────────────
 export default function Booking() {
   const [,navigate]=useLocation();
-  const [step,setStep]=useState<Step>("location");
-  const [history,setHistory]=useState<Step[]>([]);
-  const [data,setData]=useState<BookingData>({
+  const search = useSearch();
+
+  // Pre-select package from URL param: /booking?pkg=full-showroom-reset
+  const urlPkg = new URLSearchParams(search).get("pkg");
+  const preselectedPkg = urlPkg
+    ? PRICING_PACKAGES.find(p => p.slug === urlPkg)
+    : null;
+
+  const [step, setStep] = useState<Step>(preselectedPkg ? "addons" : "location");
+  const [history, setHistory] = useState<Step[]>(preselectedPkg ? ["location", "package"] : []);
+  const [data, setData] = useState<BookingData>({
     serviceAddress:"",serviceCity:"",serviceState:"WI",serviceZip:"",
     vehicleType:"",addOnQty:{},
     appointmentDate:"",appointmentTime:"",
     gateInstructions:"",vehicleLocationDetails:"",specialRequests:"",petChildUse:"",vehicleCondition:"",
     vehicleMake:"",vehicleModel:"",vehicleYear:"",vehicleColor:"",vehicleLicensePlate:"",
     firstName:"",lastName:"",email:"",phone:"",howHeard:"",recurringInterval:"",smsConsent:false,
+    // Pre-populate from URL param if present
+    ...(preselectedPkg ? {
+      packageId:       preselectedPkg.id,
+      packageName:     preselectedPkg.name,
+      packagePrice:    preselectedPkg.pricing.sedan,
+      packageDuration: preselectedPkg.durationMins,
+    } : {}),
   });
 
   const {data:addOnsData=[]}=trpc.bookings.getAddOns.useQuery();

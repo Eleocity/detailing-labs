@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { trpc } from "@/lib/trpc";
+import { PACKAGES as PRICING_PACKAGES, packageFromPrice } from "@/lib/pricing";
 import SEO, { localBusinessSchema, breadcrumbSchema, faqSchema, reviewSchema } from "@/components/SEO";
 
 function useContent(section: string) {
@@ -98,24 +99,7 @@ const beforeAfterPairs = [
   },
 ];
 
-const PACKAGE_META: Record<string, { bestFor: string; duration: string }> = {
-  "Exterior Decon & Shield": {
-    bestFor: "Seasonal refresh, pre-event prep, or maintaining a clean car between full details",
-    duration: "~2 hours",
-  },
-  "Interior Deep Refresh": {
-    bestFor: "Used car buyers, pet owners, or anyone whose cabin needs a proper reset",
-    duration: "~2 hours",
-  },
-  "Full Showroom Reset": {
-    bestFor: "First-time clients, pre-sale prep, or when you want the full treatment in one visit",
-    duration: "~4 hours",
-  },
-  "The Lab Grade Detail": {
-    bestFor: "High-end vehicles, neglected paint, or when only the highest possible result will do",
-    duration: "~6–8 hours",
-  },
-};
+// Package metadata is now in @/lib/pricing
 
 const faqs = [
   {
@@ -252,12 +236,13 @@ export default function Home() {
   const { data: dbPackages } = trpc.bookings.getPackages.useQuery();
   const packages = (dbPackages ?? []).filter(p => p.isActive).slice(0, 4);
 
-  const VEHICLE_TIERS: Record<string, number> = {
-    "Exterior Decon & Shield": 129.99,
-    "Interior Deep Refresh":   129.99,
-    "Full Showroom Reset":     229.99,
-    "The Lab Grade Detail":    449.99,
-  };
+  // Package from-prices — sourced from shared pricing constants
+  const VEHICLE_TIERS: Record<string, number> = Object.fromEntries(
+    PRICING_PACKAGES.map(p => [p.name, p.pricing.sedan])
+  );
+  const PACKAGE_META: Record<string, { bestFor: string; duration: string }> = Object.fromEntries(
+    PRICING_PACKAGES.map(p => [p.name, { bestFor: p.bestFor, duration: p.duration }])
+  );
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -470,7 +455,7 @@ export default function Home() {
               const meta = PACKAGE_META[pkg.name];
               return (
                 <motion.div key={pkg.id} variants={fadeUp}>
-                  <Link href="/pricing?tab=detailing">
+                  <Link href="/booking">
                     <div className={`group relative flex flex-col gap-4 p-7 rounded-2xl border-2 bg-card hover:bg-primary/4 transition-all cursor-pointer h-full ${pkg.isPopular ? "border-primary/60 shadow-lg shadow-primary/10" : "border-border hover:border-primary/50"}`}>
                       {pkg.isPopular && (
                         <div className="absolute -top-3 left-6">
