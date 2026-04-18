@@ -89,7 +89,7 @@ export default function Contact() {
 
               <motion.div variants={fadeUp} className="space-y-4 mb-8">
                 {[
-                  { icon: <Phone className="w-5 h-5" />, label: "Phone", value: contact.phone || "(262) 555-0190", href: `tel:${(contact.phone || "2625550190").replace(/\D/g, "")}` },
+                  { icon: <Phone className="w-5 h-5" />, label: "Phone", value: contact.phone || "(262) 260-9474", href: `tel:${(contact.phone || "2622609474").replace(/\D/g, "")}` },
                   { icon: <Mail className="w-5 h-5" />, label: "Email", value: contact.email || "hello@detailinglabswi.com", href: `mailto:${contact.email || "hello@detailinglabswi.com"}` },
                   { icon: <MapPin className="w-5 h-5" />, label: "Service Area", value: contact.address || "Greater Milwaukee & Waukesha Area", href: null },
                   { icon: <Clock className="w-5 h-5" />, label: "Weekday Hours", value: contact.hours_weekday || "Mon–Fri: 7:00 AM – 7:00 PM", href: null },

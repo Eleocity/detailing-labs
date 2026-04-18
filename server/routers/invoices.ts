@@ -141,7 +141,7 @@ export const invoicesRouter = router({
 
       // Get business contact info
       const contactRows = await db.select().from(siteContent).where(eq(siteContent.section, "contact")).limit(20);
-      const phone = contactRows.find(r => r.key === "phone")?.value || "(262) 555-0190";
+      const phone = contactRows.find(r => r.key === "phone")?.value || "(262) 260-9474";
       const bizEmail = contactRows.find(r => r.key === "email")?.value || "hello@detailinglabswi.com";
 
       const lineItems: { name: string; qty: number; price: number }[] = inv.lineItems ? JSON.parse(inv.lineItems) : [];
@@ -193,7 +193,7 @@ export const invoicesRouter = router({
       if (inv.bookingId) {
         const [booking] = await db.select().from(bookings).where(eq(bookings.id, inv.bookingId)).limit(1);
         const contactRows = await db.select().from(siteContent).where(eq(siteContent.section, "contact")).limit(20);
-        const phone    = contactRows.find(r => r.key === "phone")?.value    || "(262) 555-0190";
+        const phone    = contactRows.find(r => r.key === "phone")?.value    || "(262) 260-9474";
         const bizEmail = contactRows.find(r => r.key === "email")?.value    || "hello@detailinglabswi.com";
         const lineItems: { name: string; qty: number; price: number }[] = inv.lineItems ? JSON.parse(inv.lineItems) : [];
 

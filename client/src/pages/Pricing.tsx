@@ -60,11 +60,6 @@ export default function Pricing() {
   const [tab, setTab] = useState<Tab | null>("detailing");
   const [vehicleSize, setVehicleSize] = useState<"sedan" | "suv" | "large" | null>(null);
 
-  const VEHICLE_SIZE_LABELS: Record<string, string> = {
-    sedan: "Sedan / Coupe",
-    suv:   "Small SUV / Truck",
-    large: "Large SUV / Minivan",
-  };
   const VEHICLE_SIZE_INDEX: Record<string, number> = { sedan: 0, suv: 1, large: 2 };
   const vehicleSizeSelected = vehicleSize !== null;
   const search = useSearch();
@@ -78,7 +73,7 @@ export default function Pricing() {
   const { data: dbAddOns } = trpc.bookings.getAddOns.useQuery();
   const { data: contactData } = trpc.content.getSiteContent.useQuery({ section: "contact" });
   const contact = Object.fromEntries((contactData ?? []).map(r => [r.key, r.value ?? ""]));
-  const phone      = contact.phone || "(262) 555-0190";
+  const phone      = contact.phone || "(262) 260-9474";
   const email      = contact.email || "hello@detailinglabswi.com";
   const phoneHref  = `tel:${phone.replace(/\D/g, "")}`;
   const emailHref  = `mailto:${email}`;

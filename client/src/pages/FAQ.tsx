@@ -264,7 +264,7 @@ export default function FAQ() {
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
-              <Link href="/book">
+              <Link href="/booking">
                 <Button variant="outline" className="border-border hover:border-primary/50 px-8">
                   Book Now
                 </Button>

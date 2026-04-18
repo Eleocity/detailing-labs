@@ -171,7 +171,7 @@ export const bookingsRouter = router({
             return { data: rows };
           } catch { return { data: [] }; }
         })();
-        const phone = contactRows.find((r: any) => r.key === "phone")?.value || "(262) 555-0190";
+        const phone = contactRows.find((r: any) => r.key === "phone")?.value || "(262) 260-9474";
         const emailContent = bookingConfirmationEmail({
           bookingNumber,
           customerFirstName: input.customerFirstName,

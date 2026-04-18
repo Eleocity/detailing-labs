@@ -116,7 +116,7 @@ export const LOCATIONS: LocationData[] = [
 function LocationPage({ location }: { location: LocationData }) {
   const { data: contactData } = trpc.content.getSiteContent.useQuery({ section: "contact" });
   const contact = Object.fromEntries((contactData ?? []).map(r => [r.key, r.value ?? ""]));
-  const phone     = contact.phone || "(262) 555-0190";
+  const phone     = contact.phone || "(262) 260-9474";
   const phoneHref = `tel:${phone.replace(/\D/g, "")}`;
 
   const fullLocation = `${location.city}, ${location.state}`;

@@ -641,7 +641,7 @@ export default function Booking() {
     : null;
 
   const [step, setStep] = useState<Step>(preselectedPkg ? "addons" : "location");
-  const [history, setHistory] = useState<Step[]>(preselectedPkg ? ["location", "package"] : []);
+  const [history, setHistory] = useState<Step[]>(preselectedPkg ? [] : []);  // preselected: back goes to home
   const [data, setData] = useState<BookingData>({
     serviceAddress:"",serviceCity:"",serviceState:"WI",serviceZip:"",
     vehicleType:"",addOnQty:{},
@@ -717,7 +717,10 @@ export default function Booking() {
     }
   };
 
-  const progressPct=((STEPS.indexOf(step)+1)/STEPS.length)*100;
+  // When package is pre-selected, boost progress since 2 steps were skipped
+  const progressPct = preselectedPkg
+    ? Math.max(40, ((STEPS.indexOf(step)+1)/STEPS.length)*100)
+    : ((STEPS.indexOf(step)+1)/STEPS.length)*100;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -729,11 +732,7 @@ export default function Booking() {
         <div className="flex-1 mx-4 h-1 bg-border rounded-full overflow-hidden">
           <div className="h-full bg-primary transition-all duration-300 rounded-full" style={{width:`${progressPct}%`}}/>
         </div>
-        <Link href="/login">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-xs font-bold text-primary">G</span>
-          </div>
-        </Link>
+<div className="w-8 h-8" />
       </div>
       <AnimatePresence mode="wait">
         <motion.div key={step} initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18,ease:"easeOut"}} className="flex-1 flex flex-col">

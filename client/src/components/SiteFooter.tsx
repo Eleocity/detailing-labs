@@ -9,7 +9,7 @@ export default function SiteFooter() {
     if (contactContent) for (const row of contactContent) map[row.key] = row.value ?? "";
     return map;
   })();
-  const phone = contact.phone || "(262) 555-0190";
+  const phone = contact.phone || "(262) 260-9474";
   const email = contact.email || "hello@detailinglabswi.com";
   const address = contact.address || "Greater Milwaukee & Waukesha, WI";
 
@@ -66,12 +66,19 @@ export default function SiteFooter() {
           <div>
             <h4 className="font-display font-semibold text-foreground mb-4">Services</h4>
             <ul className="space-y-2">
-              {["Exterior Decon & Shield", "Interior Deep Refresh", "Full Showroom Reset", "Add-On Services", "Add-On Services", "Book an Appointment"].map((s) => (
-                <li key={s}>
-                  <Link href="/services">
+              {[
+                { label: "Exterior Decon & Shield",    href: "/pricing?tab=detailing" },
+                { label: "Interior Deep Refresh",       href: "/pricing?tab=detailing" },
+                { label: "Full Showroom Reset",         href: "/pricing?tab=detailing" },
+                { label: "The Lab Grade Detail",        href: "/pricing?tab=detailing" },
+                { label: "Ceramic Coating",             href: "/pricing?tab=ceramic" },
+                { label: "Paint Correction",            href: "/pricing?tab=paint" },
+              ].map((s) => (
+                <li key={s.label}>
+                  <Link href={s.href}>
                     <span className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1 group">
                       <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      {s}
+                      {s.label}
                     </span>
                   </Link>
                 </li>
@@ -84,7 +91,7 @@ export default function SiteFooter() {
             <h4 className="font-display font-semibold text-foreground mb-4">Quick Links</h4>
             <ul className="space-y-2">
               {[
-                { href: "/book", label: "Book Appointment" },
+                { href: "/booking", label: "Book Appointment" },
                 { href: "/pricing", label: "Pricing & Packages" },
                 { href: "/gallery", label: "Photo Gallery" },
                 { href: "/about", label: "About Us" },

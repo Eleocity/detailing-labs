@@ -135,7 +135,7 @@ async function startServer() {
       if (!booking?.customerEmail) return;
 
       const rows = await db.select().from(scTable).where(eq(scTable.section, "contact")).limit(20);
-      const phone    = rows.find((r: any) => r.key === "phone")?.value    || "(262) 555-0190";
+      const phone    = rows.find((r: any) => r.key === "phone")?.value    || "(262) 260-9474";
       const bizEmail = rows.find((r: any) => r.key === "email")?.value    || "hello@detailinglabswi.com";
       const lineItems: { name: string; qty: number; price: number }[] = inv.lineItems ? JSON.parse(inv.lineItems) : [];
 
@@ -329,7 +329,7 @@ async function seedDefaultContent() {
     { section: "about", key: "satisfaction_rate", value: "99%" },
     { section: "about", key: "service_areas",     value: "10+" },
     // Contact
-    { section: "contact", key: "phone",           value: "(262) 555-0190" },
+    { section: "contact", key: "phone",           value: "(262) 260-9474" },
     { section: "contact", key: "email",           value: "hello@detailinglabswi.com" },
     { section: "contact", key: "address",         value: "Sturtevant, WI — Racine County" },
     { section: "contact", key: "hours_weekday",   value: "Mon–Fri: 9:00 AM – 5:00 PM" },
