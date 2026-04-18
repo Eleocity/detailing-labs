@@ -241,11 +241,17 @@ export function BlogPost() {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-display font-bold mb-3">Post not found</h1>
-          <Link href="/blog"><Button variant="outline">Back to Blog</Button></Link>
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
+        <SiteHeader />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center py-20">
+            <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">404</p>
+            <h1 className="text-3xl font-display font-bold mb-3">Post not found</h1>
+            <p className="text-muted-foreground text-sm mb-6">That article doesn't exist or has been moved.</p>
+            <Link href="/blog"><Button variant="outline">Back to Blog</Button></Link>
+          </div>
         </div>
+        <SiteFooter />
       </div>
     );
   }

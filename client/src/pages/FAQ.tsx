@@ -40,7 +40,7 @@ const faqs = [
       },
       {
         q: "How long does a detail take?",
-        a: "Service time depends on the package, vehicle size, and condition. Most appointments take between 2 and 6 hours.",
+        a: "Service time depends on the package and vehicle size. Exterior or interior alone runs ~2 hours. The Full Showroom Reset is 3–4 hours. The Lab Grade Detail is 6–8 hours.",
       },
       {
         q: "Do I need to be there during the appointment?",

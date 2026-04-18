@@ -80,7 +80,7 @@ const SECTIONS: SectionDef[] = [
     fields: [
       { key: "name",                   label: "Business Name",       placeholder: "Detailing Labs" },
       { key: "tagline",                label: "Tagline",             placeholder: "Professional Mobile Detailing" },
-      { key: "tax_rate",               label: "Tax Rate (decimal)",  placeholder: "0.0825", hint: "e.g. 0.0825 = 8.25%" },
+      { key: "tax_rate",               label: "Tax Rate (decimal)",  placeholder: "0.055",  hint: "WI state sales tax = 0.055 (5.5%)" },
       { key: "travel_fee_base",        label: "Base Travel Fee ($)", placeholder: "0" },
       { key: "service_radius_miles",   label: "Service Radius (mi)", placeholder: "40" },
       { key: "booking_advance_hours",  label: "Min Booking Lead (hrs)", placeholder: "12", hint: "How far ahead customers must book" },
@@ -275,7 +275,7 @@ function FAQEditor({
     : [
         { q: "Do you need access to water or power at my location?", a: "No. We carry everything — our own water tank and generator." },
         { q: "What if I'm not home during the appointment?",         a: "Most clients aren't. As long as we can access the vehicle, we'll handle it." },
-        { q: "How long does a detail take?",                         a: "Exterior or interior alone is about 2 hours. Full Showroom Reset is 3–4 hours." },
+        { q: "How long does a detail take?",                         a: "~2 hrs for exterior or interior alone. Full Showroom Reset is 3–4 hrs. The Lab Grade Detail is 6–8 hrs." },
         { q: "Do you service my area?",                              a: "We cover Racine County, Kenosha County, and the greater Milwaukee metro." },
         { q: "What if I'm not happy with the result?",              a: "Tell us and we'll come back and make it right, no charge." },
       ];

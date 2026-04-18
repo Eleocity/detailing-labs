@@ -25,19 +25,21 @@ import SEO from "@/components/SEO";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const STATUS_PILL: Record<string, string> = {
-  new:         "bg-blue-500/12 text-blue-400 border-blue-500/25",
-  confirmed:   "bg-emerald-500/12 text-emerald-400 border-emerald-500/25",
-  assigned:    "bg-violet-500/12 text-violet-400 border-violet-500/25",
-  en_route:    "bg-amber-500/12 text-amber-400 border-amber-500/25",
-  in_progress: "bg-orange-500/12 text-orange-400 border-orange-500/25",
-  completed:   "bg-green-500/12 text-green-400 border-green-500/25",
-  cancelled:   "bg-zinc-500/12 text-zinc-400 border-zinc-500/25",
+  pending_review: "bg-yellow-500/12 text-yellow-400 border-yellow-500/25",
+  new:            "bg-blue-500/12 text-blue-400 border-blue-500/25",
+  confirmed:      "bg-emerald-500/12 text-emerald-400 border-emerald-500/25",
+  assigned:       "bg-violet-500/12 text-violet-400 border-violet-500/25",
+  en_route:       "bg-amber-500/12 text-amber-400 border-amber-500/25",
+  in_progress:    "bg-orange-500/12 text-orange-400 border-orange-500/25",
+  completed:      "bg-green-500/12 text-green-400 border-green-500/25",
+  cancelled:      "bg-zinc-500/12 text-zinc-400 border-zinc-500/25",
+  declined:       "bg-red-500/12 text-red-400 border-red-500/25",
 };
 
-const STATUS_STEPS = ["new", "confirmed", "assigned", "en_route", "in_progress", "completed"];
+const STATUS_STEPS = ["confirmed", "assigned", "en_route", "in_progress", "completed"];
 const STATUS_LABELS: Record<string, string> = {
-  new: "Booked", confirmed: "Confirmed", assigned: "Assigned",
-  en_route: "On the Way", in_progress: "In Progress", completed: "Done",
+  pending_review: "Pending Review", new: "Requested", confirmed: "Confirmed", assigned: "Assigned",
+  en_route: "On the Way", in_progress: "In Progress", completed: "Done", declined: "Declined",
 };
 
 const VEHICLE_TYPES = ["sedan","suv","truck","van","coupe","convertible","wagon","other"];
@@ -52,12 +54,22 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function BookingProgressBar({ status }: { status: string }) {
+  if (status === "pending_review") {
+    return (
+      <div className="flex items-center gap-2 mt-3 p-2.5 rounded-lg bg-yellow-500/8 border border-yellow-500/20">
+        <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse flex-shrink-0" />
+        <p className="text-xs text-yellow-400 font-medium">Pending review — we'll confirm within a few hours</p>
+      </div>
+    );
+  }
+  if (status === "declined" || status === "cancelled") {
+    return null;
+  }
   const idx = STATUS_STEPS.indexOf(status);
   return (
     <div className="flex items-center gap-0 mt-4">
       {STATUS_STEPS.map((s, i) => {
         const done = i <= idx;
-        const current = i === idx;
         return (
           <div key={s} className="flex items-center flex-1">
             <div className={cn(

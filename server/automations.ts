@@ -283,7 +283,7 @@ async function runWinBack(db: any): Promise<number> {
         and(
           eq(bookings.customerId, b.customerId),
           gte(bookings.appointmentDate, new Date(now.getTime() - 87 * 24 * 60 * 60 * 1000)),
-          inArray(bookings.status, ["new","confirmed","assigned","en_route","in_progress","completed"])
+          inArray(bookings.status, ["pending_review","new","confirmed","assigned","en_route","in_progress","completed"])
         )
       )
       .limit(1);
