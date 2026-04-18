@@ -785,7 +785,8 @@ Review: ${adminUrl}`,
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
-    const [newCount] = await db.select({ count: sql<number>`count(*)` }).from(bookings).where(eq(bookings.status, "new"));
+    const [pendingReviewCount] = await db.select({ count: sql<number>`count(*)` }).from(bookings).where(eq(bookings.status as any, "pending_review"));
+    const [newCount] = await db.select({ count: sql<number>`count(*)` }).from(bookings).where(eq(bookings.status as any, "new"));
     const [confirmedCount] = await db.select({ count: sql<number>`count(*)` }).from(bookings).where(eq(bookings.status, "confirmed"));
     const [completedCount] = await db.select({ count: sql<number>`count(*)` }).from(bookings).where(eq(bookings.status, "completed"));
     const [totalCustomers] = await db.select({ count: sql<number>`count(*)` }).from(customers);
@@ -797,6 +798,7 @@ Review: ${adminUrl}`,
       .where(and(gte(bookings.appointmentDate, start), lte(bookings.appointmentDate, end)));
 
     return {
+      pendingReview: Number(pendingReviewCount.count),
       newBookings: Number(newCount.count),
       confirmedBookings: Number(confirmedCount.count),
       completedBookings: Number(completedCount.count),

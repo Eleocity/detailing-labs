@@ -10,13 +10,15 @@ import { useIsMobile } from "@/hooks/useMobile";
 type ViewMode = "agenda" | "week" | "month";
 
 const STATUS_COLORS: Record<string, string> = {
-  new:         "bg-blue-500/20 border-blue-500/40 text-blue-300",
-  confirmed:   "bg-emerald-500/20 border-emerald-500/40 text-emerald-300",
-  assigned:    "bg-purple-500/20 border-purple-500/40 text-purple-300",
-  en_route:    "bg-amber-500/20 border-amber-500/40 text-amber-300",
-  in_progress: "bg-orange-500/20 border-orange-500/40 text-orange-300",
-  completed:   "bg-green-500/20 border-green-500/40 text-green-300",
-  cancelled:   "bg-red-500/20 border-red-500/40 text-red-300",
+  pending_review: "bg-yellow-500/20 border-yellow-500/40 text-yellow-300",
+  new:            "bg-blue-500/20 border-blue-500/40 text-blue-300",
+  confirmed:      "bg-emerald-500/20 border-emerald-500/40 text-emerald-300",
+  assigned:       "bg-purple-500/20 border-purple-500/40 text-purple-300",
+  en_route:       "bg-amber-500/20 border-amber-500/40 text-amber-300",
+  in_progress:    "bg-orange-500/20 border-orange-500/40 text-orange-300",
+  completed:      "bg-green-500/20 border-green-500/40 text-green-300",
+  cancelled:      "bg-red-500/20 border-red-500/40 text-red-300",
+  declined:       "bg-red-900/20 border-red-900/40 text-red-400",
 };
 
 function getWeekRange(date: Date) {

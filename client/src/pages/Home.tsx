@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { trpc } from "@/lib/trpc";
-import { PACKAGES as PRICING_PACKAGES, packageFromPrice } from "@/lib/pricing";
+import { PACKAGES as PRICING_PACKAGES } from "@/lib/pricing";
 import SEO, { localBusinessSchema, breadcrumbSchema, faqSchema, reviewSchema } from "@/components/SEO";
 
 function useContent(section: string) {

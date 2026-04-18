@@ -9,22 +9,25 @@ import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import AdminLayout from "@/components/AdminLayout";
 
-function StatCard({ label, value, icon: Icon, trend, color = "primary" }: {
-  label: string; value: string | number; icon: any; trend?: string; color?: string;
+function StatCard({ label, value, icon: Icon, trend, alert = false }: {
+  label: string; value: string | number; icon: any; trend?: string; alert?: boolean;
 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-4 rounded-xl border border-border bg-card"
+      className={`p-4 rounded-xl border bg-card ${alert && Number(value) > 0 ? "border-yellow-500/40 bg-yellow-500/5" : "border-border"}`}
     >
       <div className="flex items-start justify-between mb-3">
-        <div className={`w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center`}>
-          <Icon className="w-4 h-4 text-primary" />
+        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${alert && Number(value) > 0 ? "bg-yellow-500/15" : "bg-primary/10"}`}>
+          <Icon className={`w-4 h-4 ${alert && Number(value) > 0 ? "text-yellow-400" : "text-primary"}`} />
         </div>
         {trend && <span className="text-xs text-emerald-500 font-medium">{trend}</span>}
+        {alert && Number(value) > 0 && (
+          <span className="text-xs font-bold text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-full">Action needed</span>
+        )}
       </div>
-      <div className="text-2xl font-display font-bold mb-0.5">{value}</div>
+      <div className={`text-2xl font-display font-bold mb-0.5 ${alert && Number(value) > 0 ? "text-yellow-400" : ""}`}>{value}</div>
       <div className="text-xs text-muted-foreground">{label}</div>
     </motion.div>
   );
@@ -55,13 +58,15 @@ export default function AdminDashboard() {
       .filter((b) => b.status === "completed")
       .reduce((sum, b) => sum + Number(b.totalAmount ?? 0), 0);
 
-    const pending = bookings.filter((b) => b.status === "new" || b.status === "confirmed").length;
+    const pendingReview = bookings.filter((b) => b.status === "pending_review").length;
+    const pending = bookings.filter((b) => b.status === "pending_review" || b.status === "new" || b.status === "confirmed").length;
     const completed = bookings.filter((b) => b.status === "completed").length;
 
     return {
       todayCount: todayBookings.length,
       monthlyRevenue: revenue,
       totalCustomers: customersData?.total ?? 0,
+      pendingReview,
       pendingBookings: pending,
       completedBookings: completed,
     };
@@ -70,14 +75,16 @@ export default function AdminDashboard() {
   const recentBookings = (bookingsData?.bookings ?? []).slice(0, 8);
 
   const statusColors: Record<string, string> = {
-    new: "bg-blue-500/15 text-blue-400 border-blue-500/20",
-    confirmed: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
-    assigned: "bg-purple-500/15 text-purple-400 border-purple-500/20",
-    en_route: "bg-amber-500/15 text-amber-400 border-amber-500/20",
-    in_progress: "bg-orange-500/15 text-orange-400 border-orange-500/20",
-    completed: "bg-green-500/15 text-green-400 border-green-500/20",
-    cancelled: "bg-red-500/15 text-red-400 border-red-500/20",
-    no_show: "bg-gray-500/15 text-gray-400 border-gray-500/20",
+    pending_review: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
+    new:            "bg-blue-500/15 text-blue-400 border-blue-500/20",
+    confirmed:      "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+    assigned:       "bg-purple-500/15 text-purple-400 border-purple-500/20",
+    en_route:       "bg-amber-500/15 text-amber-400 border-amber-500/20",
+    in_progress:    "bg-orange-500/15 text-orange-400 border-orange-500/20",
+    completed:      "bg-green-500/15 text-green-400 border-green-500/20",
+    cancelled:      "bg-red-500/15 text-red-400 border-red-500/20",
+    declined:       "bg-red-900/20 text-red-400 border-red-900/30",
+    no_show:        "bg-gray-500/15 text-gray-400 border-gray-500/20",
   };
 
   return (
@@ -104,7 +111,7 @@ export default function AdminDashboard() {
           <StatCard label="Today's Appointments" value={stats.todayCount} icon={Calendar} />
           <StatCard label="Monthly Revenue" value={`$${stats.monthlyRevenue.toFixed(0)}`} icon={DollarSign} trend="+12%" />
           <StatCard label="Total Customers" value={stats.totalCustomers} icon={Users} />
-          <StatCard label="Pending Bookings" value={stats.pendingBookings} icon={Clock} />
+          <StatCard label="Needs Review" value={stats.pendingReview} icon={Clock} alert={stats.pendingReview > 0} />
         </div>
 
         {/* Recent Bookings */}

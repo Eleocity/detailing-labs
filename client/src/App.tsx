@@ -32,6 +32,7 @@ const BookingConfirmation = lazy(() => import("./pages/BookingConfirmation"));
 // Customer portal
 const CustomerPortal = lazy(() => import("./pages/CustomerPortal"));
 const InvoiceDetail = lazy(() => import("./pages/InvoiceDetail"));
+const InvoicePaid   = lazy(() => import("./pages/InvoicePaid"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -105,6 +106,7 @@ function Router() {
         <Route path="/portal" component={CustomerPortal} />
         <Route path="/portal/garage" component={CustomerPortal} />
         <Route path="/invoice/:id" component={InvoiceDetail} />
+        <Route path="/invoice-paid" component={InvoicePaid} />
 
         {/* Admin */}
         <Route path="/admin" component={AdminDashboard} />
@@ -116,8 +118,6 @@ function Router() {
         <Route path="/admin/employees" component={AdminEmployeesList} />
         <Route path="/admin/employees/:id" component={AdminEmployeeDetail} />
         <Route path="/admin/invoices" component={AdminInvoicesList} />
-        <Route path="/admin/invoices/:id" component={AdminInvoiceDetail} />
-        <Route path="/admin/urable" component={AdminUrable} />
         <Route path="/admin/invoices/:id" component={AdminInvoiceDetail} />
         <Route path="/admin/urable" component={AdminUrable} />
         <Route path="/admin/media" component={AdminMedia} />
@@ -146,6 +146,7 @@ function Router() {
         <Route path="/mobile-detailing-franksville-wi"    component={LocationPageFranksville} />
 
         <Route path="/404" component={NotFound} />
+        <Route component={NotFound} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

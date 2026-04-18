@@ -15,25 +15,28 @@ import { trpc } from "@/lib/trpc";
 import AdminLayout from "@/components/AdminLayout";
 
 const STATUS_OPTIONS = [
-  { value: "all", label: "All Statuses" },
-  { value: "new", label: "New" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "assigned", label: "Assigned" },
-  { value: "en_route", label: "En Route" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
+  { value: "all",            label: "All Statuses" },
+  { value: "pending_review", label: "Pending Review" },
+  { value: "confirmed",      label: "Confirmed" },
+  { value: "assigned",       label: "Assigned" },
+  { value: "en_route",       label: "En Route" },
+  { value: "in_progress",    label: "In Progress" },
+  { value: "completed",      label: "Completed" },
+  { value: "cancelled",      label: "Cancelled" },
+  { value: "declined",       label: "Declined" },
 ];
 
 const STATUS_COLORS: Record<string, string> = {
-  new: "bg-blue-500/15 text-blue-400 border-blue-500/20",
-  confirmed: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
-  assigned: "bg-purple-500/15 text-purple-400 border-purple-500/20",
-  en_route: "bg-amber-500/15 text-amber-400 border-amber-500/20",
-  in_progress: "bg-orange-500/15 text-orange-400 border-orange-500/20",
-  completed: "bg-green-500/15 text-green-400 border-green-500/20",
-  cancelled: "bg-red-500/15 text-red-400 border-red-500/20",
-  no_show: "bg-gray-500/15 text-gray-400 border-gray-500/20",
+  pending_review: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
+  new:            "bg-blue-500/15 text-blue-400 border-blue-500/20",
+  confirmed:      "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+  assigned:       "bg-purple-500/15 text-purple-400 border-purple-500/20",
+  en_route:       "bg-amber-500/15 text-amber-400 border-amber-500/20",
+  in_progress:    "bg-orange-500/15 text-orange-400 border-orange-500/20",
+  completed:      "bg-green-500/15 text-green-400 border-green-500/20",
+  cancelled:      "bg-red-500/15 text-red-400 border-red-500/20",
+  declined:       "bg-red-900/20 text-red-400 border-red-900/30",
+  no_show:        "bg-gray-500/15 text-gray-400 border-gray-500/20",
 };
 
 // ── Booking List ─────────────────────────────────────────────────────────────
