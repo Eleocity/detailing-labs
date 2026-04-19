@@ -38,7 +38,7 @@ interface BookingData {
 }
 
 type Step = "location" | "package" | "addons" | "schedule" | "recurring" | "vehicle_info" | "contact";
-const STEPS: Step[] = ["location","package","addons","schedule","recurring","vehicle_info","contact"];
+const STEPS: Step[] = ["location","package","addons","vehicle_info","schedule","recurring","contact"];
 
 const HOW_HEARD = ["Google","Instagram","Facebook","Referral","Yelp","Nextdoor","Other"];
 const RECURRING = [
@@ -793,10 +793,10 @@ export default function Booking() {
         <motion.div key={step} initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18,ease:"easeOut"}} className="flex-1 flex flex-col">
           {step==="location"&&<StepLocation data={data} onUpdate={update} onNext={()=>goTo("package")}/>}
           {step==="package"&&<StepPackage data={data} onSelect={(pkg)=>{update({packageId:pkg.id,packageName:pkg.name,packagePrice:Number(pkg.price),packageDuration:pkg.duration});goTo("addons");}}/>}
-          {step==="addons"&&<StepAddOns data={data} onUpdate={update} onNext={()=>goTo("schedule")}/>}
+          {step==="addons"&&<StepAddOns data={data} onUpdate={update} onNext={()=>goTo("vehicle_info")}/>}
           {step==="schedule"&&<StepSchedule data={data} onUpdate={update} onNext={()=>goTo("recurring")}/>}
           {step==="recurring"&&<StepRecurring data={data} onUpdate={update} onNext={()=>goTo("vehicle_info")} onSkip={()=>{update({recurringInterval:""});goTo("vehicle_info");}}/>}
-          {step==="vehicle_info"&&<StepVehicleInfo data={data} onUpdate={update} onNext={()=>goTo("contact")}/>}
+          {step==="vehicle_info"&&<StepVehicleInfo data={data} onUpdate={update} onNext={()=>goTo("schedule")}/>}
           {step==="contact"&&<StepContact data={data} onUpdate={update} onSubmit={submit} isPending={createBooking.isPending}/>}
         </motion.div>
       </AnimatePresence>

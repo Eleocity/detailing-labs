@@ -668,7 +668,7 @@ export function AdminCRMDetail() {
                               <div className="text-xs text-muted-foreground">{b.vehicleYear} {b.vehicleMake} {b.vehicleModel} · {format(new Date(b.appointmentDate), "MMM d, yyyy")}</div>
                             </div>
                             <span className={cn("text-[11px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0", BOOKING_STATUS_PILL[b.status] ?? "")}>
-                              {b.status.replace("_", " ")}
+                              {b.status === "pending_review" ? "⏳ Pending Review" : b.status.replace(/_/g, " ")}
                             </span>
                             <span className="text-sm font-semibold text-foreground flex-shrink-0">${Number(b.totalAmount ?? 0).toLocaleString()}</span>
                           </div>
@@ -735,7 +735,7 @@ export function AdminCRMDetail() {
                               <td className="px-4 py-3 text-sm font-medium text-foreground max-w-[200px] truncate">{b.packageName ?? "Custom"}</td>
                               <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{b.vehicleYear} {b.vehicleMake} {b.vehicleModel}</td>
                               <td className="px-4 py-3">
-                                <span className={cn("text-[11px] px-2 py-0.5 rounded-full border font-semibold", BOOKING_STATUS_PILL[b.status] ?? "")}>{b.status.replace("_", " ")}</span>
+                                <span className={cn("text-[11px] px-2 py-0.5 rounded-full border font-semibold", BOOKING_STATUS_PILL[b.status] ?? "")}>{b.status === "pending_review" ? "⏳ Pending Review" : b.status.replace(/_/g, " ")}</span>
                               </td>
                               <td className="px-4 py-3 text-sm font-semibold text-foreground">${Number(b.totalAmount ?? 0).toLocaleString()}</td>
                             </tr>
@@ -795,7 +795,7 @@ export function AdminCRMDetail() {
                               <td className="px-4 py-3 text-sm text-foreground max-w-[180px] truncate">{b.packageName ?? "Custom"}</td>
                               <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{format(new Date(b.appointmentDate), "MMM d, yyyy")}</td>
                               <td className="px-4 py-3">
-                                <span className={cn("text-[11px] px-2 py-0.5 rounded-full border font-semibold", BOOKING_STATUS_PILL[b.status] ?? "")}>{b.status.replace("_", " ")}</span>
+                                <span className={cn("text-[11px] px-2 py-0.5 rounded-full border font-semibold", BOOKING_STATUS_PILL[b.status] ?? "")}>{b.status === "pending_review" ? "⏳ Pending Review" : b.status.replace(/_/g, " ")}</span>
                               </td>
                               <td className="px-4 py-3 text-sm font-semibold text-foreground">${Number(b.totalAmount ?? 0).toLocaleString()}</td>
                             </tr>

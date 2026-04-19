@@ -149,7 +149,7 @@ export default function AdminDashboard() {
                             {new Date(booking.appointmentDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                           </div>
                           <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${statusColors[booking.status] ?? ""}`}>
-                            {booking.status.replace("_", " ")}
+                            {booking.status === "pending_review" ? "⏳ Pending Review" : booking.status.replace(/_/g, " ")}
                           </span>
                         </div>
                       </div>

@@ -260,7 +260,7 @@ export function AdminBookingDetail() {
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-display font-bold">{booking.bookingNumber}</h1>
               <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[booking.status] ?? ""}`}>
-                {booking.status.replace("_", " ")}
+                {booking.status === "pending_review" ? "⏳ Pending Review" : booking.status.replace(/_/g, " ")}
               </span>
             </div>
             <p className="text-muted-foreground text-sm">

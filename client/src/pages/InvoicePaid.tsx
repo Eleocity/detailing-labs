@@ -1,4 +1,5 @@
 import { useSearch } from "wouter/use-browser-location";
+import SEO from "@/components/SEO";
 import { Link } from "wouter";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ export default function InvoicePaid() {
   const invoice = new URLSearchParams(search).get("invoice");
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEO title="Payment Received" description="Your payment has been received." noindex={true} />
       <SiteHeader />
       <div className="flex items-center justify-center min-h-[70vh]">
         <div className="text-center max-w-md px-6">

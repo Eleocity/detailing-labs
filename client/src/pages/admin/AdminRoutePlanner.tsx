@@ -169,7 +169,7 @@ export default function AdminRoutePlanner() {
                         <div className="flex items-center justify-between">
                           <div className="font-medium text-sm">{b.customerFirstName} {b.customerLastName}</div>
                           <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${STATUS_COLORS[b.status] ?? ""}`}>
-                            {b.status.replace("_", " ")}
+                            {b.status === "pending_review" ? "⏳ Pending Review" : b.status.replace(/_/g, " ")}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">

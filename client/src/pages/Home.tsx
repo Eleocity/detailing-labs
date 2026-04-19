@@ -293,7 +293,7 @@ export default function Home() {
               <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Link href="/booking">
                   <Button size="lg" className="bg-primary hover:bg-primary/85 text-primary-foreground font-bold px-10 h-14 text-lg shadow-xl shadow-primary/30 w-full sm:w-auto">
-                    {hero.cta_primary || "Book My Appointment"}
+                    {hero.cta_primary || "Book Your Detail"}
                     <ChevronRight className="w-5 h-5 ml-1" />
                   </Button>
                 </Link>
