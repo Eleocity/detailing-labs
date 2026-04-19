@@ -59,13 +59,15 @@ const NOTE_META: Record<NoteType, { label: string; icon: React.ElementType; colo
 };
 
 const BOOKING_STATUS_PILL: Record<string, string> = {
-  new:         "bg-blue-500/12 text-blue-400 border-blue-500/25",
-  confirmed:   "bg-emerald-500/12 text-emerald-400 border-emerald-500/25",
-  assigned:    "bg-violet-500/12 text-violet-400 border-violet-500/25",
-  en_route:    "bg-amber-500/12 text-amber-400 border-amber-500/25",
-  in_progress: "bg-orange-500/12 text-orange-400 border-orange-500/25",
-  completed:   "bg-green-500/12 text-green-400 border-green-500/25",
-  cancelled:   "bg-zinc-500/12 text-zinc-400 border-zinc-500/25",
+  pending_review: "bg-yellow-500/12 text-yellow-400 border-yellow-500/25",
+  new:            "bg-blue-500/12 text-blue-400 border-blue-500/25",
+  confirmed:      "bg-emerald-500/12 text-emerald-400 border-emerald-500/25",
+  assigned:       "bg-violet-500/12 text-violet-400 border-violet-500/25",
+  en_route:       "bg-amber-500/12 text-amber-400 border-amber-500/25",
+  in_progress:    "bg-orange-500/12 text-orange-400 border-orange-500/25",
+  completed:      "bg-green-500/12 text-green-400 border-green-500/25",
+  cancelled:      "bg-zinc-500/12 text-zinc-400 border-zinc-500/25",
+  declined:       "bg-red-900/15 text-red-400 border-red-900/25",
 };
 
 const LEAD_SOURCES = ["Google", "Instagram", "Facebook", "Referral", "Walk-in", "TikTok", "Yelp", "Other"];

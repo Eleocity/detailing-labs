@@ -140,7 +140,7 @@ export function AdminBookingsList() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {bookings.map((b) => (
-                    <tr key={b.id} className="hover:bg-muted/20 transition-colors">
+                    <tr key={b.id} className={`hover:bg-muted/20 transition-colors ${b.status === "pending_review" ? "bg-yellow-500/5 border-l-2 border-l-yellow-500/50" : ""}`}>
                       <td className="p-4 font-mono text-xs text-muted-foreground">{b.bookingNumber}</td>
                       <td className="p-4">
                         <div className="font-medium">{b.customerFirstName} {b.customerLastName}</div>
@@ -156,7 +156,7 @@ export function AdminBookingsList() {
                       <td className="p-4 font-medium">${Number(b.totalAmount ?? 0).toFixed(2)}</td>
                       <td className="p-4">
                         <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[b.status] ?? ""}`}>
-                          {b.status.replace("_", " ")}
+                          {b.status === "pending_review" ? "⏳ Pending Review" : b.status.replace(/_/g, " ")}
                         </span>
                       </td>
                       <td className="p-4">
@@ -331,7 +331,12 @@ export function AdminBookingDetail() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div><span className="text-muted-foreground">Make / Model</span><div className="font-medium mt-0.5">{booking.vehicleYear} {booking.vehicleMake} {booking.vehicleModel}</div></div>
                 <div><span className="text-muted-foreground">Color</span><div className="font-medium mt-0.5">{booking.vehicleColor ?? "—"}</div></div>
-                <div><span className="text-muted-foreground">Type</span><div className="font-medium mt-0.5 capitalize">{booking.vehicleType ?? "—"}</div></div>
+                <div><span className="text-muted-foreground">Size</span><div className="font-medium mt-0.5">
+                  {booking.vehicleType === "sedan" ? "Sedan / Coupe" :
+                   booking.vehicleType === "suv"   ? "Small SUV / Truck" :
+                   booking.vehicleType === "large" ? "Large SUV / Minivan" :
+                   booking.vehicleType ?? "—"}
+                </div></div>
                 <div><span className="text-muted-foreground">Plate</span><div className="font-medium mt-0.5">{booking.vehicleLicensePlate ?? "—"}</div></div>
               </div>
             </div>

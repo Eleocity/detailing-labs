@@ -453,11 +453,15 @@ Review: ${adminUrl}`,
 
       const query = conditions.length > 0 ? and(...conditions) : undefined;
 
+      // Sort: pending_review first (needs action), then by creation date desc
       const rows = await db
         .select()
         .from(bookings)
         .where(query)
-        .orderBy(desc(bookings.appointmentDate))
+        .orderBy(
+          sql`CASE WHEN ${bookings.status} = 'pending_review' THEN 0 ELSE 1 END`,
+          desc(bookings.createdAt)
+        )
         .limit(input.limit)
         .offset(input.offset);
 
