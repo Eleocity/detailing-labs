@@ -568,6 +568,7 @@ Review: ${adminUrl}`,
     .input(z.object({
       id:            z.number().int(),
       confirmedDate: z.string().optional(), // if different from requested date
+      depositAmount: z.number().min(0).optional(), // 0 = no deposit required
     }))
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -599,7 +600,61 @@ Review: ${adminUrl}`,
         notes:      "Approved by admin",
       });
 
-      // Send confirmation email to customer
+      // Generate deposit link if deposit amount specified
+      let depositUrl: string | null = null;
+      const depositAmt = input.depositAmount ?? 0;
+
+      if (depositAmt > 0 && process.env.SQUARE_ACCESS_TOKEN && process.env.SQUARE_LOCATION_ID) {
+        try {
+          const { paymentsRouter: _p } = await import("./payments");
+          // Direct Square call — avoids circular tRPC call
+          const SQ_BASE = process.env.SQUARE_ENVIRONMENT === "production"
+            ? "https://connect.squareup.com"
+            : "https://connect.squareupsandbox.com";
+          const sqRes = await fetch(`${SQ_BASE}/v2/online-checkout/payment-links`, {
+            method: "POST",
+            headers: {
+              Authorization:    `Bearer ${process.env.SQUARE_ACCESS_TOKEN}`,
+              "Content-Type":   "application/json",
+              "Square-Version": "2024-11-20",
+            },
+            body: JSON.stringify({
+              idempotency_key: `deposit-${booking.bookingNumber}-${Date.now()}`,
+              quick_pay: {
+                name:        `Deposit — ${booking.packageName ?? "Mobile Detailing"}`,
+                price_money: { amount: Math.round(depositAmt * 100), currency: "USD" },
+                location_id: process.env.SQUARE_LOCATION_ID,
+              },
+              checkout_options: {
+                redirect_url:             `${process.env.APP_URL ?? "https://detailinglabswi.com"}/booking/confirmation/${booking.bookingNumber}`,
+                ask_for_shipping_address:  false,
+                merchant_support_email:    process.env.EMAIL_FROM ?? "hello@detailinglabswi.com",
+              },
+              pre_populated_data: {
+                buyer_email:        booking.customerEmail ?? undefined,
+                buyer_phone_number: booking.customerPhone ?? undefined,
+              },
+            }),
+          });
+          const sqData = await sqRes.json() as any;
+          depositUrl = sqData.payment_link?.url ?? null;
+          const depositOrderId = sqData.payment_link?.order_id ?? null;
+
+          if (depositUrl) {
+            await db.update(bookings).set({
+              depositAmount:     String(depositAmt) as any,
+              depositPaymentUrl: depositUrl,
+              depositOrderId,
+              // Keep as confirmed — payment confirms the slot; deposit is additional
+            }).where(eq(bookings.id, input.id));
+          }
+        } catch (err: any) {
+          console.error("[Booking] Deposit link creation failed:", err?.message);
+          // Don't block approval if Square is unavailable
+        }
+      }
+
+      // Send confirmation email (with deposit link if applicable)
       if (booking.customerEmail) {
         const { bookingApprovedEmail } = await import("../emailMarketing");
         const { sendEmail } = await import("../email");
@@ -617,12 +672,14 @@ Review: ${adminUrl}`,
           vehicleModel:      booking.vehicleModel,
           vehicleYear:       booking.vehicleYear,
           totalAmount:       booking.totalAmount ? Number(booking.totalAmount) : null,
+          depositAmount:     depositAmt > 0 ? depositAmt : undefined,
+          depositUrl:        depositUrl ?? undefined,
         });
         sendEmail({ to: booking.customerEmail, ...emailContent }).catch(() => {});
       }
 
-      console.log(`[Booking] ✅ Approved: ${booking.bookingNumber} by user ${ctx.user.id}`);
-      return { success: true, bookingNumber: booking.bookingNumber };
+      console.log(`[Booking] ✅ Approved: ${booking.bookingNumber} — deposit: ${depositAmt > 0 ? `$${depositAmt}` : "none"}`);
+      return { success: true, bookingNumber: booking.bookingNumber, depositUrl };
     }),
 
   // ── Admin: Decline booking request ───────────────────────────────────────

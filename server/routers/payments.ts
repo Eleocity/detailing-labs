@@ -22,7 +22,63 @@ async function squareRequest(method: string, path: string, body?: unknown) {
       "Square-Version": "2024-11-20",
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
-  });
+  
+  // ── Create Square deposit link for a booking ─────────────────────────────
+  // Called when admin approves a booking with a deposit amount.
+  // Returns a Square checkout URL; booking is marked confirmed only after payment.
+  createDepositLink: protectedProcedure
+    .input(z.object({
+      bookingId:     z.number().int(),
+      depositAmount: z.number().positive(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      if (ctx.user.role !== "admin") throw new TRPCError({ code: "UNAUTHORIZED" });
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const [booking] = await db.select().from(bookings).where(eq(bookings.id, input.bookingId)).limit(1);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const locationId = process.env.SQUARE_LOCATION_ID;
+      if (!locationId) throw new TRPCError({ code: "BAD_REQUEST", message: "SQUARE_LOCATION_ID not set" });
+
+      const amountCents  = Math.round(input.depositAmount * 100);
+      const description  = booking.packageName ?? "Mobile Detailing";
+      const customerName = `${booking.customerFirstName} ${booking.customerLastName}`.trim();
+      const redirectUrl  = `${process.env.APP_URL ?? "https://detailinglabswi.com"}/booking/confirmation/${booking.bookingNumber}`;
+
+      const data = await squareRequest("POST", "/v2/online-checkout/payment-links", {
+        idempotency_key: `deposit-${booking.bookingNumber}-${Date.now()}`,
+        quick_pay: {
+          name:        `Deposit — ${description} (${customerName})`,
+          price_money: { amount: amountCents, currency: "USD" },
+          location_id: locationId,
+        },
+        checkout_options: {
+          redirect_url:              redirectUrl,
+          ask_for_shipping_address:  false,
+          merchant_support_email:    process.env.EMAIL_FROM ?? "hello@detailinglabswi.com",
+        },
+        pre_populated_data: {
+          buyer_email:        booking.customerEmail ?? undefined,
+          buyer_phone_number: booking.customerPhone ?? undefined,
+        },
+        description: `Deposit for booking ${booking.bookingNumber}`,
+      });
+
+      const paymentUrl: string = data.payment_link?.url;
+      const orderId: string    = data.payment_link?.order_id;
+      if (!paymentUrl) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Square did not return a payment URL" });
+
+      await db.update(bookings).set({
+        depositAmount:     String(input.depositAmount) as any,
+        depositPaymentUrl: paymentUrl,
+        depositOrderId:    orderId,
+      }).where(eq(bookings.id, input.bookingId));
+
+      return { paymentUrl, orderId };
+    }),
+});
   const json = await res.json() as any;
   if (!res.ok) throw new Error(json?.errors?.[0]?.detail || `Square error ${res.status}`);
   return json;
@@ -102,6 +158,50 @@ export const paymentsRouter = router({
 
       const orderId: string | undefined = event.data?.object?.payment?.order_id;
       if (!orderId) return { ok: true };
+
+      // Check if this is a booking deposit payment
+      const { bookings: bookingsTable } = await import("../../drizzle/schema");
+      const [depositBooking] = await db
+        .select()
+        .from(bookingsTable)
+        .where(eq(bookingsTable.depositOrderId, orderId))
+        .limit(1);
+
+      if (depositBooking && !depositBooking.depositPaid) {
+        await db.update(bookingsTable).set({
+          depositPaid:   true,
+          depositPaidAt: new Date(),
+          // Mark fully confirmed once deposit is paid
+          status: "confirmed" as any,
+        }).where(eq(bookingsTable.id, depositBooking.id));
+
+        // Send confirmation email
+        if (depositBooking.customerEmail) {
+          const { bookingApprovedEmail } = await import("../emailMarketing");
+          const { sendEmail } = await import("../email");
+          const apt = new Date(depositBooking.appointmentDate);
+          const emailContent = bookingApprovedEmail({
+            customerFirstName: depositBooking.customerFirstName,
+            customerEmail:     depositBooking.customerEmail,
+            bookingNumber:     depositBooking.bookingNumber,
+            packageName:       depositBooking.packageName,
+            confirmedDate:     apt.toLocaleDateString("en-US", {
+              weekday: "long", month: "long", day: "numeric", year: "numeric",
+              hour: "numeric", minute: "2-digit",
+            }),
+            serviceAddress:    depositBooking.serviceAddress,
+            vehicleMake:       depositBooking.vehicleMake,
+            vehicleModel:      depositBooking.vehicleModel,
+            vehicleYear:       depositBooking.vehicleYear,
+            totalAmount:       depositBooking.totalAmount ? Number(depositBooking.totalAmount) : null,
+            depositPaid:       Number(depositBooking.depositAmount ?? 0),
+          });
+          sendEmail({ to: depositBooking.customerEmail, ...emailContent }).catch(console.error);
+        }
+
+        console.log(`[Square] Deposit paid for booking ${depositBooking.bookingNumber}`);
+        return { ok: true };
+      }
 
       // Find invoice via notes (stores order id in link notes) — or look up by order
       const allInvoices = await db.select().from(invoices).limit(200);

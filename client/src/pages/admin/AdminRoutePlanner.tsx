@@ -38,9 +38,11 @@ export default function AdminRoutePlanner() {
   });
 
   const bookings = useMemo(() =>
-    (data?.bookings ?? []).sort((a, b) =>
-      new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime()
-    ), [data]);
+    (data?.bookings ?? [])
+      .filter(b => b.status !== "pending_review" && b.status !== "declined" && b.status !== "cancelled")
+      .sort((a, b) =>
+        new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime()
+      ), [data]);
 
   const handleMapReady = (map: google.maps.Map) => {
     setMapInstance(map);

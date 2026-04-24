@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   CheckCircle2, Calendar, MapPin, Car, Phone,
   ChevronRight, Copy, Star, Share2, ExternalLink,
-  Clock, XCircle,
+  Clock, XCircle, DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -221,6 +221,54 @@ export default function BookingConfirmation() {
                     <span className="font-bold text-primary">${Number(booking.totalAmount).toFixed(2)}</span>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Deposit CTA — shown when deposit is required but not yet paid */}
+          {(booking as any)?.depositAmount && !(booking as any)?.depositPaid && (booking as any)?.depositPaymentUrl && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="p-5 rounded-2xl border-2 border-yellow-500/40 bg-yellow-500/5 mb-5"
+            >
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-8 h-8 rounded-full bg-yellow-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <DollarSign className="w-4 h-4 text-yellow-400" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-foreground">Deposit required to confirm your spot</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    A ${Number((booking as any).depositAmount).toFixed(2)} deposit secures your appointment.
+                    Your slot isn't locked until payment is received.
+                  </p>
+                </div>
+              </div>
+              <a
+                href={(booking as any).depositPaymentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-sm transition-colors"
+              >
+                Pay ${Number((booking as any).depositAmount).toFixed(2)} Deposit →
+              </a>
+              <p className="text-center text-xs text-muted-foreground mt-2">Secure checkout powered by Square</p>
+            </motion.div>
+          )}
+
+          {/* Deposit paid confirmation */}
+          {(booking as any)?.depositPaid && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="p-4 rounded-xl border border-green-500/20 bg-green-500/5 mb-5 flex items-center gap-3"
+            >
+              <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">Deposit paid — spot confirmed</p>
+                <p className="text-xs text-muted-foreground">${Number((booking as any).depositAmount).toFixed(2)} deposit received. Remaining balance due at completion.</p>
               </div>
             </motion.div>
           )}

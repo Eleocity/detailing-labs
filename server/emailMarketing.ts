@@ -470,6 +470,9 @@ export function bookingApprovedEmail(params: {
   vehicleModel?:     string | null;
   vehicleYear?:      number | null;
   totalAmount?:      number | null;
+  depositAmount?:    number;
+  depositUrl?:       string;
+  depositPaid?:      number;
 }): { subject: string; html: string; text: string } {
   const vehicle   = [params.vehicleYear, params.vehicleMake, params.vehicleModel].filter(Boolean).join(" ") || "your vehicle";
   const BASE_URL  = "https://detailinglabswi.com";
@@ -499,7 +502,19 @@ export function bookingApprovedEmail(params: {
       <tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #141428">Vehicle</td><td style="padding:12px 16px;color:#d0d0f0;font-size:13px;border-bottom:1px solid #141428">${vehicle}</td></tr>
       <tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px${params.totalAmount ? ";border-bottom:1px solid #141428" : ""}">Location</td><td style="padding:12px 16px;color:#d0d0f0;font-size:13px${params.totalAmount ? ";border-bottom:1px solid #141428" : ""}">${params.serviceAddress}</td></tr>
       ${params.totalAmount ? `<tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Total</td><td style="padding:12px 16px;color:#a78bfa;font-size:15px;font-weight:800">$${params.totalAmount.toFixed(2)}</td></tr>` : ""}
+      ${params.depositAmount ? `<tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Deposit Due</td><td style="padding:12px 16px;color:#fbbf24;font-size:14px;font-weight:800">$${params.depositAmount.toFixed(2)} — required to hold your spot</td></tr>` : ""}
+      ${params.depositPaid ? `<tr><td style="padding:12px 16px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Deposit</td><td style="padding:12px 16px;color:#4ade80;font-size:13px;font-weight:700">✓ Paid ($${params.depositPaid.toFixed(2)})</td></tr>` : ""}
     </table>
+
+    ${params.depositUrl ? `
+    <div style="background:#1a1200;border:1px solid #ca8a04;border-radius:12px;padding:20px;margin:0 0 20px;text-align:center">
+      <p style="margin:0 0 4px;color:#fbbf24;font-size:13px;font-weight:700">⚡ Secure your spot — deposit required</p>
+      <p style="margin:0 0 16px;color:#8a7340;font-size:12px">A $${params.depositAmount?.toFixed(2)} deposit is required to confirm your appointment.</p>
+      <a href="${params.depositUrl}" style="display:inline-block;padding:14px 36px;background:#d97706;color:#fff;font-size:14px;font-weight:800;text-decoration:none;border-radius:10px">
+        Pay $${params.depositAmount?.toFixed(2)} Deposit →
+      </a>
+      <p style="margin:10px 0 0;color:#6b5d2e;font-size:11px">Secure checkout powered by Square</p>
+    </div>` : ""}
 
     <div style="background:#0c0c20;border:1px solid #1c1c34;border-radius:10px;padding:16px 20px;margin:0 0 24px">
       <p style="margin:0 0 8px;color:#a0a0c0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px">What to expect</p>

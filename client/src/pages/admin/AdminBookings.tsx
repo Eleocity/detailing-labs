@@ -3,7 +3,7 @@ import { Link, useParams, useLocation } from "wouter";
 import {
   Search, Filter, ChevronLeft, Car, Calendar, MapPin, Phone,
   Mail, User, CheckCircle2, XCircle, Clock, AlertCircle, Edit, Trash2,
-  UserCheck, DollarSign, Camera, Star, ChevronRight, Plus, Loader2, FileText
+  UserCheck, DollarSign, Camera, Star, ChevronRight, Plus, Loader2, FileText, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -222,6 +222,8 @@ export function AdminBookingDetail() {
 
   const [showDeclineModal, setShowDeclineModal] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [depositAmount, setDepositAmount] = useState("");
 
   const approve = trpc.bookings.approve.useMutation({
     onSuccess: () => { toast.success("Booking approved — confirmation email sent"); refetch(); },
@@ -273,12 +275,11 @@ export function AdminBookingDetail() {
               <>
                 <Button
                   size="sm"
-                  onClick={() => approve.mutate({ id: booking.id })}
+                  onClick={() => setShowApproveModal(true)}
                   disabled={approve.isPending}
                   className="bg-green-600 hover:bg-green-700 text-white font-semibold"
                 >
-                  {approve.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
-                  Approve
+                  <CheckCircle2 className="w-3 h-3 mr-1" /> Approve
                 </Button>
                 <Button
                   size="sm"
@@ -419,7 +420,66 @@ export function AdminBookingDetail() {
           </div>
         </div>
 
-        {/* Decline Modal */}
+        {/* Approve Modal */}
+      {showApproveModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setShowApproveModal(false)}>
+          <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-display font-bold text-lg mb-1">Approve Booking</h3>
+            <p className="text-muted-foreground text-sm mb-5">
+              The customer will receive a confirmation email. Optionally require a deposit to hold their spot.
+            </p>
+
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">
+                  Deposit Amount <span className="text-muted-foreground font-normal">(optional)</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={depositAmount}
+                    onChange={e => setDepositAmount(e.target.value)}
+                    placeholder="0.00 — leave blank to skip"
+                    className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-border bg-input text-sm focus:outline-none focus:border-primary/60"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {depositAmount && Number(depositAmount) > 0
+                    ? `Customer receives a Square payment link for $${Number(depositAmount).toFixed(2)}.`
+                    : "No deposit — booking confirmed immediately."}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Button
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold"
+                  onClick={() => {
+                    const amt = depositAmount ? Number(depositAmount) : 0;
+                    approve.mutate({
+                      id: booking.id,
+                      depositAmount: amt > 0 ? amt : undefined,
+                    });
+                    setShowApproveModal(false);
+                    setDepositAmount("");
+                  }}
+                  disabled={approve.isPending}
+                >
+                  {approve.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-1" />}
+                  Confirm & Approve
+                </Button>
+                <Button variant="outline" onClick={() => { setShowApproveModal(false); setDepositAmount(""); }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Decline Modal */}
       {showDeclineModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setShowDeclineModal(false)}>
           <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
