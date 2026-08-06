@@ -11,6 +11,14 @@ import { mediaRouter } from "./routers/media";
 import { contentRouter } from "./routers/content";
 import { usersRouter } from "./routers/users";
 import { invitationsRouter } from "./routers/invitations";
+import { analyticsRouter } from "./routers/analytics";
+import { blogRouter } from "./routers/blog";
+import { loyaltyRouter } from "./routers/loyalty";
+import { referralsRouter } from "./routers/referrals";
+import { conditionReportsRouter } from "./routers/conditionReports";
+import { giftCardsRouter } from "./routers/giftCards";
+import { followUpRouter } from "./routers/followUp";
+import { remindersRouter } from "./routers/reminders";
 
 export const appRouter = router({
   system: systemRouter,
@@ -25,6 +33,14 @@ export const appRouter = router({
   content: contentRouter,
   users: usersRouter,
   invitations: invitationsRouter,
+  analytics: analyticsRouter,
+  blog: blogRouter,
+  loyalty: loyaltyRouter,
+  referrals: referralsRouter,
+  conditionReports: conditionReportsRouter,
+  giftCards: giftCardsRouter,
+  followUp: followUpRouter,
+  reminders: remindersRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -1,6 +1,6 @@
-# Deploying Detailing Labs to Railway
+# Deploying Forma Auto Spa to Railway
 
-This guide covers everything needed to deploy the full Detailing Labs stack to [Railway](https://railway.app) — completely independent of Manus hosting.
+This guide covers everything needed to deploy the full Forma Auto Spa stack to [Railway](https://railway.app) — completely independent of Manus hosting.
 
 ---
 
@@ -37,7 +37,7 @@ External Services (you configure):
 git init
 git add .
 git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/detailing-labs.git
+git remote add origin https://github.com/YOUR_USERNAME/forma-auto-spa.git
 git push -u origin main
 ```
 
@@ -68,14 +68,15 @@ In your Railway **web service** → **Variables** tab, add all of the following:
 
 ### Required — Core App
 
-| Variable | Value / Description |
-|---|---|
-| `DATABASE_URL` | MySQL connection string from Step 3 |
-| `JWT_SECRET` | Random 64-char secret (see generator below) |
-| `NODE_ENV` | `production` |
-| `PORT` | `3000` |
+| Variable       | Value / Description                         |
+| -------------- | ------------------------------------------- |
+| `DATABASE_URL` | MySQL connection string from Step 3         |
+| `JWT_SECRET`   | Random 64-char secret (see generator below) |
+| `NODE_ENV`     | `production`                                |
+| `PORT`         | `3000`                                      |
 
 **Generate JWT_SECRET:**
+
 ```bash
 node -e "console.log(require('"crypto"').randomBytes(32).toString('"hex"'))"
 ```
@@ -84,10 +85,10 @@ node -e "console.log(require('"crypto"').randomBytes(32).toString('"hex"'))"
 
 ### Required — Email (SendGrid)
 
-| Variable | Value / Description |
-|---|---|
-| `SENDGRID_API_KEY` | Your SendGrid API key (starts with `SG.`) |
-| `EMAIL_FROM` | Verified sender email, e.g. `noreply@detailinglabswi.com` |
+| Variable           | Value / Description                                  |
+| ------------------ | ---------------------------------------------------- |
+| `SENDGRID_API_KEY` | Your SendGrid API key (starts with `SG.`)            |
+| `EMAIL_FROM`       | Verified sender email, e.g. `noreply@yourdomain.com` |
 
 > **Important:** In SendGrid, go to **Settings → Sender Authentication** and verify your sending domain or single sender before emails will deliver.
 
@@ -98,30 +99,31 @@ node -e "console.log(require('"crypto"').randomBytes(32).toString('"hex"'))"
 Cloudflare R2 has **no egress fees** and is S3-compatible. Free tier: 10 GB storage, 1M operations/month.
 
 **Setup R2:**
-1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → **R2** → **Create bucket** (name: `detailing-labs-media`)
+
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → **R2** → **Create bucket** (name: `forma-auto-spa-media`)
 2. Go to **R2 → Manage R2 API Tokens** → **Create API Token** with **Object Read & Write** permissions
 3. Note the **Access Key ID**, **Secret Access Key**, and **Account ID**
 4. Enable **Public Access** on the bucket to get a public URL (e.g. `https://pub-XXXX.r2.dev`)
 
-| Variable | Value |
-|---|---|
-| `AWS_ACCESS_KEY_ID` | R2 Access Key ID |
-| `AWS_SECRET_ACCESS_KEY` | R2 Secret Access Key |
-| `AWS_REGION` | `auto` |
-| `AWS_S3_BUCKET` | Your bucket name, e.g. `detailing-labs-media` |
-| `AWS_S3_ENDPOINT` | `https://ACCOUNT_ID.r2.cloudflarestorage.com` |
-| `STORAGE_PUBLIC_URL` | Public bucket URL, e.g. `https://pub-XXXX.r2.dev` |
+| Variable                | Value                                             |
+| ----------------------- | ------------------------------------------------- |
+| `AWS_ACCESS_KEY_ID`     | R2 Access Key ID                                  |
+| `AWS_SECRET_ACCESS_KEY` | R2 Secret Access Key                              |
+| `AWS_REGION`            | `auto`                                            |
+| `AWS_S3_BUCKET`         | Your bucket name, e.g. `forma-auto-spa-media`     |
+| `AWS_S3_ENDPOINT`       | `https://ACCOUNT_ID.r2.cloudflarestorage.com`     |
+| `STORAGE_PUBLIC_URL`    | Public bucket URL, e.g. `https://pub-XXXX.r2.dev` |
 
 **Alternative — AWS S3:**
 
-| Variable | Value |
-|---|---|
-| `AWS_ACCESS_KEY_ID` | IAM user access key |
-| `AWS_SECRET_ACCESS_KEY` | IAM user secret key |
-| `AWS_REGION` | e.g. `us-east-1` |
-| `AWS_S3_BUCKET` | Your bucket name |
-| `AWS_S3_ENDPOINT` | *(leave blank for standard AWS S3)* |
-| `STORAGE_PUBLIC_URL` | e.g. `https://BUCKET.s3.us-east-1.amazonaws.com` |
+| Variable                | Value                                            |
+| ----------------------- | ------------------------------------------------ |
+| `AWS_ACCESS_KEY_ID`     | IAM user access key                              |
+| `AWS_SECRET_ACCESS_KEY` | IAM user secret key                              |
+| `AWS_REGION`            | e.g. `us-east-1`                                 |
+| `AWS_S3_BUCKET`         | Your bucket name                                 |
+| `AWS_S3_ENDPOINT`       | _(leave blank for standard AWS S3)_              |
+| `STORAGE_PUBLIC_URL`    | e.g. `https://BUCKET.s3.us-east-1.amazonaws.com` |
 
 ---
 
@@ -129,11 +131,12 @@ Cloudflare R2 has **no egress fees** and is S3-compatible. Free tier: 10 GB stor
 
 The admin Route Planner uses Google Maps. On Railway, provide your own Google Maps API key:
 
-| Variable | Value |
-|---|---|
+| Variable                   | Value                               |
+| -------------------------- | ----------------------------------- |
 | `VITE_GOOGLE_MAPS_API_KEY` | Your Google Maps JavaScript API key |
 
 Then update `client/src/components/Map.tsx` line 89:
+
 ```ts
 // Change from:
 const API_KEY = import.meta.env.VITE_FRONTEND_FORGE_API_KEY;
@@ -158,6 +161,7 @@ The following were Manus-platform-specific and can be safely omitted:
 After your first successful deploy, create all 19 database tables.
 
 **Option A — Railway Shell (first deploy):**
+
 1. Railway web service → **Shell** tab
 2. Run:
    ```bash
@@ -165,6 +169,7 @@ After your first successful deploy, create all 19 database tables.
    ```
 
 **Option B — Auto-migrate on every deploy** (update `railway.toml`):
+
 ```toml
 [deploy]
 startCommand = "node scripts/migrate.mjs && node dist/index.js"
@@ -189,7 +194,7 @@ startCommand = "node scripts/migrate.mjs && node dist/index.js"
 ## Step 7 — Set a Custom Domain
 
 1. Railway → web service → **Settings → Networking → Custom Domain**
-2. Add your domain (e.g. `detailinglabswi.com`)
+2. Add your domain (e.g. `formaautospa.com`)
 3. Add the DNS records Railway shows (typically a CNAME pointing to Railway)
 4. Railway provisions an SSL certificate automatically
 
@@ -197,13 +202,13 @@ startCommand = "node scripts/migrate.mjs && node dist/index.js"
 
 ## Step 8 — Verify the Deployment
 
-| URL | Expected Result |
-|---|---|
-| `https://your-domain.com` | Home page loads |
+| URL                                  | Expected Result                     |
+| ------------------------------------ | ----------------------------------- |
+| `https://your-domain.com`            | Home page loads                     |
 | `https://your-domain.com/api/health` | `{"status":"ok","timestamp":"..."}` |
-| `https://your-domain.com/login` | Login page |
-| `https://your-domain.com/admin` | Admin login gate |
-| `https://your-domain.com/booking` | Booking wizard |
+| `https://your-domain.com/login`      | Login page                          |
+| `https://your-domain.com/admin`      | Admin login gate                    |
+| `https://your-domain.com/booking`    | Booking wizard                      |
 
 ---
 
@@ -219,7 +224,7 @@ EMAIL_FROM=noreply@yourdomain.com
 AWS_ACCESS_KEY_ID=YOUR_R2_OR_S3_KEY
 AWS_SECRET_ACCESS_KEY=YOUR_R2_OR_S3_SECRET
 AWS_REGION=auto
-AWS_S3_BUCKET=detailing-labs-media
+AWS_S3_BUCKET=forma-auto-spa-media
 AWS_S3_ENDPOINT=https://ACCOUNT_ID.r2.cloudflarestorage.com
 STORAGE_PUBLIC_URL=https://pub-XXXX.r2.dev
 ```

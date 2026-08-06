@@ -6,11 +6,11 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 
-process.on("uncaughtException", (err) => {
+process.on("uncaughtException", err => {
   console.error("[Fatal] Uncaught exception:", err);
   process.exit(1);
 });
-process.on("unhandledRejection", (reason) => {
+process.on("unhandledRejection", reason => {
   console.error("[Fatal] Unhandled rejection:", reason);
   process.exit(1);
 });
@@ -26,7 +26,10 @@ async function runMigrations(): Promise<{ applied: number; log: string[] }> {
   const conn = await Promise.race<any>([
     createConnection(dbUrl),
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("DB connection timed out after 20s")), 20000)
+      setTimeout(
+        () => reject(new Error("DB connection timed out after 20s")),
+        20000
+      )
     ),
   ]);
 
@@ -68,7 +71,11 @@ async function runMigrations(): Promise<{ applied: number; log: string[] }> {
       .map((s: string) => {
         // Strip leading comment lines (lines starting with --) from each statement
         // so a comment at the top of a file doesn't cause the entire statement to be dropped
-        return s.split("\n").filter((line: string) => !line.trim().startsWith("--")).join("\n").trim();
+        return s
+          .split("\n")
+          .filter((line: string) => !line.trim().startsWith("--"))
+          .join("\n")
+          .trim();
       })
       .filter((s: string) => s.length > 0);
 
@@ -100,116 +107,192 @@ async function startServer() {
   });
 
   // ── Square webhook ───────────────────────────────────────────────────────
-  app.post("/api/webhooks/square", express.raw({ type: "application/json" }), async (req, res) => {
-    // Respond immediately — Square requires a fast 200
-    res.status(200).json({ ok: true });
-    try {
-      const bodyStr = req.body instanceof Buffer ? req.body.toString("utf8") : JSON.stringify(req.body);
-      const event = JSON.parse(bodyStr);
-      if (event.type !== "payment.completed") return;
+  app.post(
+    "/api/webhooks/square",
+    express.raw({ type: "application/json" }),
+    async (req, res) => {
+      // Respond immediately — Square requires a fast 200
+      res.status(200).json({ ok: true });
+      try {
+        const bodyStr =
+          req.body instanceof Buffer
+            ? req.body.toString("utf8")
+            : JSON.stringify(req.body);
+        const event = JSON.parse(bodyStr);
+        if (event.type !== "payment.completed") return;
 
-      const { getDb } = await import("../db");
-      const db = await getDb();
-      if (!db) return;
+        const { getDb } = await import("../db");
+        const db = await getDb();
+        if (!db) return;
 
-      const { invoices: invTable, bookings: bkTable, siteContent: scTable } = await import("../../drizzle/schema");
-      const { eq } = await import("drizzle-orm");
-      const { sendEmail, receiptEmail } = await import("../email");
+        const {
+          invoices: invTable,
+          bookings: bkTable,
+          siteContent: scTable,
+        } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const { sendEmail, receiptEmail } = await import("../email");
 
-      const orderId: string | undefined = event.data?.object?.payment?.order_id;
-      if (!orderId) return;
+        const orderId: string | undefined =
+          event.data?.object?.payment?.order_id;
+        if (!orderId) return;
 
-      // Find the invoice whose notes contain this order id
-      const allInv = await db.select().from(invTable).limit(500);
-      const inv = allInv.find((i: any) => i.notes?.includes(orderId));
-      if (!inv || inv.status === "paid") return;
+        // Find the invoice whose notes contain this order id
+        const allInv = await db.select().from(invTable).limit(500);
+        const inv = allInv.find((i: any) => i.notes?.includes(orderId));
+        if (!inv || inv.status === "paid") return;
 
-      // Mark paid
-      await db.update(invTable).set({ status: "paid", paidAt: new Date() } as any).where(eq(invTable.id, inv.id));
-      console.log(`[Square] Invoice ${inv.invoiceNumber} marked paid via webhook`);
+        // Mark paid
+        await db
+          .update(invTable)
+          .set({ status: "paid", paidAt: new Date() } as any)
+          .where(eq(invTable.id, inv.id));
+        console.log(
+          `[Square] Invoice ${inv.invoiceNumber} marked paid via webhook`
+        );
 
-      // Send receipt
-      if (!inv.bookingId) return;
-      const [booking] = await db.select().from(bkTable).where(eq(bkTable.id, inv.bookingId)).limit(1);
-      if (!booking?.customerEmail) return;
+        // Send receipt
+        if (!inv.bookingId) return;
+        const [booking] = await db
+          .select()
+          .from(bkTable)
+          .where(eq(bkTable.id, inv.bookingId))
+          .limit(1);
+        if (!booking?.customerEmail) return;
 
-      const rows = await db.select().from(scTable).where(eq(scTable.section, "contact")).limit(20);
-      const phone    = rows.find((r: any) => r.key === "phone")?.value    || "(262) 555-0190";
-      const bizEmail = rows.find((r: any) => r.key === "email")?.value    || "hello@detailinglabswi.com";
-      const lineItems: { name: string; qty: number; price: number }[] = inv.lineItems ? JSON.parse(inv.lineItems) : [];
+        const rows = await db
+          .select()
+          .from(scTable)
+          .where(eq(scTable.section, "contact"))
+          .limit(20);
+        const phone =
+          rows.find((r: any) => r.key === "phone")?.value || "(262) 260-9474";
+        const bizEmail =
+          rows.find((r: any) => r.key === "email")?.value ||
+          "hello@detailinglabswi.com";
+        const lineItems: { name: string; qty: number; price: number }[] =
+          inv.lineItems ? JSON.parse(inv.lineItems) : [];
 
-      const receipt = receiptEmail({
-        invoiceNumber:     inv.invoiceNumber,
-        customerFirstName: booking.customerFirstName,
-        packageName:       booking.packageName ?? "Mobile Detailing",
-        serviceAddress:    [booking.serviceAddress, booking.serviceCity, booking.serviceState].filter(Boolean).join(", "),
-        lineItems,
-        totalAmount:       Number(inv.totalAmount),
-        paidAt:            new Date(),
-        phone,
-        businessEmail:     bizEmail,
-      });
-      await sendEmail({ to: booking.customerEmail, ...receipt });
-      console.log(`[Square] Receipt sent to ${booking.customerEmail}`);
-    } catch (err: any) {
-      console.error("[Square webhook error]", err?.message);
+        const receipt = receiptEmail({
+          invoiceNumber: inv.invoiceNumber,
+          customerFirstName: booking.customerFirstName,
+          packageName: booking.packageName ?? "Mobile Detailing",
+          serviceAddress: [
+            booking.serviceAddress,
+            booking.serviceCity,
+            booking.serviceState,
+          ]
+            .filter(Boolean)
+            .join(", "),
+          lineItems,
+          totalAmount: Number(inv.totalAmount),
+          paidAt: new Date(),
+          phone,
+          businessEmail: bizEmail,
+        });
+        await sendEmail({ to: booking.customerEmail, ...receipt });
+        console.log(`[Square] Receipt sent to ${booking.customerEmail}`);
+      } catch (err: any) {
+        console.error("[Square webhook error]", err?.message);
+      }
     }
-  });
+  );
 
   // ── Urable webhook ───────────────────────────────────────────────────────
-  app.post("/api/webhooks/urable", express.raw({ type: "application/json" }), async (req, res) => {
-    res.status(200).json({ ok: true });
-    try {
-      const bodyStr = req.body instanceof Buffer ? req.body.toString("utf8") : JSON.stringify(req.body);
-      const { parseUrableWebhook } = await import("../urable");
-      const event = parseUrableWebhook(bodyStr);
-      if (!event) return;
-      const { getDb } = await import("../db");
-      const db = await getDb();
-      if (!db) return;
-      const { customers, bookings } = await import("../../drizzle/schema");
-      const { eq } = await import("drizzle-orm");
-      console.log(`[Urable webhook] ${event.type}`);
+  app.post(
+    "/api/webhooks/urable",
+    express.raw({ type: "application/json" }),
+    async (req, res) => {
+      res.status(200).json({ ok: true });
+      try {
+        const bodyStr =
+          req.body instanceof Buffer
+            ? req.body.toString("utf8")
+            : JSON.stringify(req.body);
+        const { parseUrableWebhook } = await import("../urable");
+        const event = parseUrableWebhook(bodyStr);
+        if (!event) return;
+        const { getDb } = await import("../db");
+        const db = await getDb();
+        if (!db) return;
+        const { customers, bookings } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        console.log(`[Urable webhook] ${event.type}`);
 
-      if (event.type === "job.completed" || event.type === "job.status_updated") {
-        const urableJobId = String(event.data?.job_id ?? event.data?.id ?? "");
-        const newStatus = event.data?.status ?? "";
-        if (!urableJobId) return;
-        const all = await db.select().from(bookings).limit(500);
-        const booking = all.find((b: any) => b.urableJobId === urableJobId);
-        if (!booking) return;
-        const map: Record<string, string> = { completed:"completed", cancelled:"cancelled", confirmed:"confirmed", in_progress:"in_progress" };
-        const mapped = map[newStatus.toLowerCase()];
-        if (mapped) await db.update(bookings).set({ status: mapped as any }).where(eq(bookings.id, booking.id));
-      }
-
-      if (event.type === "job.paid") {
-        const urableJobId = String(event.data?.job_id ?? event.data?.id ?? "");
-        if (!urableJobId) return;
-        const all = await db.select().from(bookings).limit(500);
-        const booking = all.find((b: any) => b.urableJobId === urableJobId);
-        if (booking) await db.update(bookings).set({ paymentStatus: "paid" as any }).where(eq(bookings.id, booking.id));
-      }
-
-      if (event.type === "customer.updated" || event.type === "customer.created") {
-        const urableId = String(event.data?.id ?? "");
-        const email = event.data?.email ?? "";
-        if (!email) return;
-        const existing = await db.select().from(customers).where(eq(customers.email, email)).limit(1);
-        if (existing.length > 0) {
-          await db.update(customers).set({
-            ...(event.data?.first_name ? { firstName: event.data.first_name } : {}),
-            ...(event.data?.last_name  ? { lastName:  event.data.last_name  } : {}),
-            ...(event.data?.phone      ? { phone:     event.data.phone      } : {}),
-            urableId,
-            urableSyncedAt: new Date(),
-          } as any).where(eq(customers.id, existing[0].id));
+        if (
+          event.type === "job.completed" ||
+          event.type === "job.status_updated"
+        ) {
+          const urableJobId = String(
+            event.data?.job_id ?? event.data?.id ?? ""
+          );
+          const newStatus = event.data?.status ?? "";
+          if (!urableJobId) return;
+          const all = await db.select().from(bookings).limit(500);
+          const booking = all.find((b: any) => b.urableJobId === urableJobId);
+          if (!booking) return;
+          const map: Record<string, string> = {
+            completed: "completed",
+            cancelled: "cancelled",
+            confirmed: "confirmed",
+            in_progress: "in_progress",
+          };
+          const mapped = map[newStatus.toLowerCase()];
+          if (mapped)
+            await db
+              .update(bookings)
+              .set({ status: mapped as any })
+              .where(eq(bookings.id, booking.id));
         }
+
+        if (event.type === "job.paid") {
+          const urableJobId = String(
+            event.data?.job_id ?? event.data?.id ?? ""
+          );
+          if (!urableJobId) return;
+          const all = await db.select().from(bookings).limit(500);
+          const booking = all.find((b: any) => b.urableJobId === urableJobId);
+          if (booking)
+            await db
+              .update(bookings)
+              .set({ paymentStatus: "paid" as any })
+              .where(eq(bookings.id, booking.id));
+        }
+
+        if (
+          event.type === "customer.updated" ||
+          event.type === "customer.created"
+        ) {
+          const urableId = String(event.data?.id ?? "");
+          const email = event.data?.email ?? "";
+          if (!email) return;
+          const existing = await db
+            .select()
+            .from(customers)
+            .where(eq(customers.email, email))
+            .limit(1);
+          if (existing.length > 0) {
+            await db
+              .update(customers)
+              .set({
+                ...(event.data?.first_name
+                  ? { firstName: event.data.first_name }
+                  : {}),
+                ...(event.data?.last_name
+                  ? { lastName: event.data.last_name }
+                  : {}),
+                ...(event.data?.phone ? { phone: event.data.phone } : {}),
+                urableId,
+                urableSyncedAt: new Date(),
+              } as any)
+              .where(eq(customers.id, existing[0].id));
+          }
+        }
+      } catch (err: any) {
+        console.error("[Urable webhook error]", err?.message);
       }
-    } catch (err: any) {
-      console.error("[Urable webhook error]", err?.message);
     }
-  });
+  );
 
   // ── Force HTTPS in production ──
   // Railway terminates TLS at the edge and sets x-forwarded-proto
@@ -221,6 +304,154 @@ async function startServer() {
       return res.redirect(301, `https://${req.headers.host}${req.url}`);
     }
     next();
+  });
+
+  // ── Cron: process follow-up queue ──────────────────────────────────────────
+  app.get("/api/cron/process-followup", async (req, res) => {
+    const secret = process.env.CRON_SECRET;
+    if (secret && req.headers["x-cron-secret"] !== secret) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    try {
+      const { getDb } = await import("../db");
+      const db = await getDb();
+      if (!db) {
+        res.status(500).json({ error: "DB unavailable" });
+        return;
+      }
+      const { followUpQueue, bookings: bkTable } = await import(
+        "../../drizzle/schema"
+      );
+      const { eq, and, lte } = await import("drizzle-orm");
+      const { sendEmail } = await import("../email");
+      const pending = await db
+        .select()
+        .from(followUpQueue)
+        .where(
+          and(
+            eq(followUpQueue.status, "pending"),
+            lte(followUpQueue.scheduledFor, new Date())
+          )
+        )
+        .limit(50);
+      let sent = 0;
+      for (const item of pending) {
+        try {
+          const [booking] = await db
+            .select()
+            .from(bkTable)
+            .where(eq(bkTable.id, item.bookingId))
+            .limit(1);
+          if (!booking?.customerEmail) {
+            await db
+              .update(followUpQueue)
+              .set({ status: "skipped" } as any)
+              .where(eq(followUpQueue.id, item.id));
+            continue;
+          }
+          const name = booking.customerFirstName;
+          let subject = "";
+          let html = "";
+          if (item.type === "review_request") {
+            subject = `How did we do, ${name}?`;
+            html = `<p>Hi ${name},</p><p>Thank you for choosing Forma Auto Spa! We'd love your feedback.</p><p><a href="https://g.page/r/detailinglabs" style="background:#7c3aed;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block;margin:12px 0">Leave a Review</a></p><p>— The Forma Auto Spa Team</p>`;
+          } else if (item.type === "follow_up") {
+            subject = `Checking in, ${name}`;
+            html = `<p>Hi ${name},</p><p>Just checking in — hope your vehicle is still looking great! Any questions, just reply.</p><p>— The Forma Auto Spa Team</p>`;
+          } else {
+            subject = `Time for another detail?`;
+            html = `<p>Hi ${name},</p><p>It's been about a month! <a href="https://detailinglabswi.com/booking">Book your next detail →</a></p><p>— The Forma Auto Spa Team</p>`;
+          }
+          await sendEmail({ to: booking.customerEmail, subject, html });
+          await db
+            .update(followUpQueue)
+            .set({ status: "sent", sentAt: new Date() } as any)
+            .where(eq(followUpQueue.id, item.id));
+          sent++;
+        } catch {
+          /* skip */
+        }
+      }
+      res.json({ ok: true, processed: pending.length, sent });
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message });
+    }
+  });
+
+  // ── Cron: process appointment reminders ─────────────────────────────────────
+  app.get("/api/cron/process-reminders", async (req, res) => {
+    const secret = process.env.CRON_SECRET;
+    if (secret && req.headers["x-cron-secret"] !== secret) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    try {
+      const { getDb } = await import("../db");
+      const db = await getDb();
+      if (!db) {
+        res.status(500).json({ error: "DB unavailable" });
+        return;
+      }
+      const { appointmentReminders, bookings: bkTable } = await import(
+        "../../drizzle/schema"
+      );
+      const { eq, and, lte } = await import("drizzle-orm");
+      const { sendEmail } = await import("../email");
+      const pending = await db
+        .select()
+        .from(appointmentReminders)
+        .where(
+          and(
+            eq(appointmentReminders.status, "pending"),
+            lte(appointmentReminders.scheduledFor, new Date())
+          )
+        )
+        .limit(50);
+      let sent = 0;
+      for (const reminder of pending) {
+        try {
+          const [booking] = await db
+            .select()
+            .from(bkTable)
+            .where(eq(bkTable.id, reminder.bookingId))
+            .limit(1);
+          if (!booking) {
+            await db
+              .update(appointmentReminders)
+              .set({ status: "failed" } as any)
+              .where(eq(appointmentReminders.id, reminder.id));
+            continue;
+          }
+          const timeLabel = reminder.type === "24h" ? "tomorrow" : "in 2 hours";
+          const apptTime = new Date(booking.appointmentDate).toLocaleTimeString(
+            "en-US",
+            { hour: "numeric", minute: "2-digit" }
+          );
+          let ok = false;
+          if (reminder.channel === "email" && booking.customerEmail) {
+            ok = await sendEmail({
+              to: booking.customerEmail,
+              subject: `Reminder: Your Forma Auto Spa appointment is ${timeLabel}`,
+              html: `<p>Hi ${booking.customerFirstName},</p><p>Your appointment is <strong>${timeLabel} at ${apptTime}</strong>.</p><p>— The Forma Auto Spa Team</p>`,
+            });
+          }
+          await db
+            .update(appointmentReminders)
+            .set({
+              status: ok ? "sent" : "failed",
+              sentAt: ok ? new Date() : null,
+            } as any)
+            .where(eq(appointmentReminders.id, reminder.id));
+          if (ok) sent++;
+        } catch {
+          /* skip */
+        }
+      }
+      res.json({ ok: true, processed: pending.length, sent });
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message });
+    }
   });
 
   // ── Manual migration trigger (secured by MIGRATE_SECRET env var) ──
@@ -237,7 +468,9 @@ async function startServer() {
       res.json({ success: true, ...result });
     } catch (err: any) {
       console.error("[Migrate] Failed:", err?.message);
-      res.status(500).json({ success: false, error: err?.message ?? String(err) });
+      res
+        .status(500)
+        .json({ success: false, error: err?.message ?? String(err) });
     }
   });
 
@@ -270,16 +503,21 @@ async function startServer() {
   // Auto-run migrations in background after server is bound
   runMigrations()
     .then(async ({ applied, log }) => {
-      log.forEach((l) => console.log(`[Migrate] ${l}`));
+      log.forEach(l => console.log(`[Migrate] ${l}`));
       console.log(`[Migrate] Complete — ${applied} applied`);
-      await seedDefaultContent().catch((e: any) => console.error("[Seed] Failed:", e?.message));
+      await seedDefaultContent().catch((e: any) =>
+        console.error("[Seed] Failed:", e?.message)
+      );
     })
     .catch((err: any) => {
-      console.error("[Migrate] Background migration failed (non-fatal):", err?.message ?? err);
+      console.error(
+        "[Migrate] Background migration failed (non-fatal):",
+        err?.message ?? err
+      );
     });
 }
 
-startServer().catch((err) => {
+startServer().catch(err => {
   console.error("[Fatal] Server failed to start:", err);
   process.exit(1);
 });
@@ -293,41 +531,81 @@ async function seedDefaultContent() {
 
   const defaults: { section: string; key: string; value: string }[] = [
     // Hero
-    { section: "hero", key: "badge",             value: "Mobile Detailing · Racine County, WI" },
-    { section: "hero", key: "headline",           value: "Your Car Deserves<br/>Better Than a Drive-Through." },
-    { section: "hero", key: "subheadline",        value: "Detailing Labs is a professional mobile detailing service based in Southeast Wisconsin. We bring a fully equipped setup — our own water, our own power — directly to your driveway. No drop-off. No waiting rooms. Just results." },
-    { section: "hero", key: "cta_primary",        value: "Book Your Appointment" },
-    { section: "hero", key: "cta_secondary",      value: "See What's Included" },
-    { section: "hero", key: "trust_reviews",      value: "5.0 · Racine County" },
-    { section: "hero", key: "trust_certified",    value: "Fully insured & certified" },
+    {
+      section: "hero",
+      key: "badge",
+      value: "Mobile Detailing · Racine County, WI",
+    },
+    {
+      section: "hero",
+      key: "headline",
+      value: "Your Car Deserves<br/>Better Than a Drive-Through.",
+    },
+    {
+      section: "hero",
+      key: "subheadline",
+      value:
+        "Forma Auto Spa is a professional mobile detailing service based in Southeast Wisconsin. We bring a fully equipped setup — our own water, our own power — directly to your driveway. No drop-off. No waiting rooms. Just results.",
+    },
+    { section: "hero", key: "cta_primary", value: "Book Your Appointment" },
+    { section: "hero", key: "cta_secondary", value: "See What's Included" },
+    { section: "hero", key: "trust_reviews", value: "5.0 · Racine County" },
+    {
+      section: "hero",
+      key: "trust_certified",
+      value: "Fully insured & certified",
+    },
     { section: "hero", key: "trust_availability", value: "Mon–Sat, 7am–7pm" },
     // About
-    { section: "about", key: "headline",          value: "Built on Passion for Paint" },
-    { section: "about", key: "body",              value: "We designed Detailing Labs around one problem: finding a truly professional detailer in Southeast Wisconsin shouldn't be hard. We carry our own water tank, run our own generator, and use professional-grade products on every single job. You don't give up your day. You don't drive anywhere. We handle it where your car lives." },
-    { section: "about", key: "years_experience",  value: "3+" },
+    { section: "about", key: "headline", value: "Built on Passion for Paint" },
+    {
+      section: "about",
+      key: "body",
+      value:
+        "We designed Forma Auto Spa around one problem: finding a truly professional detailer in Southeast Wisconsin shouldn't be hard. We carry our own water tank, run our own generator, and use professional-grade products on every single job. You don't give up your day. You don't drive anywhere. We handle it where your car lives.",
+    },
+    { section: "about", key: "years_experience", value: "3+" },
     { section: "about", key: "vehicles_detailed", value: "100+" },
     { section: "about", key: "satisfaction_rate", value: "99%" },
-    { section: "about", key: "service_areas",     value: "10+" },
+    { section: "about", key: "service_areas", value: "10+" },
     // Contact
-    { section: "contact", key: "phone",           value: "(262) 555-0190" },
-    { section: "contact", key: "email",           value: "hello@detailinglabswi.com" },
-    { section: "contact", key: "address",         value: "Sturtevant, WI — Racine County" },
-    { section: "contact", key: "hours_weekday",   value: "Mon–Fri: 9:00 AM – 5:00 PM" },
-    { section: "contact", key: "hours_weekend",   value: "Sat–Sun: 9:00 AM – 5:00 PM" },
+    { section: "contact", key: "phone", value: "(262) 260-9474" },
+    { section: "contact", key: "email", value: "hello@detailinglabswi.com" },
+    {
+      section: "contact",
+      key: "address",
+      value: "Sturtevant, WI — Racine County",
+    },
+    {
+      section: "contact",
+      key: "hours_weekday",
+      value: "Mon–Fri: 9:00 AM – 5:00 PM",
+    },
+    {
+      section: "contact",
+      key: "hours_weekend",
+      value: "Sat–Sun: 9:00 AM – 5:00 PM",
+    },
     // Business
-    { section: "business", key: "name",                   value: "Detailing Labs" },
-    { section: "business", key: "tagline",                value: "Professional Mobile Detailing — Southeast Wisconsin" },
-    { section: "business", key: "tax_rate",               value: "0.055" },
-    { section: "business", key: "travel_fee_base",        value: "0" },
-    { section: "business", key: "service_radius_miles",   value: "40" },
-    { section: "business", key: "booking_advance_hours",  value: "24" },
+    { section: "business", key: "name", value: "Forma Auto Spa" },
+    {
+      section: "business",
+      key: "tagline",
+      value: "Professional Mobile Detailing — Southeast Wisconsin",
+    },
+    { section: "business", key: "tax_rate", value: "0.055" },
+    { section: "business", key: "travel_fee_base", value: "0" },
+    { section: "business", key: "service_radius_miles", value: "40" },
+    { section: "business", key: "booking_advance_hours", value: "24" },
   ];
 
   for (const row of defaults) {
     const existing = await db
       .select()
       .from(siteContent)
-      .where(and(eq(siteContent.section, row.section), eq(siteContent.key, row.key)))
+      .where(
+        and(eq(siteContent.section, row.section), eq(siteContent.key, row.key))
+      )
       .limit(1);
     if (existing.length === 0) {
       await db.insert(siteContent).values(row);
@@ -343,7 +621,13 @@ async function seedDefaultContent() {
       description: "Total decontamination and 3-month hydrophobic protection.",
       price: "129.99" as any,
       duration: 120,
-      features: JSON.stringify(["Signature hand wash","Wheel & tire deep clean","Iron Remover treatment","Bug & Tar Removal","Hydrophobic Spray Wax (3-month protection)"]),
+      features: JSON.stringify([
+        "Signature hand wash",
+        "Wheel & tire deep clean",
+        "Iron Remover treatment",
+        "Bug & Tar Removal",
+        "Hydrophobic Spray Wax (3-month protection)",
+      ]),
       isPopular: false,
       isActive: true,
       sortOrder: 1,
@@ -353,27 +637,47 @@ async function seedDefaultContent() {
       description: "Complete cabin sanitization and restoration.",
       price: "129.99" as any,
       duration: 120,
-      features: JSON.stringify(["Compressed air blowout","Deep vacuum (all surfaces)","Dash / console / door scrub","UV protectant treatment","Streak-free interior glass","Floor mat restoration"]),
+      features: JSON.stringify([
+        "Compressed air blowout",
+        "Deep vacuum (all surfaces)",
+        "Dash / console / door scrub",
+        "UV protectant treatment",
+        "Streak-free interior glass",
+        "Floor mat restoration",
+      ]),
       isPopular: false,
       isActive: true,
       sortOrder: 2,
     },
     {
       name: "Full Showroom Reset",
-      description: "Our most popular package — total vehicle transformation inside and out. Save up to $39 vs. booking separately.",
+      description:
+        "Our most popular package — total vehicle transformation inside and out. Save up to $39 vs. booking separately.",
       price: "229.99" as any,
       duration: 240,
-      features: JSON.stringify(["Everything in Exterior Decon & Shield","Everything in Interior Deep Refresh","Best value — save up to $39","Like-new vehicle experience inside and out"]),
+      features: JSON.stringify([
+        "Everything in Exterior Decon & Shield",
+        "Everything in Interior Deep Refresh",
+        "Best value — save up to $39",
+        "Like-new vehicle experience inside and out",
+      ]),
       isPopular: true,
       isActive: true,
       sortOrder: 3,
     },
     {
       name: "The Ultimate Bundle",
-      description: "The most complete service we offer — graphene spray coating, steam cleaning, extraction if needed, plus our full interior and exterior treatment.",
+      description:
+        "The most complete service we offer — graphene spray coating, steam cleaning, extraction if needed, plus our full interior and exterior treatment.",
       price: "449.99" as any,
       duration: 360,
-      features: JSON.stringify(["Everything in Full Showroom Reset","Graphene spray coating","Steam cleaning","Extraction if needed","Our most comprehensive single-visit service"]),
+      features: JSON.stringify([
+        "Everything in Full Showroom Reset",
+        "Graphene spray coating",
+        "Steam cleaning",
+        "Extraction if needed",
+        "Our most comprehensive single-visit service",
+      ]),
       isPopular: false,
       isActive: true,
       sortOrder: 4,
@@ -383,13 +687,62 @@ async function seedDefaultContent() {
 
   await db.delete(addOns);
   await db.insert(addOns).values([
-    { name: "Pet Hair Removal",                  description: "Starting at $49",               price: "49.99"  as any, duration: 30,  isActive: true, sortOrder: 1 },
-    { name: "Odor Elimination Treatment",        description: "Interior deodorizer treatment",  price: "49.99"  as any, duration: 30,  isActive: true, sortOrder: 2 },
-    { name: "Engine Bay Detail",                 description: "Degreased & detailed engine bay",price: "49.99"  as any, duration: 45,  isActive: true, sortOrder: 3 },
-    { name: "Headlight Restoration",             description: "Restore clarity & UV protection",price: "79.00"  as any, duration: 45,  isActive: true, sortOrder: 4 },
-    { name: "Seat Extraction — Front Only",      description: "$50–$75 depending on condition", price: "49.99"  as any, duration: 60,  isActive: true, sortOrder: 5 },
-    { name: "Seat Extraction — Full Vehicle",    description: "$100–$150 all rows",             price: "99.99"  as any, duration: 105, isActive: true, sortOrder: 6 },
-    { name: "Seat Extraction — Per Seat (Spot)", description: "$25 per seat spot treatment",    price: "24.99"  as any, duration: 20,  isActive: true, sortOrder: 7 },
+    {
+      name: "Pet Hair Removal",
+      description: "Starting at $49",
+      price: "49.99" as any,
+      duration: 30,
+      isActive: true,
+      sortOrder: 1,
+    },
+    {
+      name: "Odor Elimination Treatment",
+      description: "Interior deodorizer treatment",
+      price: "49.99" as any,
+      duration: 30,
+      isActive: true,
+      sortOrder: 2,
+    },
+    {
+      name: "Engine Bay Detail",
+      description: "Degreased & detailed engine bay",
+      price: "49.99" as any,
+      duration: 45,
+      isActive: true,
+      sortOrder: 3,
+    },
+    {
+      name: "Headlight Restoration",
+      description: "Restore clarity & UV protection",
+      price: "79.00" as any,
+      duration: 45,
+      isActive: true,
+      sortOrder: 4,
+    },
+    {
+      name: "Seat Extraction — Front Only",
+      description: "$50–$75 depending on condition",
+      price: "49.99" as any,
+      duration: 60,
+      isActive: true,
+      sortOrder: 5,
+    },
+    {
+      name: "Seat Extraction — Full Vehicle",
+      description: "$100–$150 all rows",
+      price: "99.99" as any,
+      duration: 105,
+      isActive: true,
+      sortOrder: 6,
+    },
+    {
+      name: "Seat Extraction — Per Seat (Spot)",
+      description: "$25 per seat spot treatment",
+      price: "24.99" as any,
+      duration: 20,
+      isActive: true,
+      sortOrder: 7,
+    },
   ]);
   console.log("[Seed] Add-ons synced ✅");
 

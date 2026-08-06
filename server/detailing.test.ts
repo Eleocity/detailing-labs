@@ -10,7 +10,7 @@ function makeAdminCtx(): TrpcContext {
     user: {
       id: 1,
       openId: "admin-user",
-      email: "admin@detailinglabs.com",
+      email: "admin@formaautospa.com",
       name: "Admin User",
       loginMethod: "manus",
       role: "admin",
@@ -63,7 +63,7 @@ describe("auth.me", () => {
     const caller = appRouter.createCaller(ctx);
     const result = await caller.auth.me();
     expect(result).not.toBeNull();
-    expect(result?.email).toBe("admin@detailinglabs.com");
+    expect(result?.email).toBe("admin@formaautospa.com");
   });
 
   it("returns null when not authenticated", async () => {
@@ -76,7 +76,8 @@ describe("auth.me", () => {
 
 describe("auth.logout", () => {
   it("clears session cookie and returns success", async () => {
-    const clearedCookies: { name: string; options: Record<string, unknown> }[] = [];
+    const clearedCookies: { name: string; options: Record<string, unknown> }[] =
+      [];
     const ctx: TrpcContext = {
       ...makeAdminCtx(),
       res: {
@@ -167,7 +168,9 @@ describe("bookings.getByNumber", () => {
     const ctx = makeGuestCtx();
     const caller = appRouter.createCaller(ctx);
     try {
-      const result = await caller.bookings.getByNumber({ bookingNumber: "DL-NOTEXIST-000" });
+      const result = await caller.bookings.getByNumber({
+        bookingNumber: "DL-NOTEXIST-000",
+      });
       expect(result).toBeNull();
     } catch (err: any) {
       expect(err.message).toMatch(/database|unavailable/i);

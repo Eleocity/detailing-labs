@@ -1,14 +1,19 @@
 {
-  "name": "Detailing Labs",
-  "short_name": "Detailing Labs",
+  "name": "Forma Auto Spa",
+  "short_name": "Forma Auto Spa",
   "description": "Premium mobile auto detailing — book online in minutes. We come to you.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d0d14",
-  "theme_color": "#0d0d14",
+  "background_color": "#171310",
+  "theme_color": "#171310",
   "orientation": "portrait-primary",
   "categories": ["automotive", "lifestyle"],
   "icons": [
+    {
+      "src": "/brand/forma-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
     {
       "src": "/favicon.ico",
       "sizes": "64x64",
@@ -19,7 +24,7 @@
     {
       "name": "Book a Service",
       "short_name": "Book",
-      "url": "/booking",
+      "url": "/book",
       "description": "Schedule your mobile detailing appointment"
     },
     {

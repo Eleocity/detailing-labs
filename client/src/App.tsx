@@ -21,6 +21,10 @@ const About = lazy(() => import("./pages/About"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Contact = lazy(() => import("./pages/Contact"));
 const FAQ = lazy(() => import("./pages/FAQ"));
+const CeramicCoatings = lazy(() => import("./pages/CeramicCoatings"));
+const PaintCorrection = lazy(() => import("./pages/PaintCorrection"));
+const MobileDetailing = lazy(() => import("./pages/MobileDetailing"));
+const ServiceArea = lazy(() => import("./pages/ServiceArea"));
 
 // Booking
 const Booking = lazy(() => import("./pages/Booking"));
@@ -32,36 +36,101 @@ const InvoiceDetail = lazy(() => import("./pages/InvoiceDetail"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
-const AdminBookings = lazy(() => import("./pages/admin/AdminBookings").then(m => ({ default: m.AdminBookingsList })));
-const AdminBookingDetail = lazy(() => import("./pages/admin/AdminBookings").then(m => ({ default: m.AdminBookingDetail })));
+const AdminBookings = lazy(() =>
+  import("./pages/admin/AdminBookings").then(m => ({
+    default: m.AdminBookingsList,
+  }))
+);
+const AdminBookingDetail = lazy(() =>
+  import("./pages/admin/AdminBookings").then(m => ({
+    default: m.AdminBookingDetail,
+  }))
+);
 const AdminSchedule = lazy(() => import("./pages/admin/AdminSchedule"));
-const AdminCRMList = lazy(() => import("./pages/admin/AdminCRM").then(m => ({ default: m.AdminCRMList })));
-const AdminCRMDetail = lazy(() => import("./pages/admin/AdminCRM").then(m => ({ default: m.AdminCRMDetail })));
-const AdminEmployeesList = lazy(() => import("./pages/admin/AdminEmployees").then(m => ({ default: m.AdminEmployeesList })));
-const AdminEmployeeDetail = lazy(() => import("./pages/admin/AdminEmployees").then(m => ({ default: m.AdminEmployeeDetail })));
-const AdminInvoicesList   = lazy(() => import("./pages/admin/AdminInvoices").then(m => ({ default: m.AdminInvoicesList })));
-const AdminInvoiceDetail  = lazy(() => import("./pages/admin/AdminInvoices").then(m => ({ default: m.AdminInvoiceDetail })));
+const AdminCRMList = lazy(() =>
+  import("./pages/admin/AdminCRM").then(m => ({ default: m.AdminCRMList }))
+);
+const AdminCRMDetail = lazy(() =>
+  import("./pages/admin/AdminCRM").then(m => ({ default: m.AdminCRMDetail }))
+);
+const AdminEmployeesList = lazy(() =>
+  import("./pages/admin/AdminEmployees").then(m => ({
+    default: m.AdminEmployeesList,
+  }))
+);
+const AdminEmployeeDetail = lazy(() =>
+  import("./pages/admin/AdminEmployees").then(m => ({
+    default: m.AdminEmployeeDetail,
+  }))
+);
+const AdminInvoicesList = lazy(() =>
+  import("./pages/admin/AdminInvoices").then(m => ({
+    default: m.AdminInvoicesList,
+  }))
+);
+const AdminInvoiceDetail = lazy(() =>
+  import("./pages/admin/AdminInvoices").then(m => ({
+    default: m.AdminInvoiceDetail,
+  }))
+);
 const AdminMedia = lazy(() => import("./pages/admin/AdminMedia"));
 const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminRoutePlanner = lazy(() => import("./pages/admin/AdminRoutePlanner"));
+const AdminServiceAreas = lazy(() => import("./pages/admin/AdminServiceAreas"));
 const AdminSiteEditor = lazy(() => import("./pages/admin/AdminSiteEditor"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
-const AdminUrable     = lazy(() => import("./pages/admin/AdminUrable"));
+const AdminUrable = lazy(() => import("./pages/admin/AdminUrable"));
+const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics"));
+const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
+const AdminGiftCards = lazy(() => import("./pages/admin/AdminGiftCards"));
+const AdminScheduleBoard = lazy(
+  () => import("./pages/admin/AdminScheduleBoard")
+);
 const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 
-const Blog     = lazy(() => import("./pages/Blog"));
-const BlogPost  = lazy(() => import("./pages/Blog").then(m => ({ default: m.BlogPost })));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() =>
+  import("./pages/Blog").then(m => ({ default: m.BlogPost }))
+);
 
 // Location pages
-const LocationPageRacine        = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageRacine })));
-const LocationPageKenosha       = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageKenosha })));
-const LocationPageSturtevant    = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageSturtevant })));
-const LocationPageMountPleasant = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageMountPleasant })));
-const LocationPageOakCreek      = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageOakCreek })));
-const LocationPageCaledonia     = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageCaledonia })));
-const LocationPageBurlington    = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageBurlington })));
-const LocationPageFranksville   = lazy(() => import("./pages/LocationPage").then(m => ({ default: m.LocationPageFranksville })));
+const LocationPageRacine = lazy(() =>
+  import("./pages/LocationPage").then(m => ({ default: m.LocationPageRacine }))
+);
+const LocationPageKenosha = lazy(() =>
+  import("./pages/LocationPage").then(m => ({ default: m.LocationPageKenosha }))
+);
+const LocationPageSturtevant = lazy(() =>
+  import("./pages/LocationPage").then(m => ({
+    default: m.LocationPageSturtevant,
+  }))
+);
+const LocationPageMountPleasant = lazy(() =>
+  import("./pages/LocationPage").then(m => ({
+    default: m.LocationPageMountPleasant,
+  }))
+);
+const LocationPageOakCreek = lazy(() =>
+  import("./pages/LocationPage").then(m => ({
+    default: m.LocationPageOakCreek,
+  }))
+);
+const LocationPageCaledonia = lazy(() =>
+  import("./pages/LocationPage").then(m => ({
+    default: m.LocationPageCaledonia,
+  }))
+);
+const LocationPageBurlington = lazy(() =>
+  import("./pages/LocationPage").then(m => ({
+    default: m.LocationPageBurlington,
+  }))
+);
+const LocationPageFranksville = lazy(() =>
+  import("./pages/LocationPage").then(m => ({
+    default: m.LocationPageFranksville,
+  }))
+);
 
 function PageLoader() {
   return (
@@ -85,14 +154,27 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/services" component={Services} />
         <Route path="/pricing" component={Pricing} />
+        <Route path="/ceramic-coatings" component={CeramicCoatings} />
+        <Route path="/paint-correction" component={PaintCorrection} />
+        <Route path="/mobile-detailing" component={MobileDetailing} />
+        <Route path="/service-area" component={ServiceArea} />
         <Route path="/about" component={About} />
         <Route path="/gallery" component={Gallery} />
         <Route path="/contact" component={Contact} />
         <Route path="/faq" component={FAQ} />
 
-        {/* Booking */}
+        {/* Booking — /book is canonical; /booking kept live as an alias for
+            the previously-indexed URL (see docs/REBRAND_MIGRATION.md) */}
+        <Route path="/book" component={Booking} />
         <Route path="/booking" component={Booking} />
-        <Route path="/booking/confirmation/:bookingNumber" component={BookingConfirmation} />
+        <Route
+          path="/book/confirmation/:bookingNumber"
+          component={BookingConfirmation}
+        />
+        <Route
+          path="/booking/confirmation/:bookingNumber"
+          component={BookingConfirmation}
+        />
 
         {/* Customer Portal */}
         <Route path="/portal" component={CustomerPortal} />
@@ -116,8 +198,13 @@ function Router() {
         <Route path="/admin/media" component={AdminMedia} />
         <Route path="/admin/reviews" component={AdminReviews} />
         <Route path="/admin/route-planner" component={AdminRoutePlanner} />
+        <Route path="/admin/service-areas" component={AdminServiceAreas} />
         <Route path="/admin/site-editor" component={AdminSiteEditor} />
         <Route path="/admin/users" component={AdminUsers} />
+        <Route path="/admin/analytics" component={AdminAnalytics} />
+        <Route path="/admin/blog" component={AdminBlog} />
+        <Route path="/admin/gift-cards" component={AdminGiftCards} />
+        <Route path="/admin/schedule-board" component={AdminScheduleBoard} />
         <Route path="/admin/profile" component={ProfileSettings} />
 
         {/* Invite */}
@@ -128,14 +215,38 @@ function Router() {
         <Route path="/blog/:slug" component={BlogPost} />
 
         {/* Location pages */}
-        <Route path="/mobile-detailing-racine-wi"         component={LocationPageRacine} />
-        <Route path="/mobile-detailing-kenosha-wi"        component={LocationPageKenosha} />
-        <Route path="/mobile-detailing-sturtevant-wi"     component={LocationPageSturtevant} />
-        <Route path="/mobile-detailing-mount-pleasant-wi" component={LocationPageMountPleasant} />
-        <Route path="/mobile-detailing-oak-creek-wi"      component={LocationPageOakCreek} />
-        <Route path="/mobile-detailing-caledonia-wi"      component={LocationPageCaledonia} />
-        <Route path="/mobile-detailing-burlington-wi"     component={LocationPageBurlington} />
-        <Route path="/mobile-detailing-franksville-wi"    component={LocationPageFranksville} />
+        <Route
+          path="/mobile-detailing-racine-wi"
+          component={LocationPageRacine}
+        />
+        <Route
+          path="/mobile-detailing-kenosha-wi"
+          component={LocationPageKenosha}
+        />
+        <Route
+          path="/mobile-detailing-sturtevant-wi"
+          component={LocationPageSturtevant}
+        />
+        <Route
+          path="/mobile-detailing-mount-pleasant-wi"
+          component={LocationPageMountPleasant}
+        />
+        <Route
+          path="/mobile-detailing-oak-creek-wi"
+          component={LocationPageOakCreek}
+        />
+        <Route
+          path="/mobile-detailing-caledonia-wi"
+          component={LocationPageCaledonia}
+        />
+        <Route
+          path="/mobile-detailing-burlington-wi"
+          component={LocationPageBurlington}
+        />
+        <Route
+          path="/mobile-detailing-franksville-wi"
+          component={LocationPageFranksville}
+        />
 
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

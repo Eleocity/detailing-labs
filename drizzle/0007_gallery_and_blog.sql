@@ -1,0 +1,18 @@
+ALTER TABLE media ADD COLUMN isPublic TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE media ADD COLUMN galleryOrder INT DEFAULT 0;
+
+CREATE TABLE blogPosts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  slug VARCHAR(255) NOT NULL UNIQUE,
+  title VARCHAR(500) NOT NULL,
+  excerpt TEXT,
+  content LONGTEXT,
+  authorId INT,
+  status ENUM('draft','published','archived') NOT NULL DEFAULT 'draft',
+  featuredImage TEXT,
+  seoTitle VARCHAR(500),
+  seoDescription TEXT,
+  publishedAt TIMESTAMP NULL,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

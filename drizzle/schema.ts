@@ -20,7 +20,9 @@ export const users = mysqlTable("users", {
   phone: varchar("phone", { length: 32 }),
   passwordHash: varchar("passwordHash", { length: 255 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin", "employee"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "admin", "employee"])
+    .default("user")
+    .notNull(),
   // Password reset
   resetToken: varchar("resetToken", { length: 128 }),
   resetTokenExpiresAt: timestamp("resetTokenExpiresAt"),
@@ -36,10 +38,14 @@ export type InsertUser = typeof users.$inferInsert;
 export const userInvitations = mysqlTable("userInvitations", {
   id: int("id").autoincrement().primaryKey(),
   email: varchar("email", { length: 320 }).notNull(),
-  role: mysqlEnum("role", ["user", "admin", "employee"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "admin", "employee"])
+    .default("user")
+    .notNull(),
   token: varchar("token", { length: 128 }).notNull().unique(),
   invitedBy: int("invitedBy").notNull(), // user id of admin who sent invite
-  status: mysqlEnum("status", ["pending", "accepted", "expired"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["pending", "accepted", "expired"])
+    .default("pending")
+    .notNull(),
   expiresAt: timestamp("expiresAt").notNull(),
   acceptedAt: timestamp("acceptedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -63,17 +69,29 @@ export const customers = mysqlTable("customers", {
   notes: text("notes"),
   source: varchar("source", { length: 100 }),
   tags: text("tags"),
+  referralCode: varchar("referralCode", { length: 8 }).unique(),
   crmStatus: mysqlEnum("crmStatus", [
-    "new_lead", "contacted", "quote_sent", "booked",
-    "active", "follow_up", "vip", "inactive"
+    "new_lead",
+    "contacted",
+    "quote_sent",
+    "booked",
+    "active",
+    "follow_up",
+    "vip",
+    "inactive",
   ]).default("new_lead"),
   reviewRequestStatus: mysqlEnum("reviewRequestStatus", [
-    "not_sent", "sent", "reminded", "completed"
+    "not_sent",
+    "sent",
+    "reminded",
+    "completed",
   ]).default("not_sent"),
-  lifetimeValue: decimal("lifetimeValue", { precision: 10, scale: 2 }).default("0.00"),
+  lifetimeValue: decimal("lifetimeValue", { precision: 10, scale: 2 }).default(
+    "0.00"
+  ),
   lastServiceDate: timestamp("lastServiceDate"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  urableId: varchar("urableId", { length: 100 }),  // Urable customer ID for sync
+  urableId: varchar("urableId", { length: 100 }), // Urable customer ID for sync
   urableSyncedAt: timestamp("urableSyncedAt"),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -90,7 +108,14 @@ export const vehicles = mysqlTable("vehicles", {
   year: int("year"),
   color: varchar("color", { length: 50 }),
   vehicleType: mysqlEnum("vehicleType", [
-    "sedan", "suv", "truck", "van", "coupe", "convertible", "wagon", "other"
+    "sedan",
+    "suv",
+    "truck",
+    "van",
+    "coupe",
+    "convertible",
+    "wagon",
+    "other",
   ]).default("sedan"),
   licensePlate: varchar("licensePlate", { length: 20 }),
   notes: text("notes"),
@@ -157,8 +182,12 @@ export const employees = mysqlTable("employees", {
   lastName: varchar("lastName", { length: 100 }).notNull(),
   email: varchar("email", { length: 320 }),
   phone: varchar("phone", { length: 32 }),
-  role: mysqlEnum("role", ["admin", "manager", "detailer"]).default("detailer").notNull(),
-  status: mysqlEnum("status", ["active", "inactive", "on_leave"]).default("active"),
+  role: mysqlEnum("role", ["admin", "manager", "detailer"])
+    .default("detailer")
+    .notNull(),
+  status: mysqlEnum("status", ["active", "inactive", "on_leave"]).default(
+    "active"
+  ),
   skills: text("skills"), // JSON array of skill tags
   notes: text("notes"),
   hireDate: timestamp("hireDate"),
@@ -222,11 +251,22 @@ export const bookings = mysqlTable("bookings", {
   totalAmount: decimal("totalAmount", { precision: 10, scale: 2 }),
   // Status
   status: mysqlEnum("status", [
-    "new", "confirmed", "assigned", "en_route",
-    "in_progress", "completed", "cancelled", "no_show"
-  ]).default("new").notNull(),
+    "new",
+    "confirmed",
+    "assigned",
+    "en_route",
+    "in_progress",
+    "completed",
+    "cancelled",
+    "no_show",
+  ])
+    .default("new")
+    .notNull(),
   paymentStatus: mysqlEnum("paymentStatus", [
-    "unpaid", "deposit_paid", "paid", "refunded"
+    "unpaid",
+    "deposit_paid",
+    "paid",
+    "refunded",
   ]).default("unpaid"),
   // Meta
   source: varchar("source", { length: 100 }),
@@ -234,8 +274,15 @@ export const bookings = mysqlTable("bookings", {
   internalNotes: text("internalNotes"),
   howHeard: varchar("howHeard", { length: 100 }),
   reviewRequestSent: boolean("reviewRequestSent").default(false),
-  urableJobId: varchar("urableJobId", { length: 100 }),  // Urable job ID for sync
+  urableJobId: varchar("urableJobId", { length: 100 }), // Urable job ID for sync
   urableSyncedAt: timestamp("urableSyncedAt"),
+  // BookingProvider result (see server/booking/types.ts) — kept separate from
+  // the operational `status` above so the customer-facing confirmation page
+  // can show an honest sync/scheduling status without touching admin workflow.
+  providerName: varchar("providerName", { length: 40 }), // "urable-api" | "urable-virtual-shop" | "request-only"
+  providerStatus: varchar("providerStatus", { length: 40 }), // BookingSyncStatus
+  providerMessage: text("providerMessage"),
+  externalEventId: varchar("externalEventId", { length: 100 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -270,7 +317,14 @@ export const crmNotes = mysqlTable("crmNotes", {
   id: int("id").autoincrement().primaryKey(),
   customerId: int("customerId").notNull(),
   bookingId: int("bookingId"),
-  type: mysqlEnum("type", ["note", "call", "email", "sms", "task", "reminder"]).default("note"),
+  type: mysqlEnum("type", [
+    "note",
+    "call",
+    "email",
+    "sms",
+    "task",
+    "reminder",
+  ]).default("note"),
   content: text("content").notNull(),
   isCompleted: boolean("isCompleted").default(false),
   dueDate: timestamp("dueDate"),
@@ -294,7 +348,13 @@ export const invoices = mysqlTable("invoices", {
   taxRate: decimal("taxRate", { precision: 5, scale: 4 }).default("0.0000"),
   taxAmount: decimal("taxAmount", { precision: 10, scale: 2 }).default("0.00"),
   totalAmount: decimal("totalAmount", { precision: 10, scale: 2 }).notNull(),
-  status: mysqlEnum("status", ["draft", "sent", "paid", "overdue", "cancelled"]).default("draft"),
+  status: mysqlEnum("status", [
+    "draft",
+    "sent",
+    "paid",
+    "overdue",
+    "cancelled",
+  ]).default("draft"),
   notes: text("notes"),
   dueDate: timestamp("dueDate"),
   paidAt: timestamp("paidAt"),
@@ -309,6 +369,7 @@ export type InsertInvoice = typeof invoices.$inferInsert;
 export const media = mysqlTable("media", {
   id: int("id").autoincrement().primaryKey(),
   bookingId: int("bookingId"),
+  bookingDraftId: int("bookingDraftId"), // set when uploaded during the booking wizard, before a booking exists
   customerId: int("customerId"),
   vehicleId: int("vehicleId"),
   uploadedBy: int("uploadedBy"),
@@ -317,8 +378,17 @@ export const media = mysqlTable("media", {
   fileName: varchar("fileName", { length: 255 }),
   mimeType: varchar("mimeType", { length: 100 }),
   fileSize: int("fileSize"),
-  label: mysqlEnum("label", ["before", "after", "progress", "damage", "completed", "other"]).default("other"),
+  label: mysqlEnum("label", [
+    "before",
+    "after",
+    "progress",
+    "damage",
+    "completed",
+    "other",
+  ]).default("other"),
   caption: text("caption"),
+  isPublic: boolean("isPublic").default(false),
+  galleryOrder: int("galleryOrder").default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -331,7 +401,13 @@ export const reviewRequests = mysqlTable("reviewRequests", {
   bookingId: int("bookingId").notNull(),
   customerId: int("customerId"),
   channel: mysqlEnum("channel", ["email", "sms", "both"]).default("email"),
-  status: mysqlEnum("status", ["pending", "sent", "reminded", "completed", "opted_out"]).default("pending"),
+  status: mysqlEnum("status", [
+    "pending",
+    "sent",
+    "reminded",
+    "completed",
+    "opted_out",
+  ]).default("pending"),
   sentAt: timestamp("sentAt"),
   reminderSentAt: timestamp("reminderSentAt"),
   completedAt: timestamp("completedAt"),
@@ -368,7 +444,7 @@ export const businessSettings = mysqlTable("businessSettings", {
 export const siteContent = mysqlTable("siteContent", {
   id: int("id").autoincrement().primaryKey(),
   section: varchar("section", { length: 100 }).notNull(), // e.g. 'hero', 'about', 'faq'
-  key: varchar("key", { length: 100 }).notNull(),          // e.g. 'headline', 'subtext'
+  key: varchar("key", { length: 100 }).notNull(), // e.g. 'headline', 'subtext'
   value: text("value"),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -385,3 +461,212 @@ export const serviceAreas = mysqlTable("serviceAreas", {
   isActive: boolean("isActive").default(true),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+// ─── Blog Posts ───────────────────────────────────────────────────────────────
+export const blogPosts = mysqlTable("blogPosts", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  title: varchar("title", { length: 500 }).notNull(),
+  excerpt: text("excerpt"),
+  content: text("content"),
+  authorId: int("authorId"),
+  status: mysqlEnum("status", ["draft", "published", "archived"])
+    .default("draft")
+    .notNull(),
+  featuredImage: text("featuredImage"),
+  seoTitle: varchar("seoTitle", { length: 500 }),
+  seoDescription: text("seoDescription"),
+  publishedAt: timestamp("publishedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = typeof blogPosts.$inferInsert;
+
+// ─── Loyalty Points ───────────────────────────────────────────────────────────
+export const loyaltyPoints = mysqlTable("loyaltyPoints", {
+  id: int("id").autoincrement().primaryKey(),
+  customerId: int("customerId").notNull(),
+  bookingId: int("bookingId"),
+  points: int("points").notNull(),
+  type: mysqlEnum("type", ["earned", "redeemed", "adjusted"])
+    .default("earned")
+    .notNull(),
+  description: varchar("description", { length: 500 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type LoyaltyPoint = typeof loyaltyPoints.$inferSelect;
+
+// ─── Referrals ────────────────────────────────────────────────────────────────
+export const referrals = mysqlTable("referrals", {
+  id: int("id").autoincrement().primaryKey(),
+  referrerId: int("referrerId").notNull(),
+  referredCustomerId: int("referredCustomerId").notNull(),
+  bookingId: int("bookingId"),
+  status: mysqlEnum("status", ["pending", "qualified", "rewarded"])
+    .default("pending")
+    .notNull(),
+  rewardAmount: decimal("rewardAmount", { precision: 10, scale: 2 }).default(
+    "0.00"
+  ),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Referral = typeof referrals.$inferSelect;
+
+// ─── Condition Reports ────────────────────────────────────────────────────────
+export const conditionReports = mysqlTable("conditionReports", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull(),
+  customerId: int("customerId"),
+  vehicleId: int("vehicleId"),
+  checkedById: int("checkedById"),
+  paintCondition: mysqlEnum("paintCondition", [
+    "excellent",
+    "good",
+    "fair",
+    "poor",
+  ]).default("good"),
+  interiorCondition: mysqlEnum("interiorCondition", [
+    "excellent",
+    "good",
+    "fair",
+    "poor",
+  ]).default("good"),
+  existingDamage: text("existingDamage"), // JSON array of {location, description, severity}
+  notes: text("notes"),
+  photos: text("photos"), // JSON array of S3 URLs
+  customerSignature: boolean("customerSignature").default(false),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ConditionReport = typeof conditionReports.$inferSelect;
+
+// ─── Gift Cards ───────────────────────────────────────────────────────────────
+export const giftCards = mysqlTable("giftCards", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 12 }).notNull().unique(),
+  purchaserName: varchar("purchaserName", { length: 200 }),
+  purchaserEmail: varchar("purchaserEmail", { length: 320 }),
+  recipientName: varchar("recipientName", { length: 200 }),
+  recipientEmail: varchar("recipientEmail", { length: 320 }),
+  initialBalance: decimal("initialBalance", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+  currentBalance: decimal("currentBalance", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+  status: mysqlEnum("status", ["active", "redeemed", "expired", "cancelled"])
+    .default("active")
+    .notNull(),
+  expiresAt: timestamp("expiresAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type GiftCard = typeof giftCards.$inferSelect;
+
+export const giftCardTransactions = mysqlTable("giftCardTransactions", {
+  id: int("id").autoincrement().primaryKey(),
+  giftCardId: int("giftCardId").notNull(),
+  bookingId: int("bookingId"),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  type: mysqlEnum("type", ["issue", "redeem", "refund", "adjustment"])
+    .default("issue")
+    .notNull(),
+  note: varchar("note", { length: 500 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// ─── Follow-Up Queue ──────────────────────────────────────────────────────────
+export const followUpQueue = mysqlTable("followUpQueue", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull(),
+  customerId: int("customerId"),
+  type: mysqlEnum("type", ["review_request", "follow_up", "rebook_offer"])
+    .default("review_request")
+    .notNull(),
+  scheduledFor: timestamp("scheduledFor").notNull(),
+  sentAt: timestamp("sentAt"),
+  status: mysqlEnum("status", ["pending", "sent", "skipped"])
+    .default("pending")
+    .notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type FollowUpQueueItem = typeof followUpQueue.$inferSelect;
+
+// ─── Appointment Reminders ────────────────────────────────────────────────────
+export const appointmentReminders = mysqlTable("appointmentReminders", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull(),
+  type: mysqlEnum("type", ["24h", "2h"]).default("24h").notNull(),
+  channel: mysqlEnum("channel", ["email", "sms"]).default("email").notNull(),
+  scheduledFor: timestamp("scheduledFor").notNull(),
+  sentAt: timestamp("sentAt"),
+  status: mysqlEnum("status", ["pending", "sent", "failed", "disabled"])
+    .default("pending")
+    .notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AppointmentReminder = typeof appointmentReminders.$inferSelect;
+
+// ─── Integration Mappings ─────────────────────────────────────────────────────
+// Local <-> Urable ID mapping + sync bookkeeping, per entity. Urable remains
+// the operational source of truth for customers/vehicles/jobs; this table
+// only tracks the relationship and sync health so we never create duplicate
+// Urable records for the same local entity.
+export const integrationMappings = mysqlTable("integrationMappings", {
+  id: int("id").autoincrement().primaryKey(),
+  entityType: mysqlEnum("entityType", [
+    "customer",
+    "vehicle",
+    "booking",
+    "order",
+  ]).notNull(),
+  localId: int("localId").notNull(), // e.g. customers.id / vehicles.id / bookings.id
+  externalCustomerId: varchar("externalCustomerId", { length: 100 }),
+  externalVehicleId: varchar("externalVehicleId", { length: 100 }),
+  externalJobId: varchar("externalJobId", { length: 100 }),
+  externalEventId: varchar("externalEventId", { length: 100 }),
+  externalOrderId: varchar("externalOrderId", { length: 100 }),
+  syncStatus: mysqlEnum("syncStatus", ["pending", "synced", "failed"])
+    .default("pending")
+    .notNull(),
+  lastSyncedAt: timestamp("lastSyncedAt"),
+  lastError: text("lastError"),
+  /** Prevents duplicate Urable records from a retried/duplicate submission. */
+  idempotencyKey: varchar("idempotencyKey", { length: 100 }).unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type IntegrationMapping = typeof integrationMappings.$inferSelect;
+export type InsertIntegrationMapping = typeof integrationMappings.$inferInsert;
+
+// ─── Booking Drafts ───────────────────────────────────────────────────────────
+// Multi-step booking wizard state, persisted so a customer can resume on
+// another device/tab and so photo uploads have something to attach to
+// before the booking is actually submitted. Never treated as a confirmed
+// booking or a competing calendar — it's just wizard-in-progress state.
+export const bookingDrafts = mysqlTable("bookingDrafts", {
+  id: int("id").autoincrement().primaryKey(),
+  token: varchar("token", { length: 40 }).notNull().unique(), // opaque client-facing reference
+  customerId: int("customerId"),
+  step: varchar("step", { length: 40 }).default("service_type"),
+  serviceType: mysqlEnum("serviceType", ["mobile", "drop_off", "estimate"]),
+  selections: json("selections"), // package/add-ons/vehicle/schedule selections so far
+  conditionAnswers: json("conditionAnswers"), // structured Step 5 answers
+  attribution: json("attribution"), // UTM/campaign params
+  bookingId: int("bookingId"), // set once submitted
+  expiresAt: timestamp("expiresAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type BookingDraft = typeof bookingDrafts.$inferSelect;
+export type InsertBookingDraft = typeof bookingDrafts.$inferInsert;

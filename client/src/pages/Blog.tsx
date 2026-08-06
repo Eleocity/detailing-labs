@@ -1,13 +1,24 @@
 import { useState } from "react";
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
-import { ChevronRight, Calendar, Clock, ArrowLeft } from "lucide-react";
+import {
+  ChevronRight,
+  Calendar,
+  Clock,
+  ArrowLeft,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import SEO, { breadcrumbSchema } from "@/components/SEO";
+import { trpc } from "@/lib/trpc";
+import { format } from "date-fns";
 
-const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
 
 interface Post {
   slug: string;
@@ -26,7 +37,8 @@ const POSTS: Post[] = [
     date: "March 2025",
     readTime: "4 min read",
     category: "Maintenance",
-    excerpt: "Wisconsin winters do more damage to your vehicle than most people realize. Here's how often you should be detailing based on the season.",
+    excerpt:
+      "Wisconsin winters do more damage to your vehicle than most people realize. Here's how often you should be detailing based on the season.",
     body: `Wisconsin is hard on vehicles. Road salt, sand, freezing temps, and freeze-thaw cycles from November through April create conditions that strip wax, embed contamination in your paint, and degrade your interior faster than almost anywhere else in the country.
 
 Here's a realistic schedule for Wisconsin drivers:
@@ -55,7 +67,8 @@ The key variable is road salt. If you're driving through treated roads regularly
     date: "February 2025",
     readTime: "5 min read",
     category: "Services",
-    excerpt: "Ceramic coating is marketed as the ultimate paint protection. Here's when it actually makes sense — and when it doesn't.",
+    excerpt:
+      "Ceramic coating is marketed as the ultimate paint protection. Here's when it actually makes sense — and when it doesn't.",
     body: `Ceramic coating gets talked about like it's a miracle product. It's not — but it is genuinely excellent protection when applied correctly and maintained properly. Here's an honest breakdown.
 
 **What ceramic coating actually does**
@@ -90,7 +103,8 @@ Ceramic coating is worth it for the right vehicle and the right owner. It's a ge
     date: "January 2025",
     readTime: "4 min read",
     category: "Education",
-    excerpt: "A professional interior detail is very different from a car wash vacuum. Here's exactly what's included and why it matters.",
+    excerpt:
+      "A professional interior detail is very different from a car wash vacuum. Here's exactly what's included and why it matters.",
     body: `Most people have had a car wash interior cleaning — a quick vacuum, maybe a wipe of the dashboard, a spray of something that smells like vanilla. That's not what a professional interior detail is.
 
 Here's what actually happens during a proper interior detail:
@@ -127,7 +141,8 @@ If your vehicle has pets or kids, the difference between a car wash clean and a 
     date: "December 2024",
     readTime: "3 min read",
     category: "Education",
-    excerpt: "Both options exist for a reason. Here's how to decide which is right for you — and what to watch out for with each.",
+    excerpt:
+      "Both options exist for a reason. Here's how to decide which is right for you — and what to watch out for with each.",
     body: `The detailing industry offers two main options: traditional shops where you drop off your vehicle, and mobile detailers who come to you. Here's an honest comparison.
 
 **Traditional detail shops**
@@ -156,24 +171,52 @@ For most people in Southeast Wisconsin, a properly equipped mobile detailer offe
 
 // ── Blog Index ────────────────────────────────────────────────────────────────
 export default function Blog() {
+  const { data: livePosts = [], isLoading } =
+    trpc.blog.listPublished.useQuery();
+
+  // Merge: live DB posts first, then static posts not already covered by a DB slug
+  const liveSlugSet = new Set(livePosts.map(p => p.slug));
+  const staticFallback = POSTS.filter(p => !liveSlugSet.has(p.slug));
+
+  const allPosts = [
+    ...livePosts.map(p => ({
+      slug: p.slug,
+      title: p.title,
+      date: p.publishedAt ? format(new Date(p.publishedAt), "MMMM yyyy") : "",
+      readTime: "",
+      excerpt: p.excerpt ?? "",
+      category: "Article",
+      isLive: true,
+    })),
+    ...staticFallback.map(p => ({ ...p, isLive: false })),
+  ];
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <SEO
-        title="Detailing Tips & Guides | Detailing Labs — Racine County, WI"
-        description="Expert advice on auto detailing, ceramic coating, and vehicle maintenance from Detailing Labs in Southeast Wisconsin."
+        title="Detailing Tips & Guides | Forma Auto Spa — Racine County, WI"
+        description="Expert advice on auto detailing, ceramic coating, and vehicle maintenance from Forma Auto Spa in Southeast Wisconsin."
         canonical="/blog"
-        jsonLd={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Blog", url: "/blog" }])}
+        jsonLd={breadcrumbSchema([
+          { name: "Home", url: "/" },
+          { name: "Blog", url: "/blog" },
+        ])}
       />
 
       {/* Hero */}
-      <section className="pt-24 pb-12 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.004_280)]">
+      <section className="pt-24 pb-12 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.002_75)]">
         <div className="container">
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-            <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">Resources</p>
-            <h1 className="text-4xl sm:text-5xl font-display font-bold mb-4">Detailing Tips & Guides</h1>
+            <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">
+              Resources
+            </p>
+            <h1 className="text-4xl sm:text-5xl font-display font-bold mb-4">
+              Detailing Tips & Guides
+            </h1>
             <p className="text-muted-foreground max-w-2xl leading-relaxed">
-              Honest advice on keeping your vehicle in good shape — from how often to detail to whether ceramic coating is worth it.
+              Honest advice on keeping your vehicle in good shape — from how
+              often to detail to whether ceramic coating is worth it.
             </p>
           </motion.div>
         </div>
@@ -182,45 +225,67 @@ export default function Blog() {
       {/* Posts */}
       <section className="py-14 sm:py-20">
         <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-            {POSTS.map((post, i) => (
-              <motion.div key={post.slug} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                style={{ transitionDelay: `${i * 0.05}s` }}>
-                <Link href={`/blog/${post.slug}`}>
-                  <div className="group flex flex-col h-full p-6 rounded-2xl border border-border bg-card hover:border-primary/40 transition-all cursor-pointer">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
-                        {post.category}
-                      </span>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Clock className="w-3 h-3" /> {post.readTime}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+              {allPosts.map((post, i) => (
+                <motion.div
+                  key={post.slug}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={fadeUp}
+                  style={{ transitionDelay: `${i * 0.05}s` }}
+                >
+                  <Link href={`/blog/${post.slug}`}>
+                    <div className="group flex flex-col h-full p-6 rounded-2xl border border-border bg-card hover:border-primary/40 transition-all cursor-pointer">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+                          {post.category}
+                        </span>
+                        {post.readTime && (
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock className="w-3 h-3" /> {post.readTime}
+                          </div>
+                        )}
+                      </div>
+                      <h2 className="font-display font-bold text-lg mb-3 group-hover:text-primary transition-colors leading-snug">
+                        {post.title}
+                      </h2>
+                      <p className="text-muted-foreground text-sm leading-relaxed flex-1 mb-5">
+                        {post.excerpt}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        {post.date && (
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Calendar className="w-3 h-3" /> {post.date}
+                          </div>
+                        )}
+                        <span className="text-xs font-semibold text-primary flex items-center gap-1 ml-auto">
+                          Read more <ChevronRight className="w-3.5 h-3.5" />
+                        </span>
                       </div>
                     </div>
-                    <h2 className="font-display font-bold text-lg mb-3 group-hover:text-primary transition-colors leading-snug">
-                      {post.title}
-                    </h2>
-                    <p className="text-muted-foreground text-sm leading-relaxed flex-1 mb-5">{post.excerpt}</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Calendar className="w-3 h-3" /> {post.date}
-                      </div>
-                      <span className="text-xs font-semibold text-primary flex items-center gap-1">
-                        Read more <ChevronRight className="w-3.5 h-3.5" />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-12 bg-[oklch(0.06_0.004_280)]">
+      <section className="py-12 bg-[oklch(0.06_0.002_75)]">
         <div className="container text-center">
-          <h2 className="text-2xl font-display font-bold mb-3">Ready to Book?</h2>
-          <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto">Professional mobile detailing in Southeast Wisconsin.</p>
+          <h2 className="text-2xl font-display font-bold mb-3">
+            Ready to Book?
+          </h2>
+          <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto">
+            Professional mobile detailing in Southeast Wisconsin.
+          </p>
           <Link href="/booking">
             <Button className="bg-primary hover:bg-primary/90 font-semibold px-8 h-11">
               Book Your Detail <ChevronRight className="w-4 h-4 ml-1" />
@@ -237,56 +302,109 @@ export default function Blog() {
 // ── Blog Post ─────────────────────────────────────────────────────────────────
 export function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
-  const post = POSTS.find(p => p.slug === slug);
 
-  if (!post) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-display font-bold mb-3">Post not found</h1>
-          <Link href="/blog"><Button variant="outline">Back to Blog</Button></Link>
-        </div>
-      </div>
-    );
-  }
+  // Try live DB post first
+  const { data: livePost, isLoading } = trpc.blog.getBySlug.useQuery(
+    { slug: slug ?? "" },
+    { enabled: !!slug, retry: false }
+  );
+
+  // Fallback to static posts
+  const staticPost = POSTS.find(p => p.slug === slug);
 
   // Parse markdown-style bold and render body
   const renderBody = (text: string) => {
     return text.split("\n\n").map((para, i) => {
       if (para.startsWith("**") && para.endsWith("**")) {
         const heading = para.slice(2, -2);
-        return <h3 key={i} className="text-lg font-display font-bold text-foreground mt-8 mb-3">{heading}</h3>;
+        return (
+          <h3
+            key={i}
+            className="text-lg font-display font-bold text-foreground mt-8 mb-3"
+          >
+            {heading}
+          </h3>
+        );
       }
-      // Inline bold
       const parts = para.split(/(\*\*[^*]+\*\*)/g);
       return (
         <p key={i} className="text-muted-foreground leading-relaxed mb-0">
           {parts.map((part, j) =>
-            part.startsWith("**") && part.endsWith("**")
-              ? <strong key={j} className="text-foreground font-semibold">{part.slice(2, -2)}</strong>
-              : part
+            part.startsWith("**") && part.endsWith("**") ? (
+              <strong key={j} className="text-foreground font-semibold">
+                {part.slice(2, -2)}
+              </strong>
+            ) : (
+              part
+            )
           )}
         </p>
       );
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Use live post if found, else static fallback
+  const post = livePost
+    ? {
+        title: livePost.title,
+        excerpt: livePost.excerpt ?? "",
+        category: "Article",
+        date: livePost.publishedAt
+          ? format(new Date(livePost.publishedAt), "MMMM yyyy")
+          : "",
+        readTime: "",
+        body: livePost.content ?? "",
+      }
+    : staticPost
+      ? {
+          title: staticPost.title,
+          excerpt: staticPost.excerpt,
+          category: staticPost.category,
+          date: staticPost.date,
+          readTime: staticPost.readTime,
+          body: staticPost.body,
+        }
+      : null;
+
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-display font-bold mb-3">
+            Post not found
+          </h1>
+          <Link href="/blog">
+            <Button variant="outline">Back to Blog</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <SEO
-        title={`${post.title} | Detailing Labs`}
+        title={`${post.title} | Forma Auto Spa`}
         description={post.excerpt}
-        canonical={`/blog/${post.slug}`}
+        canonical={`/blog/${slug}`}
         jsonLd={breadcrumbSchema([
           { name: "Home", url: "/" },
           { name: "Blog", url: "/blog" },
-          { name: post.title, url: `/blog/${post.slug}` },
+          { name: post.title, url: `/blog/${slug}` },
         ])}
       />
 
       {/* Hero */}
-      <section className="pt-24 pb-8 sm:pt-28 sm:pb-12 bg-[oklch(0.06_0.004_280)]">
+      <section className="pt-24 pb-8 sm:pt-28 sm:pb-12 bg-[oklch(0.06_0.002_75)]">
         <div className="container max-w-3xl">
           <Link href="/blog">
             <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
@@ -294,26 +412,43 @@ export function BlogPost() {
             </button>
           </Link>
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">{post.category}</span>
-            <span className="text-xs text-muted-foreground">{post.date}</span>
-            <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{post.readTime}</span>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+              {post.category}
+            </span>
+            {post.date && (
+              <span className="text-xs text-muted-foreground">{post.date}</span>
+            )}
+            {post.readTime && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {post.readTime}
+              </span>
+            )}
           </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold leading-tight mb-5">{post.title}</h1>
-          <p className="text-muted-foreground text-lg leading-relaxed">{post.excerpt}</p>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold leading-tight mb-5">
+            {post.title}
+          </h1>
+          {post.excerpt && (
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              {post.excerpt}
+            </p>
+          )}
         </div>
       </section>
 
       {/* Body */}
       <section className="py-12 sm:py-16">
         <div className="container max-w-3xl">
-          <div className="space-y-3">
-            {renderBody(post.body)}
-          </div>
+          <div className="space-y-3">{renderBody(post.body)}</div>
 
           {/* Bottom CTA */}
           <div className="mt-12 p-7 rounded-2xl border-2 border-primary/40 bg-primary/5 text-center">
-            <h3 className="font-display font-bold text-lg mb-2">Serving Racine County & Southeast Wisconsin</h3>
-            <p className="text-muted-foreground text-sm mb-5">Book online in under 2 minutes. We show up fully equipped.</p>
+            <h3 className="font-display font-bold text-lg mb-2">
+              Serving Racine County & Southeast Wisconsin
+            </h3>
+            <p className="text-muted-foreground text-sm mb-5">
+              Book online in under 2 minutes. We show up fully equipped.
+            </p>
             <Link href="/booking">
               <Button className="bg-primary hover:bg-primary/90 font-semibold px-8">
                 Book Your Detail <ChevronRight className="w-4 h-4 ml-1" />
@@ -321,14 +456,18 @@ export function BlogPost() {
             </Link>
           </div>
 
-          {/* More posts */}
+          {/* More static posts */}
           <div className="mt-12">
-            <h3 className="font-display font-bold text-base mb-5 text-muted-foreground uppercase tracking-widest text-xs">More Articles</h3>
+            <h3 className="font-display font-bold text-base mb-5 text-muted-foreground uppercase tracking-widest text-xs">
+              More Articles
+            </h3>
             <div className="space-y-3">
               {POSTS.filter(p => p.slug !== slug).map(p => (
                 <Link key={p.slug} href={`/blog/${p.slug}`}>
                   <div className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary/40 transition-colors cursor-pointer group">
-                    <span className="text-sm font-medium group-hover:text-primary transition-colors">{p.title}</span>
+                    <span className="text-sm font-medium group-hover:text-primary transition-colors">
+                      {p.title}
+                    </span>
                     <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
                   </div>
                 </Link>

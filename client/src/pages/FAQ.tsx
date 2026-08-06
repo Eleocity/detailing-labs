@@ -156,7 +156,9 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         onClick={() => setOpen(!open)}
       >
         <span className="font-medium text-sm sm:text-base">{q}</span>
-        <ChevronDown className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown
+          className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
       </button>
       {open && (
         <div className="px-5 pb-5 text-sm text-muted-foreground leading-relaxed border-t border-border pt-4">
@@ -168,7 +170,9 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function FAQ() {
-  const { data: faqContent } = trpc.content.getSiteContent.useQuery({ section: "faq" });
+  const { data: faqContent } = trpc.content.getSiteContent.useQuery({
+    section: "faq",
+  });
 
   // Build dynamic FAQs from DB content
   const dynamicFaqs = (() => {
@@ -176,40 +180,61 @@ export default function FAQ() {
     const map: Record<string, string> = {};
     for (const row of faqContent) map[row.key] = row.value ?? "";
     const indices = Object.keys(map)
-      .filter((k) => k.endsWith("_q"))
-      .map((k) => k.replace("item_", "").replace("_q", ""))
+      .filter(k => k.endsWith("_q"))
+      .map(k => k.replace("item_", "").replace("_q", ""))
       .filter((v, i, a) => a.indexOf(v) === i)
       .sort((a, b) => Number(a) - Number(b));
     return indices
-      .map((i) => ({ q: map[`item_${i}_q`] ?? "", a: map[`item_${i}_a`] ?? "" }))
-      .filter((f) => f.q && f.a);
+      .map(i => ({ q: map[`item_${i}_q`] ?? "", a: map[`item_${i}_a`] ?? "" }))
+      .filter(f => f.q && f.a);
   })();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEO
-        title="FAQs — Mobile Detailing in Racine County, WI | Detailing Labs"
-        description="Common questions about Detailing Labs mobile detailing in Southeast Wisconsin — service area, packages, pricing, and what to expect."
+        title="FAQs — Mobile Detailing in Racine County, WI | Forma Auto Spa"
+        description="Common questions about Forma Auto Spa mobile detailing in Southeast Wisconsin — service area, packages, pricing, and what to expect."
         canonical="/faq"
         jsonLd={[
-          faqSchema(faqs.flatMap(section => section.questions.map(q => ({ q: q.q, a: q.a })))),
-          breadcrumbSchema([{ name: "Home", url: "/" }, { name: "FAQ", url: "/faq" }]),
+          faqSchema(
+            faqs.flatMap(section =>
+              section.questions.map(q => ({ q: q.q, a: q.a }))
+            )
+          ),
+          breadcrumbSchema([
+            { name: "Home", url: "/" },
+            { name: "FAQ", url: "/faq" },
+          ]),
         ]}
       />
       <SiteHeader />
 
       {/* Hero */}
-      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.004_280)]">
+      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.002_75)]">
         <div className="container text-center">
-          <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
-            <motion.p variants={fadeUp} className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+          >
+            <motion.p
+              variants={fadeUp}
+              className="text-primary text-sm font-semibold tracking-widest uppercase mb-3"
+            >
               Got Questions?
             </motion.p>
-            <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-4">
+            <motion.h1
+              variants={fadeUp}
+              className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-4"
+            >
               Frequently Asked Questions
             </motion.h1>
-            <motion.p variants={fadeUp} className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Everything you need to know about Detailing Labs and our mobile detailing services.
+            <motion.p
+              variants={fadeUp}
+              className="text-muted-foreground text-lg max-w-xl mx-auto"
+            >
+              Everything you need to know about Forma Auto Spa and our mobile
+              detailing services.
             </motion.p>
           </motion.div>
         </div>
@@ -227,13 +252,13 @@ export default function FAQ() {
                 variants={fadeUp}
               >
                 <div className="space-y-3">
-                  {dynamicFaqs.map((faq) => (
+                  {dynamicFaqs.map(faq => (
                     <FAQItem key={faq.q} q={faq.q} a={faq.a} />
                   ))}
                 </div>
               </motion.div>
             ) : (
-              faqs.map((section) => (
+              faqs.map(section => (
                 <motion.div
                   key={section.category}
                   initial="hidden"
@@ -241,9 +266,11 @@ export default function FAQ() {
                   viewport={{ once: true, margin: "-60px" }}
                   variants={fadeUp}
                 >
-                  <h2 className="text-xl font-display font-bold mb-4 text-primary">{section.category}</h2>
+                  <h2 className="text-xl font-display font-bold mb-4 text-primary">
+                    {section.category}
+                  </h2>
                   <div className="space-y-3">
-                    {section.questions.map((faq) => (
+                    {section.questions.map(faq => (
                       <FAQItem key={faq.q} q={faq.q} a={faq.a} />
                     ))}
                   </div>
@@ -253,9 +280,12 @@ export default function FAQ() {
           </div>
 
           <div className="mt-16 p-8 rounded-2xl border border-border bg-card text-center">
-            <h3 className="font-display font-bold text-xl mb-3">Still Have Questions?</h3>
+            <h3 className="font-display font-bold text-xl mb-3">
+              Still Have Questions?
+            </h3>
             <p className="text-muted-foreground text-sm mb-6">
-              We're happy to help. Reach out directly and we'll get back to you quickly.
+              We're happy to help. Reach out directly and we'll get back to you
+              quickly.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/contact">
@@ -265,7 +295,10 @@ export default function FAQ() {
                 </Button>
               </Link>
               <Link href="/book">
-                <Button variant="outline" className="border-border hover:border-primary/50 px-8">
+                <Button
+                  variant="outline"
+                  className="border-border hover:border-primary/50 px-8"
+                >
                   Book Now
                 </Button>
               </Link>

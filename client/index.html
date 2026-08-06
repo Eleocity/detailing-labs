@@ -2,70 +2,135 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5"
+    />
 
     <!-- Primary SEO — overridden per-page by react-helmet-async -->
-    <title>Detailing Labs — Premium Mobile Auto Detailing</title>
-    <meta name="description" content="Premium mobile auto detailing in Nashville, TN. Interior, exterior, ceramic coatings & paint correction. We come to you — home, office, or anywhere you park. Book online." />
-    <meta name="keywords" content="mobile auto detailing, car detailing Nashville, ceramic coating Nashville, paint correction, mobile car wash, auto detailing near me" />
-    <meta name="author" content="Detailing Labs" />
+    <title>Forma Auto Spa — Premium Mobile Auto Detailing</title>
+    <meta
+      name="description"
+      content="Forma Auto Spa is a premium mobile detailing studio serving Racine County, Kenosha County, and surrounding Southeast Wisconsin communities. Interior, exterior, ceramic coatings & paint correction. We come to you. Book online."
+    />
+    <meta
+      name="keywords"
+      content="mobile auto detailing, car detailing Racine, ceramic coating Kenosha, paint correction Wisconsin, mobile detailing Southeast Wisconsin, auto detailing near me"
+    />
+    <meta name="author" content="Forma Auto Spa" />
     <meta name="robots" content="index, follow" />
+    <!-- NOTE: canonical/og:url/og:image intentionally still point at the live,
+         indexed detailinglabswi.com domain — formaautospa.com is a placeholder
+         that isn't registered/deployed yet. Flip these (and the ones in
+         shared/brand.ts + client/public/sitemap.xml + robots.txt) to the real
+         domain as the final step of the DNS cutover — see
+         docs/REBRAND_MIGRATION.md. -->
     <link rel="canonical" href="https://detailinglabswi.com/" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Detailing Labs" />
-    <meta property="og:title" content="Detailing Labs — Premium Mobile Auto Detailing" />
-    <meta property="og:description" content="Premium mobile auto detailing in Nashville, TN. We come to you. Book online in minutes." />
-    <meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png" />
+    <meta property="og:site_name" content="Forma Auto Spa" />
+    <meta
+      property="og:title"
+      content="Forma Auto Spa — Premium Mobile Auto Detailing"
+    />
+    <meta
+      property="og:description"
+      content="Refined automotive care, delivered with precision. We come to you across Southeast Wisconsin. Book online in minutes."
+    />
+    <!-- TODO(rebrand): no real 1200x630 Forma OG image exists yet — swap this
+         for one once designed (see docs/REBRAND_MIGRATION.md). Using the old
+         logo image here temporarily so social-share previews don't 404. -->
+    <meta
+      property="og:image"
+      content="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png"
+    />
     <meta property="og:url" content="https://detailinglabswi.com/" />
     <meta property="og:locale" content="en_US" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Detailing Labs — Premium Mobile Auto Detailing" />
-    <meta name="twitter:description" content="Premium mobile auto detailing in Nashville, TN. We come to you. Book online in minutes." />
-    <meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png" />
+    <meta
+      name="twitter:title"
+      content="Forma Auto Spa — Premium Mobile Auto Detailing"
+    />
+    <meta
+      name="twitter:description"
+      content="Refined automotive care, delivered with precision. We come to you across Southeast Wisconsin. Book online in minutes."
+    />
+    <meta
+      name="twitter:image"
+      content="https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png"
+    />
 
     <!-- PWA / Mobile -->
-    <meta name="theme-color" content="#0d0d14" />
+    <meta name="theme-color" content="#171310" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Detailing Labs" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Forma Auto Spa" />
 
     <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/brand/forma-icon.svg" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/brand/forma-icon.svg" />
     <link rel="manifest" href="/manifest.json" />
 
     <!-- Meta Pixel -->
     <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '1609067280418921');
-      fbq('track', 'PageView');
+      !(function (f, b, e, v, n, t, s) {
+        if (f.fbq) return;
+        n = f.fbq = function () {
+          n.callMethod
+            ? n.callMethod.apply(n, arguments)
+            : n.queue.push(arguments);
+        };
+        if (!f._fbq) f._fbq = n;
+        n.push = n;
+        n.loaded = !0;
+        n.version = "2.0";
+        n.queue = [];
+        t = b.createElement(e);
+        t.async = !0;
+        t.src = v;
+        s = b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t, s);
+      })(
+        window,
+        document,
+        "script",
+        "https://connect.facebook.net/en_US/fbevents.js"
+      );
+      fbq("init", "1609067280418921");
+      fbq("track", "PageView");
     </script>
     <!-- End Meta Pixel -->
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
   </head>
 
   <body>
-    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1609067280418921&ev=PageView&noscript=1"/></noscript>
+    <noscript
+      ><img
+        height="1"
+        width="1"
+        style="display: none"
+        src="https://www.facebook.com/tr?id=1609067280418921&ev=PageView&noscript=1"
+    /></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script
       defer
       src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
+      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"
+    ></script>
   </body>
 </html>

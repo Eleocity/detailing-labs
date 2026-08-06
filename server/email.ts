@@ -12,7 +12,12 @@ interface EmailPayload {
   text?: string;
 }
 
-export async function sendEmail({ to, subject, html, text }: EmailPayload): Promise<boolean> {
+export async function sendEmail({
+  to,
+  subject,
+  html,
+  text,
+}: EmailPayload): Promise<boolean> {
   const apiKey = process.env.SENDGRID_API_KEY;
   const from = process.env.EMAIL_FROM || "noreply@detailinglabswi.com";
 
@@ -23,7 +28,7 @@ export async function sendEmail({ to, subject, html, text }: EmailPayload): Prom
 
   const body = {
     personalizations: [{ to: [{ email: to }] }],
-    from: { email: from, name: "Detailing Labs" },
+    from: { email: from, name: "Forma Auto Spa" },
     subject,
     content: [
       ...(text ? [{ type: "text/plain", value: text }] : []),
@@ -57,10 +62,13 @@ export async function sendEmail({ to, subject, html, text }: EmailPayload): Prom
 
 // ─── Email Templates ──────────────────────────────────────────────────────────
 
-export function passwordResetEmail(resetUrl: string, userName: string): { subject: string; html: string; text: string } {
+export function passwordResetEmail(
+  resetUrl: string,
+  userName: string
+): { subject: string; html: string; text: string } {
   return {
-    subject: "Reset your Detailing Labs password",
-    text: `Hi ${userName},\n\nClick the link below to reset your password. This link expires in 24 hours.\n\n${resetUrl}\n\nIf you didn't request this, you can safely ignore this email.\n\n— Detailing Labs`,
+    subject: "Reset your Forma Auto Spa password",
+    text: `Hi ${userName},\n\nClick the link below to reset your password. This link expires in 24 hours.\n\n${resetUrl}\n\nIf you didn't request this, you can safely ignore this email.\n\n— Forma Auto Spa`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -71,14 +79,14 @@ export function passwordResetEmail(resetUrl: string, userName: string): { subjec
       <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1a2e;border-radius:12px;overflow:hidden;border:1px solid #2a2a4a">
         <!-- Header -->
         <tr><td style="background:#7c3aed;padding:28px 40px;text-align:center">
-          <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px">Detailing Labs</p>
+          <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px">Forma Auto Spa</p>
           <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:13px">Premium Mobile Auto Detailing</p>
         </td></tr>
         <!-- Body -->
         <tr><td style="padding:40px">
           <p style="margin:0 0 8px;color:#e2e8f0;font-size:20px;font-weight:600">Reset your password</p>
           <p style="margin:0 0 24px;color:#94a3b8;font-size:15px;line-height:1.6">
-            Hi ${userName}, we received a request to reset the password for your Detailing Labs account.
+            Hi ${userName}, we received a request to reset the password for your Forma Auto Spa account.
             Click the button below to choose a new password. This link expires in <strong style="color:#e2e8f0">24 hours</strong>.
           </p>
           <table cellpadding="0" cellspacing="0" style="margin:0 0 24px">
@@ -99,7 +107,7 @@ export function passwordResetEmail(resetUrl: string, userName: string): { subjec
         </td></tr>
         <!-- Footer -->
         <tr><td style="padding:20px 40px;background:#111827;text-align:center">
-          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Detailing Labs. All rights reserved.</p>
+          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Forma Auto Spa. All rights reserved.</p>
         </td></tr>
       </table>
     </td></tr>
@@ -109,11 +117,15 @@ export function passwordResetEmail(resetUrl: string, userName: string): { subjec
   };
 }
 
-export function inviteEmail(inviteUrl: string, inviterName: string, role: string): { subject: string; html: string; text: string } {
+export function inviteEmail(
+  inviteUrl: string,
+  inviterName: string,
+  role: string
+): { subject: string; html: string; text: string } {
   const roleLabel = role === "admin" ? "Admin" : "Team Member";
   return {
-    subject: `You've been invited to join Detailing Labs`,
-    text: `Hi,\n\n${inviterName} has invited you to join Detailing Labs as a ${roleLabel}.\n\nClick the link below to accept your invitation and set up your account. This link expires in 72 hours.\n\n${inviteUrl}\n\n— Detailing Labs`,
+    subject: `You've been invited to join Forma Auto Spa`,
+    text: `Hi,\n\n${inviterName} has invited you to join Forma Auto Spa as a ${roleLabel}.\n\nClick the link below to accept your invitation and set up your account. This link expires in 72 hours.\n\n${inviteUrl}\n\n— Forma Auto Spa`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -123,13 +135,13 @@ export function inviteEmail(inviteUrl: string, inviterName: string, role: string
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1a2e;border-radius:12px;overflow:hidden;border:1px solid #2a2a4a">
         <tr><td style="background:#7c3aed;padding:28px 40px;text-align:center">
-          <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px">Detailing Labs</p>
+          <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px">Forma Auto Spa</p>
           <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:13px">Premium Mobile Auto Detailing</p>
         </td></tr>
         <tr><td style="padding:40px">
           <p style="margin:0 0 8px;color:#e2e8f0;font-size:20px;font-weight:600">You're invited!</p>
           <p style="margin:0 0 24px;color:#94a3b8;font-size:15px;line-height:1.6">
-            <strong style="color:#e2e8f0">${inviterName}</strong> has invited you to join Detailing Labs as a
+            <strong style="color:#e2e8f0">${inviterName}</strong> has invited you to join Forma Auto Spa as a
             <strong style="color:#7c3aed">${roleLabel}</strong>.
             Click the button below to accept your invitation and set up your account.
             This link expires in <strong style="color:#e2e8f0">72 hours</strong>.
@@ -149,7 +161,7 @@ export function inviteEmail(inviteUrl: string, inviterName: string, role: string
           </p>
         </td></tr>
         <tr><td style="padding:20px 40px;background:#111827;text-align:center">
-          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Detailing Labs. All rights reserved.</p>
+          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Forma Auto Spa. All rights reserved.</p>
         </td></tr>
       </table>
     </td></tr>
@@ -172,17 +184,29 @@ export function bookingConfirmationEmail(booking: {
   phone: string;
 }): { subject: string; html: string; text: string } {
   const dateStr = booking.appointmentDate.toLocaleDateString("en-US", {
-    weekday: "long", month: "long", day: "numeric", year: "numeric",
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
   const timeStr = booking.appointmentDate.toLocaleTimeString("en-US", {
-    hour: "numeric", minute: "2-digit",
+    hour: "numeric",
+    minute: "2-digit",
   });
-  const address = [booking.serviceAddress, booking.serviceCity, booking.serviceState].filter(Boolean).join(", ");
-  const total = booking.totalAmount ? `$${Number(booking.totalAmount).toFixed(2)}` : null;
+  const address = [
+    booking.serviceAddress,
+    booking.serviceCity,
+    booking.serviceState,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const total = booking.totalAmount
+    ? `$${Number(booking.totalAmount).toFixed(2)}`
+    : null;
 
   return {
-    subject: `Booking Confirmed — ${booking.bookingNumber} | Detailing Labs`,
-    text: `Hi ${booking.customerFirstName},\n\nYour booking is confirmed. Here are your details:\n\nBooking #: ${booking.bookingNumber}\nService: ${booking.packageName ?? "Mobile Detailing"}\nDate: ${dateStr} at ${timeStr}\nLocation: ${address}\n${total ? `Total: ${total}\n` : ""}\nQuestions? Call or text us at ${booking.phone}.\n\nWe'll show up ready — no water or power hookup needed from you.\n\n— Detailing Labs`,
+    subject: `Booking Confirmed — ${booking.bookingNumber} | Forma Auto Spa`,
+    text: `Hi ${booking.customerFirstName},\n\nYour booking is confirmed. Here are your details:\n\nBooking #: ${booking.bookingNumber}\nService: ${booking.packageName ?? "Mobile Detailing"}\nDate: ${dateStr} at ${timeStr}\nLocation: ${address}\n${total ? `Total: ${total}\n` : ""}\nQuestions? Call or text us at ${booking.phone}.\n\nWe'll show up ready — no water or power hookup needed from you.\n\n— Forma Auto Spa`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -193,7 +217,7 @@ export function bookingConfirmationEmail(booking: {
       <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1a2e;border-radius:12px;overflow:hidden;border:1px solid #2a2a4a">
         <!-- Header -->
         <tr><td style="background:#7c3aed;padding:28px 40px;text-align:center">
-          <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px">Detailing Labs</p>
+          <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px">Forma Auto Spa</p>
           <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:13px">Professional Mobile Detailing — Racine County, WI</p>
         </td></tr>
         <!-- Confirmation badge -->
@@ -208,17 +232,26 @@ export function bookingConfirmationEmail(booking: {
         <tr><td style="padding:28px 40px">
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:10px;overflow:hidden;border:1px solid #2a2a4a">
             ${[
-              ["Booking #", `<span style="font-family:monospace;font-size:13px">${booking.bookingNumber}</span>`],
+              [
+                "Booking #",
+                `<span style="font-family:monospace;font-size:13px">${booking.bookingNumber}</span>`,
+              ],
               ["Service", booking.packageName ?? "Mobile Detailing"],
               ["Date", dateStr],
               ["Time", timeStr],
               ["Location", address],
-              ...(total ? [["Total", `<strong style="color:#a78bfa">${total}</strong>`]] : []),
-            ].map(([label, value], i) => `
+              ...(total
+                ? [["Total", `<strong style="color:#a78bfa">${total}</strong>`]]
+                : []),
+            ]
+              .map(
+                ([label, value], i) => `
               <tr style="${i > 0 ? "border-top:1px solid #1e293b" : ""}">
                 <td style="padding:14px 20px;color:#64748b;font-size:13px;width:120px;vertical-align:top">${label}</td>
                 <td style="padding:14px 20px;color:#e2e8f0;font-size:13px;font-weight:500">${value}</td>
-              </tr>`).join("")}
+              </tr>`
+              )
+              .join("")}
           </table>
         </td></tr>
         <!-- What to expect -->
@@ -241,7 +274,7 @@ export function bookingConfirmationEmail(booking: {
         </td></tr>
         <!-- Footer -->
         <tr><td style="padding:20px 40px;background:#111827;text-align:center">
-          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Detailing Labs · Sturtevant, WI · <a href="https://detailinglabswi.com" style="color:#6d28d9;text-decoration:none">detailinglabswi.com</a></p>
+          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Forma Auto Spa · Sturtevant, WI · <a href="https://detailinglabswi.com" style="color:#6d28d9;text-decoration:none">detailinglabswi.com</a></p>
         </td></tr>
       </table>
     </td></tr>
@@ -267,22 +300,30 @@ export function invoiceEmail(params: {
   businessEmail: string;
 }): { subject: string; html: string; text: string } {
   const dateStr = params.appointmentDate.toLocaleDateString("en-US", {
-    weekday: "long", month: "long", day: "numeric", year: "numeric",
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
 
-  const lineRows = params.lineItems.map(item =>
-    `<tr style="border-top:1px solid #1e293b">
+  const lineRows = params.lineItems
+    .map(
+      item =>
+        `<tr style="border-top:1px solid #1e293b">
       <td style="padding:12px 20px;color:#e2e8f0;font-size:13px">${item.name}</td>
       <td style="padding:12px 20px;color:#94a3b8;font-size:13px;text-align:center">${item.qty}</td>
       <td style="padding:12px 20px;color:#e2e8f0;font-size:13px;text-align:right;font-weight:600">$${item.price.toFixed(2)}</td>
     </tr>`
-  ).join("");
+    )
+    .join("");
 
-  const textLines = params.lineItems.map(i => `  ${i.name} x${i.qty} — $${i.price.toFixed(2)}`).join("\n");
+  const textLines = params.lineItems
+    .map(i => `  ${i.name} x${i.qty} — $${i.price.toFixed(2)}`)
+    .join("\n");
 
   return {
-    subject: `Invoice ${params.invoiceNumber} — Detailing Labs`,
-    text: `Hi ${params.customerFirstName},\n\nHere is your invoice from Detailing Labs.\n\nInvoice #: ${params.invoiceNumber}\nDate of Service: ${dateStr}\nLocation: ${params.serviceAddress}\n\nItems:\n${textLines}\n\nSubtotal: $${params.subtotal.toFixed(2)}${params.travelFee > 0 ? `\nTravel Fee: $${params.travelFee.toFixed(2)}` : ""}${params.taxAmount > 0 ? `\nTax: $${params.taxAmount.toFixed(2)}` : ""}\nTotal: $${params.totalAmount.toFixed(2)}\n${params.notes ? `\nNotes: ${params.notes}\n` : ""}\nQuestions? Call or text us at ${params.phone} or email ${params.businessEmail}.\n\nThank you for choosing Detailing Labs.\n— Detailing Labs`,
+    subject: `Invoice ${params.invoiceNumber} — Forma Auto Spa`,
+    text: `Hi ${params.customerFirstName},\n\nHere is your invoice from Forma Auto Spa.\n\nInvoice #: ${params.invoiceNumber}\nDate of Service: ${dateStr}\nLocation: ${params.serviceAddress}\n\nItems:\n${textLines}\n\nSubtotal: $${params.subtotal.toFixed(2)}${params.travelFee > 0 ? `\nTravel Fee: $${params.travelFee.toFixed(2)}` : ""}${params.taxAmount > 0 ? `\nTax: $${params.taxAmount.toFixed(2)}` : ""}\nTotal: $${params.totalAmount.toFixed(2)}\n${params.notes ? `\nNotes: ${params.notes}\n` : ""}\nQuestions? Call or text us at ${params.phone} or email ${params.businessEmail}.\n\nThank you for choosing Forma Auto Spa.\n— Forma Auto Spa`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -293,7 +334,7 @@ export function invoiceEmail(params: {
       <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1a2e;border-radius:12px;overflow:hidden;border:1px solid #2a2a4a">
         <!-- Header -->
         <tr><td style="background:#7c3aed;padding:28px 40px">
-          <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px">Detailing Labs</p>
+          <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px">Forma Auto Spa</p>
           <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:13px">Professional Mobile Detailing — Racine County, WI</p>
         </td></tr>
         <!-- Title row -->
@@ -320,14 +361,18 @@ export function invoiceEmail(params: {
             </tr>
           </table>
         </td></tr>
-        ${params.notes ? `
+        ${
+          params.notes
+            ? `
         <!-- Notes -->
         <tr><td style="padding:20px 40px 0">
           <div style="background:#0f172a;border:1px solid #2a2a4a;border-radius:10px;padding:16px 20px">
             <p style="margin:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Notes</p>
             <p style="margin:0;color:#94a3b8;font-size:13px;line-height:1.6">${params.notes}</p>
           </div>
-        </td></tr>` : ""}
+        </td></tr>`
+            : ""
+        }
         <!-- Contact -->
         <tr><td style="padding:24px 40px">
           <div style="background:#1e1b4b;border:1px solid #3730a3;border-radius:10px;padding:16px 20px">
@@ -341,7 +386,7 @@ export function invoiceEmail(params: {
         </td></tr>
         <!-- Footer -->
         <tr><td style="padding:20px 40px;background:#111827;text-align:center">
-          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Detailing Labs · Sturtevant, WI · <a href="https://detailinglabswi.com" style="color:#6d28d9;text-decoration:none">detailinglabswi.com</a></p>
+          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Forma Auto Spa · Sturtevant, WI · <a href="https://detailinglabswi.com" style="color:#6d28d9;text-decoration:none">detailinglabswi.com</a></p>
         </td></tr>
       </table>
     </td></tr>
@@ -351,7 +396,8 @@ export function invoiceEmail(params: {
   };
 }
 
-const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png";
+const LOGO_URL =
+  "https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png";
 
 function emailBase(headerExtra: string, body: string): string {
   return `<!DOCTYPE html>
@@ -368,7 +414,7 @@ function emailBase(headerExtra: string, body: string): string {
 
         <!-- LOGO HEADER -->
         <tr><td style="background:#0d0d1a;border-radius:16px 16px 0 0;border:1px solid #1e1e3a;border-bottom:none;padding:28px 40px;text-align:center">
-          <img src="${LOGO_URL}" alt="Detailing Labs" width="140" style="height:auto;display:block;margin:0 auto">
+          <img src="${LOGO_URL}" alt="Forma Auto Spa" width="140" style="height:auto;display:block;margin:0 auto">
         </td></tr>
 
         <!-- PURPLE ACCENT BAR -->
@@ -383,7 +429,7 @@ function emailBase(headerExtra: string, body: string): string {
 
         <!-- FOOTER -->
         <tr><td style="background:#080810;border-radius:0 0 16px 16px;border:1px solid #1e1e3a;border-top:1px solid #1a1a30;padding:20px 40px;text-align:center">
-          <p style="margin:0 0 4px;color:#4a4a6a;font-size:12px">© ${new Date().getFullYear()} Detailing Labs · Sturtevant, WI</p>
+          <p style="margin:0 0 4px;color:#4a4a6a;font-size:12px">© ${new Date().getFullYear()} Forma Auto Spa · Sturtevant, WI</p>
           <p style="margin:0"><a href="https://detailinglabswi.com" style="color:#6d28d9;font-size:12px;text-decoration:none">detailinglabswi.com</a></p>
         </td></tr>
 
@@ -411,15 +457,22 @@ export function invoiceEmailV2(params: {
   paymentUrl?: string | null;
 }): { subject: string; html: string; text: string } {
   const dateStr = params.appointmentDate.toLocaleDateString("en-US", {
-    weekday: "long", month: "long", day: "numeric", year: "numeric",
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
 
-  const lineRows = params.lineItems.map(item => `
+  const lineRows = params.lineItems
+    .map(
+      item => `
     <tr>
       <td style="padding:12px 0;color:#c8c8e8;font-size:14px;border-bottom:1px solid #1a1a30">${item.name}</td>
       <td style="padding:12px 0;color:#6b6b8a;font-size:14px;text-align:center;border-bottom:1px solid #1a1a30">${item.qty}</td>
       <td style="padding:12px 0;color:#c8c8e8;font-size:14px;text-align:right;font-weight:600;border-bottom:1px solid #1a1a30">$${item.price.toFixed(2)}</td>
-    </tr>`).join("");
+    </tr>`
+    )
+    .join("");
 
   const header = `
     <tr><td style="background:#0d0d1a;padding:32px 40px 0;border:1px solid #1e1e3a;border-top:none;border-bottom:none">
@@ -438,7 +491,7 @@ export function invoiceEmailV2(params: {
     </td></tr>`;
 
   const body = `
-    <p style="margin:24px 0 8px;color:#a0a0c0;font-size:14px">Hi <strong style="color:#e0e0ff">${params.customerFirstName}</strong>, here is your invoice from Detailing Labs.</p>
+    <p style="margin:24px 0 8px;color:#a0a0c0;font-size:14px">Hi <strong style="color:#e0e0ff">${params.customerFirstName}</strong>, here is your invoice from Forma Auto Spa.</p>
     <p style="margin:0 0 24px;color:#6b6b8a;font-size:13px">${params.serviceAddress}</p>
 
     <!-- Line items table -->
@@ -473,7 +526,9 @@ export function invoiceEmailV2(params: {
 
     ${params.notes ? `<p style="margin:20px 0 0;padding:16px;background:#0f0f20;border-left:3px solid #5b21b6;border-radius:0 8px 8px 0;color:#8080a0;font-size:13px;line-height:1.6">${params.notes}</p>` : ""}
 
-    ${params.paymentUrl ? `
+    ${
+      params.paymentUrl
+        ? `
     <!-- Pay Now button -->
     <table cellpadding="0" cellspacing="0" role="presentation" style="margin:28px auto 0">
       <tr><td style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border-radius:10px">
@@ -483,7 +538,9 @@ export function invoiceEmailV2(params: {
       </td></tr>
     </table>
     <p style="text-align:center;margin:12px 0 0;color:#4a4a6a;font-size:12px">Secure payment powered by Square</p>
-    ` : ""}
+    `
+        : ""
+    }
 
     <!-- Divider -->
     <div style="height:1px;background:#1a1a30;margin:28px 0"></div>
@@ -499,9 +556,13 @@ export function invoiceEmailV2(params: {
       </tr>
     </table>`;
 
-  const text = `Hi ${params.customerFirstName},\n\nHere is your invoice from Detailing Labs.\n\nInvoice #: ${params.invoiceNumber}\nDate: ${dateStr}\nLocation: ${params.serviceAddress}\n\n${params.lineItems.map(i => `${i.name} — $${i.price.toFixed(2)}`).join("\n")}${params.travelFee > 0 ? `\nTravel Fee — $${params.travelFee.toFixed(2)}` : ""}${params.taxAmount > 0 ? `\nTax — $${params.taxAmount.toFixed(2)}` : ""}\n\nTotal: $${params.totalAmount.toFixed(2)}\n${params.paymentUrl ? `\nPay online: ${params.paymentUrl}\n` : ""}\n${params.notes ? `Notes: ${params.notes}\n` : ""}\nQuestions? ${params.phone} · ${params.businessEmail}\n\n— Detailing Labs`;
+  const text = `Hi ${params.customerFirstName},\n\nHere is your invoice from Forma Auto Spa.\n\nInvoice #: ${params.invoiceNumber}\nDate: ${dateStr}\nLocation: ${params.serviceAddress}\n\n${params.lineItems.map(i => `${i.name} — $${i.price.toFixed(2)}`).join("\n")}${params.travelFee > 0 ? `\nTravel Fee — $${params.travelFee.toFixed(2)}` : ""}${params.taxAmount > 0 ? `\nTax — $${params.taxAmount.toFixed(2)}` : ""}\n\nTotal: $${params.totalAmount.toFixed(2)}\n${params.paymentUrl ? `\nPay online: ${params.paymentUrl}\n` : ""}\n${params.notes ? `Notes: ${params.notes}\n` : ""}\nQuestions? ${params.phone} · ${params.businessEmail}\n\n— Forma Auto Spa`;
 
-  return { subject: `Invoice ${params.invoiceNumber} — $${params.totalAmount.toFixed(2)} | Detailing Labs`, html: emailBase(header, body), text };
+  return {
+    subject: `Invoice ${params.invoiceNumber} — $${params.totalAmount.toFixed(2)} | Forma Auto Spa`,
+    html: emailBase(header, body),
+    text,
+  };
 }
 
 export function receiptEmail(params: {
@@ -515,13 +576,22 @@ export function receiptEmail(params: {
   phone: string;
   businessEmail: string;
 }): { subject: string; html: string; text: string } {
-  const paidStr = params.paidAt.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  const paidStr = params.paidAt.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
-  const lineRows = params.lineItems.map(item => `
+  const lineRows = params.lineItems
+    .map(
+      item => `
     <tr>
       <td style="padding:10px 0;color:#c8c8e8;font-size:14px;border-bottom:1px solid #1a1a30">${item.name}</td>
       <td style="padding:10px 0;color:#c8c8e8;font-size:14px;text-align:right;font-weight:600;border-bottom:1px solid #1a1a30">$${item.price.toFixed(2)}</td>
-    </tr>`).join("");
+    </tr>`
+    )
+    .join("");
 
   const header = `
     <tr><td style="background:#0d0d1a;padding:32px 40px 0;border:1px solid #1e1e3a;border-top:none;border-bottom:none">
@@ -565,9 +635,9 @@ export function receiptEmail(params: {
     </p>`;
 
   return {
-    subject: `Receipt — $${params.totalAmount.toFixed(2)} paid | Detailing Labs`,
+    subject: `Receipt — $${params.totalAmount.toFixed(2)} paid | Forma Auto Spa`,
     html: emailBase(header, body),
-    text: `Hi ${params.customerFirstName},\n\nPayment confirmed. Thank you!\n\nInvoice #: ${params.invoiceNumber}\nPaid: ${paidStr}\nAmount: $${params.totalAmount.toFixed(2)}\nLocation: ${params.serviceAddress}\n\n${params.lineItems.map(i => `${i.name} — $${i.price.toFixed(2)}`).join("\n")}\n\nQuestions? ${params.phone} · ${params.businessEmail}\n\n— Detailing Labs`,
+    text: `Hi ${params.customerFirstName},\n\nPayment confirmed. Thank you!\n\nInvoice #: ${params.invoiceNumber}\nPaid: ${paidStr}\nAmount: $${params.totalAmount.toFixed(2)}\nLocation: ${params.serviceAddress}\n\n${params.lineItems.map(i => `${i.name} — $${i.price.toFixed(2)}`).join("\n")}\n\nQuestions? ${params.phone} · ${params.businessEmail}\n\n— Forma Auto Spa`,
   };
 }
 
@@ -579,7 +649,7 @@ export function contactFormEmail(params: {
   ownerEmail: string;
 }): { subject: string; html: string; text: string } {
   return {
-    subject: `New Contact Form — ${params.name} | Detailing Labs`,
+    subject: `New Contact Form — ${params.name} | Forma Auto Spa`,
     text: `New message from your website contact form.\n\nName: ${params.name}\nEmail: ${params.email}${params.phone ? `\nPhone: ${params.phone}` : ""}\n\nMessage:\n${params.message}\n\nReply to: ${params.email}`,
     html: emailBase(
       `<tr><td style="background:#0d0d1a;padding:28px 40px 0;border:1px solid #1e1e3a;border-top:none;border-bottom:none">
@@ -589,14 +659,28 @@ export function contactFormEmail(params: {
       </td></tr>`,
       `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-top:24px;border-collapse:collapse">
         ${[
-          ["Name",    params.name],
-          ["Email",   `<a href="mailto:${params.email}" style="color:#7c3aed;text-decoration:none">${params.email}</a>`],
-          ...(params.phone ? [["Phone", `<a href="tel:${params.phone.replace(/\D/g,"")}" style="color:#7c3aed;text-decoration:none">${params.phone}</a>`]] : []),
-        ].map(([label, value]) => `
+          ["Name", params.name],
+          [
+            "Email",
+            `<a href="mailto:${params.email}" style="color:#7c3aed;text-decoration:none">${params.email}</a>`,
+          ],
+          ...(params.phone
+            ? [
+                [
+                  "Phone",
+                  `<a href="tel:${params.phone.replace(/\D/g, "")}" style="color:#7c3aed;text-decoration:none">${params.phone}</a>`,
+                ],
+              ]
+            : []),
+        ]
+          .map(
+            ([label, value]) => `
           <tr>
             <td style="padding:10px 0;color:#4a4a6a;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;width:80px;vertical-align:top;border-bottom:1px solid #1a1a30">${label}</td>
             <td style="padding:10px 0 10px 16px;color:#c8c8e8;font-size:14px;border-bottom:1px solid #1a1a30">${value}</td>
-          </tr>`).join("")}
+          </tr>`
+          )
+          .join("")}
       </table>
       <div style="margin-top:20px;padding:20px;background:#0f0f20;border-left:3px solid #5b21b6;border-radius:0 8px 8px 0">
         <p style="margin:0 0 8px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Message</p>

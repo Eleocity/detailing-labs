@@ -7,7 +7,13 @@ import { CheckCircle, Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 
@@ -16,14 +22,13 @@ const schema = z
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
-  .refine((d) => d.password === d.confirmPassword, {
+  .refine(d => d.password === d.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 type ResetForm = z.infer<typeof schema>;
 
-const LOGO_URL =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_00201e93.png";
+const LOGO_URL = "/brand/forma-wordmark.svg";
 
 export default function ResetPassword() {
   const [, navigate] = useLocation();
@@ -47,7 +52,7 @@ export default function ResetPassword() {
       toast.success("Password reset successfully! You are now signed in.");
       setTimeout(() => navigate("/"), 2000);
     },
-    onError: (err) => {
+    onError: err => {
       toast.error(err.message ?? "Reset failed. Please request a new link.");
     },
   });
@@ -64,7 +69,9 @@ export default function ResetPassword() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="w-full max-w-md text-center space-y-4">
-          <p className="text-muted-foreground">Invalid or missing reset token.</p>
+          <p className="text-muted-foreground">
+            Invalid or missing reset token.
+          </p>
           <Link href="/forgot-password">
             <Button variant="outline">Request a new reset link</Button>
           </Link>
@@ -79,13 +86,19 @@ export default function ResetPassword() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/">
-            <img src={LOGO_URL} alt="Detailing Labs" className="h-20 object-contain cursor-pointer" />
+            <img
+              src={LOGO_URL}
+              alt="Forma Auto Spa"
+              className="h-20 object-contain cursor-pointer"
+            />
           </Link>
         </div>
 
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center pb-2">
-            <CardTitle className="text-2xl font-display">Reset Password</CardTitle>
+            <CardTitle className="text-2xl font-display">
+              Reset Password
+            </CardTitle>
             <CardDescription>Enter your new password below</CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
@@ -116,15 +129,21 @@ export default function ResetPassword() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword((v) => !v)}
+                      onClick={() => setShowPassword(v => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       tabIndex={-1}
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="text-sm text-destructive">{errors.password.message}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.password.message}
+                    </p>
                   )}
                 </div>
 
@@ -138,7 +157,9 @@ export default function ResetPassword() {
                     {...register("confirmPassword")}
                   />
                   {errors.confirmPassword && (
-                    <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.confirmPassword.message}
+                    </p>
                   )}
                 </div>
 

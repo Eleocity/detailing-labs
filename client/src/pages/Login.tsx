@@ -7,7 +7,13 @@ import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import SEO from "@/components/SEO";
@@ -18,8 +24,7 @@ const loginSchema = z.object({
 });
 type LoginForm = z.infer<typeof loginSchema>;
 
-const LOGO_URL =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_00201e93.png";
+const LOGO_URL = "/brand/forma-wordmark.svg";
 
 export default function Login() {
   const [, navigate] = useLocation();
@@ -37,12 +42,12 @@ export default function Login() {
 
   const utils = trpc.useUtils();
   const loginMutation = trpc.auth.login.useMutation({
-    onSuccess: async (data) => {
+    onSuccess: async data => {
       await utils.auth.me.invalidate();
       toast.success(`Welcome back, ${data.user.name ?? data.user.email}!`);
       navigate(returnTo);
     },
-    onError: (err) => {
+    onError: err => {
       toast.error(err.message ?? "Login failed. Please try again.");
     },
   });
@@ -53,24 +58,30 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
-
       <SEO
         title="Sign In"
-        description="Sign in to your Detailing Labs account to manage bookings and access your customer portal."
+        description="Sign in to your Forma Auto Spa account to manage bookings and access your customer portal."
         canonical="/login"
         noindex={true}
-      />      <div className="w-full max-w-md">
+      />{" "}
+      <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/">
-            <img src={LOGO_URL} alt="Detailing Labs" className="h-20 object-contain cursor-pointer" />
+            <img
+              src={LOGO_URL}
+              alt="Forma Auto Spa"
+              className="h-20 object-contain cursor-pointer"
+            />
           </Link>
         </div>
 
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl font-display">Sign In</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardDescription>
+              Enter your credentials to access your account
+            </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -84,7 +95,9 @@ export default function Login() {
                   {...register("email")}
                 />
                 {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 
@@ -109,15 +122,21 @@ export default function Login() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword((v) => !v)}
+                    onClick={() => setShowPassword(v => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
 
@@ -137,7 +156,10 @@ export default function Login() {
 
             <div className="mt-6 text-center text-sm text-muted-foreground">
               Don't have an account?{" "}
-              <Link href="/register" className="text-primary hover:underline font-medium">
+              <Link
+                href="/register"
+                className="text-primary hover:underline font-medium"
+              >
                 Create one
               </Link>
             </div>
@@ -146,7 +168,7 @@ export default function Login() {
 
         <p className="text-center text-xs text-muted-foreground mt-6">
           <Link href="/" className="hover:underline">
-            ← Back to Detailing Labs
+            ← Back to Forma Auto Spa
           </Link>
         </p>
       </div>

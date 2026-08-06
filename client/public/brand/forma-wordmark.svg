@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 90" role="img" aria-label="Forma Auto Spa">
+  <!--
+    PLACEHOLDER wordmark — swap this file for the final logo when ready.
+    Referenced centrally via shared/brand.ts (logo.wordmarkSvg); no component
+    hardcodes this path directly.
+  -->
+  <text x="0" y="52" font-family="Georgia, 'Times New Roman', serif" font-size="46" font-weight="600" letter-spacing="2" fill="#e9dcc6">FORMA</text>
+  <text x="4" y="76" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="600" letter-spacing="7" fill="#b98f4e">AUTO SPA</text>
+</svg>

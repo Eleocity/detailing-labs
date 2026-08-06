@@ -6,12 +6,15 @@ import type { TrpcContext } from "./_core/context";
 type CookieCall = { name: string; options: Record<string, unknown> };
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
-function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] } {
+function createAuthContext(): {
+  ctx: TrpcContext;
+  clearedCookies: CookieCall[];
+} {
   const clearedCookies: CookieCall[] = [];
   const user: AuthenticatedUser = {
     id: 1,
     openId: null,
-    email: "admin@detailinglabs.com",
+    email: "admin@formaautospa.com",
     name: "Admin User",
     phone: null,
     passwordHash: null,
@@ -41,7 +44,11 @@ function createPublicContext(): { ctx: TrpcContext; setCookies: CookieCall[] } {
     user: null,
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
     res: {
-      cookie: (name: string, _value: string, options: Record<string, unknown>) => {
+      cookie: (
+        name: string,
+        _value: string,
+        options: Record<string, unknown>
+      ) => {
         setCookies.push({ name, options });
       },
       clearCookie: () => {},
@@ -58,7 +65,11 @@ describe("auth.logout", () => {
     expect(result).toEqual({ success: true });
     expect(clearedCookies).toHaveLength(1);
     expect(clearedCookies[0]?.name).toBe(COOKIE_NAME);
-    expect(clearedCookies[0]?.options).toMatchObject({ maxAge: -1, httpOnly: true, path: "/" });
+    expect(clearedCookies[0]?.options).toMatchObject({
+      maxAge: -1,
+      httpOnly: true,
+      path: "/",
+    });
   });
 });
 
@@ -75,7 +86,7 @@ describe("auth.me", () => {
     const caller = appRouter.createCaller(ctx);
     const result = await caller.auth.me();
     expect(result).not.toBeNull();
-    expect(result?.email).toBe("admin@detailinglabs.com");
+    expect(result?.email).toBe("admin@formaautospa.com");
     expect(result?.role).toBe("admin");
   });
 });
@@ -85,7 +96,9 @@ describe("auth.forgotPassword", () => {
     const { ctx } = createPublicContext();
     const caller = appRouter.createCaller(ctx);
     // Non-existent email should still return success
-    const result = await caller.auth.forgotPassword({ email: "nobody@example.com" });
+    const result = await caller.auth.forgotPassword({
+      email: "nobody@example.com",
+    });
     expect(result).toEqual({ success: true });
   });
 });

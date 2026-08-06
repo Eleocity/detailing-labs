@@ -7,7 +7,13 @@ import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
 
 const schema = z.object({
@@ -15,8 +21,7 @@ const schema = z.object({
 });
 type ForgotForm = z.infer<typeof schema>;
 
-const LOGO_URL =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo_00201e93.png";
+const LOGO_URL = "/brand/forma-wordmark.svg";
 
 export default function ForgotPassword() {
   const [submitted, setSubmitted] = useState(false);
@@ -42,13 +47,19 @@ export default function ForgotPassword() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/">
-            <img src={LOGO_URL} alt="Detailing Labs" className="h-20 object-contain cursor-pointer" />
+            <img
+              src={LOGO_URL}
+              alt="Forma Auto Spa"
+              className="h-20 object-contain cursor-pointer"
+            />
           </Link>
         </div>
 
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center pb-2">
-            <CardTitle className="text-2xl font-display">Forgot Password</CardTitle>
+            <CardTitle className="text-2xl font-display">
+              Forgot Password
+            </CardTitle>
             <CardDescription>
               Enter your email and we'll send you a reset link
             </CardDescription>
@@ -63,8 +74,10 @@ export default function ForgotPassword() {
                   <h3 className="font-semibold text-lg">Check your email</h3>
                   <p className="text-muted-foreground text-sm mt-1">
                     If an account exists for{" "}
-                    <span className="text-foreground font-medium">{getValues("email")}</span>,
-                    you'll receive a password reset link shortly.
+                    <span className="text-foreground font-medium">
+                      {getValues("email")}
+                    </span>
+                    , you'll receive a password reset link shortly.
                   </p>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -90,7 +103,9 @@ export default function ForgotPassword() {
                     {...register("email")}
                   />
                   {errors.email && (
-                    <p className="text-sm text-destructive">{errors.email.message}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
 

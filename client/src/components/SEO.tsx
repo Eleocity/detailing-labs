@@ -1,9 +1,12 @@
 import { Helmet } from "react-helmet-async";
+import { BRAND, absoluteUrl } from "@shared/brand";
 
-const SITE_NAME = "Detailing Labs";
-const SITE_URL = "https://detailinglabswi.com";
-const DEFAULT_DESCRIPTION = "Detailing Labs is a professional mobile detailing service in Southeast Wisconsin. Serving Racine County, Kenosha, and surrounding areas. We bring everything — book online.";
-const DEFAULT_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png";
+const SITE_NAME = BRAND.displayName;
+// Points at the domain actually deployed today, not the future `primary`
+// placeholder — see the comment on BRAND.domain.live for why.
+const SITE_URL = `https://${BRAND.domain.live}`;
+const DEFAULT_DESCRIPTION = BRAND.seo.defaultDescription;
+const DEFAULT_IMAGE = BRAND.logo.ogImageAbsoluteUrl(SITE_URL);
 
 interface SEOProps {
   title?: string;
@@ -24,8 +27,8 @@ export default function SEO({
   type = "website",
   jsonLd,
 }: SEOProps) {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Premium Mobile Auto Detailing`;
-  const canonicalUrl = canonical ? `${SITE_URL}${canonical}` : undefined;
+  const fullTitle = title ? `${title} | ${SITE_NAME}` : BRAND.seo.defaultTitle;
+  const canonicalUrl = canonical ? absoluteUrl(SITE_URL, canonical) : undefined;
 
   return (
     <Helmet>
@@ -64,78 +67,110 @@ export default function SEO({
 export const localBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "AutoRepair",
-  "name": "Detailing Labs",
-  "description": "Premium mobile auto detailing service. We come to your home, office, or anywhere you park.",
-  "url": SITE_URL,
-  "logo": DEFAULT_IMAGE,
-  "image": DEFAULT_IMAGE,
-  "priceRange": "$$",
-  "servesCuisine": undefined,
-  "address": {
+  name: BRAND.displayName,
+  description: `${BRAND.tagline} Mobile detailing studio serving ${BRAND.serviceArea.primaryRegionLabel}.`,
+  url: SITE_URL,
+  logo: DEFAULT_IMAGE,
+  image: DEFAULT_IMAGE,
+  telephone: BRAND.phoneHref.replace("tel:", ""),
+  priceRange: "$$",
+  address: {
     "@type": "PostalAddress",
-    "addressLocality": "Sturtevant",
-    "addressRegion": "WI",
-    "addressCountry": "US",
+    addressLocality: BRAND.serviceArea.headquartersCity,
+    addressRegion: BRAND.serviceArea.headquartersState,
+    addressCountry: "US",
   },
-  "geo": {
+  geo: {
     "@type": "GeoCoordinates",
-    "latitude": 42.7261,
-    "longitude": -87.7829,
+    latitude: BRAND.serviceArea.headquartersLat,
+    longitude: BRAND.serviceArea.headquartersLng,
   },
-  "openingHoursSpecification": [
-    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "09:00", "closes": "17:00" },
-    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Saturday"], "opens": "09:00", "closes": "17:00" },
+  openingHoursSpecification: [
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "09:00",
+      closes: "17:00",
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Saturday"],
+      opens: "09:00",
+      closes: "17:00",
+    },
   ],
-  "areaServed": {
+  areaServed: {
     "@type": "GeoCircle",
-    "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 42.7261, "longitude": -86.7816 },
-    "geoRadius": "50000",
+    geoMidpoint: {
+      "@type": "GeoCoordinates",
+      latitude: BRAND.serviceArea.headquartersLat,
+      longitude: BRAND.serviceArea.headquartersLng,
+    },
+    geoRadius: "50000",
   },
-  "hasOfferCatalog": {
+  hasOfferCatalog: {
     "@type": "OfferCatalog",
-    "name": "Auto Detailing Services",
-    "itemListElement": [
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Interior Detail" } },
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Exterior Detail" } },
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Full Detail" } },
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Ceramic Coating" } },
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Paint Correction" } },
+    name: "Auto Detailing Services",
+    itemListElement: [
+      {
+        "@type": "Offer",
+        itemOffered: { "@type": "Service", name: "Interior Detail" },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: { "@type": "Service", name: "Exterior Detail" },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: { "@type": "Service", name: "Full Detail" },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: { "@type": "Service", name: "Ceramic Coating" },
+      },
+      {
+        "@type": "Offer",
+        itemOffered: { "@type": "Service", name: "Paint Correction" },
+      },
     ],
   },
-  "sameAs": [
-    "https://www.facebook.com/detailinglabs",
-    "https://www.instagram.com/detailinglabs",
-  ],
+  sameAs: [BRAND.social.instagram, BRAND.social.facebook],
 };
 
 export const faqSchema = (faqs: { q: string; a: string }[]) => ({
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "mainEntity": faqs.map(({ q, a }) => ({
+  mainEntity: faqs.map(({ q, a }) => ({
     "@type": "Question",
-    "name": q,
-    "acceptedAnswer": { "@type": "Answer", "text": a },
+    name: q,
+    acceptedAnswer: { "@type": "Answer", text: a },
   })),
 });
 
-export const serviceSchema = (name: string, description: string, price?: string) => ({
+export const serviceSchema = (
+  name: string,
+  description: string,
+  price?: string
+) => ({
   "@context": "https://schema.org",
   "@type": "Service",
-  "serviceType": "Auto Detailing",
-  "provider": { "@type": "LocalBusiness", "name": "Detailing Labs" },
-  "name": name,
-  "description": description,
-  ...(price ? { "offers": { "@type": "Offer", "price": price, "priceCurrency": "USD" } } : {}),
-  "areaServed": { "@type": "State", "name": "Southeast Wisconsin" },
+  serviceType: "Auto Detailing",
+  provider: { "@type": "LocalBusiness", name: BRAND.displayName },
+  name: name,
+  description: description,
+  ...(price
+    ? { offers: { "@type": "Offer", price: price, priceCurrency: "USD" } }
+    : {}),
+  areaServed: { "@type": "State", name: "Southeast Wisconsin" },
 });
 
 export const breadcrumbSchema = (items: { name: string; url: string }[]) => ({
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
-  "itemListElement": items.map(({ name, url }, i) => ({
+  itemListElement: items.map(({ name, url }, i) => ({
     "@type": "ListItem",
-    "position": i + 1,
-    "name": name,
-    "item": `https://detailinglabswi.com${url}`,
+    position: i + 1,
+    name: name,
+    item: absoluteUrl(SITE_URL, url),
   })),
 });

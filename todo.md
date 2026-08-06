@@ -1,6 +1,7 @@
-# Detailing Labs — Project TODO
+# Forma Auto Spa — Project TODO
 
 ## Phase 1: Foundation
+
 - [x] Project scaffold initialized (db, server, user)
 - [x] Database schema designed (18 tables)
 - [x] Seed data (services, packages, add-ons, settings)
@@ -9,6 +10,7 @@
 - [x] PWA manifest.json
 
 ## Phase 2: Marketing Website
+
 - [x] Navigation header with logo and responsive mobile menu
 - [x] Home page (hero, services, testimonials, CTA)
 - [x] Services page (service cards with details)
@@ -20,6 +22,7 @@
 - [x] Site footer
 
 ## Phase 3: Customer Booking System
+
 - [x] Multi-step booking form (service → vehicle → location → datetime → contact → confirm)
 - [x] Add-ons selection
 - [x] Pricing calculation (subtotal, travel fee, tax)
@@ -28,6 +31,7 @@
 - [x] tRPC bookings router (create, list, update, assign, review)
 
 ## Phase 4: Admin Dashboard
+
 - [x] Admin login / protected routes (Manus OAuth)
 - [x] Dashboard overview (stats, today's schedule, revenue)
 - [x] Booking management table (filter, search, status update)
@@ -38,6 +42,7 @@
 - [x] AdminLayout with collapsible sidebar
 
 ## Phase 5: CRM System
+
 - [x] Customer profiles with full contact info
 - [x] Vehicle history
 - [x] Lead tracking with pipeline stages
@@ -47,6 +52,7 @@
 - [x] tRPC CRM router
 
 ## Phase 6: Employee Management
+
 - [x] Employee profiles
 - [x] Availability scheduling (day-of-week)
 - [x] Role assignments (admin/manager/detailer)
@@ -55,11 +61,13 @@
 - [x] tRPC Employees router
 
 ## Phase 7: Customer Portal
+
 - [x] Booking lookup by booking number (no auth required)
 - [x] Booking status display with progress tracker
 - [x] Quick actions (book, portal, invoice, review)
 
 ## Phase 8: Invoicing & Receipts
+
 - [x] Invoice generation from booking
 - [x] Line items (services, add-ons, travel fee, tax)
 - [x] Payment status tracking (draft/sent/paid/overdue)
@@ -68,6 +76,7 @@
 - [x] tRPC Invoices router
 
 ## Phase 9: Photo Management
+
 - [x] Before/after/progress/damage photo upload (S3)
 - [x] Attach photos to bookings and customers
 - [x] Label-based filtering
@@ -75,6 +84,7 @@
 - [x] tRPC Media router
 
 ## Phase 10: Review Request Workflows
+
 - [x] Manual review request trigger per booking
 - [x] Bulk send to all pending completed bookings
 - [x] Email/SMS channel selection
@@ -82,6 +92,7 @@
 - [x] Review stats dashboard
 
 ## Phase 11: PWA & Polish
+
 - [x] PWA manifest.json
 - [x] Mobile responsive design throughout
 - [x] Dark theme consistent across all pages
@@ -92,6 +103,7 @@
 - [x] Print styles for invoices
 
 ## Phase 12: Site Content Editor (Admin)
+
 - [ ] site_content DB table (key/value store for all editable text)
 - [ ] Packages table full CRUD support (name, description, price, duration, features, isPopular, isActive)
 - [ ] Add-ons table full CRUD support (name, description, price, isActive)
@@ -102,6 +114,7 @@
 - [ ] Wire "Site Editor" nav item in AdminLayout
 
 ## Phase 13: User Management Interface
+
 - [x] Extended users router (getById, update, delete, stats)
 - [x] AdminUsers full list with search, filter by role, sort
 - [x] User detail/edit panel (name, email, phone, role)
@@ -110,6 +123,7 @@
 - [x] User stats summary cards (total, admins, recent signups)
 
 ## Phase 14: Email, Invitations & Profile Settings
+
 - [ ] Email provider integration (Resend API) with SMTP fallback
 - [ ] Auto-email password reset links when admin generates them
 - [ ] User invitations table (token, email, role, expiry)
@@ -119,6 +133,7 @@
 - [ ] Header user menu linking to profile settings
 
 ## Phase 15: Railway Deployment Preparation
+
 - [x] Replace Manus storage proxy with real AWS S3/Cloudflare R2 SDK (server/storage.ts)
 - [x] Add /api/health endpoint for Railway health checks
 - [x] Update railway.toml to auto-run migrations on deploy
