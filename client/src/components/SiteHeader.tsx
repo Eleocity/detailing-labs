@@ -78,7 +78,7 @@ export default function SiteHeader() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-[oklch(0.09_0.003_75/0.95)] backdrop-blur-md border-b border-[oklch(0.22_0.004_75)]"
+          ? "bg-[oklch(0.04_0_0/0.95)] backdrop-blur-md border-b border-[#262626]"
           : "bg-transparent"
       }`}
     >
@@ -257,7 +257,7 @@ export default function SiteHeader() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="lg:hidden bg-[oklch(0.10_0.004_75)] border-t border-border">
+        <div className="lg:hidden bg-[#0a0a0a] border-t border-border">
           <div className="container py-4 flex flex-col gap-1">
             {[navLinks[0], ...SERVICES_SUBLINKS, ...navLinks.slice(1)].map(
               link => (

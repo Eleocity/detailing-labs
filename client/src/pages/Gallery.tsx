@@ -49,7 +49,7 @@ export default function Gallery() {
       />
 
       {/* Hero */}
-      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.002_75)]">
+      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[#0a0a0a]">
         <div className="container text-center">
           <motion.div
             initial="hidden"

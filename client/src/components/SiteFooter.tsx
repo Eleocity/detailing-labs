@@ -25,7 +25,7 @@ export default function SiteFooter() {
   const address = contact.address || BRAND.serviceArea.primaryRegionLabel;
 
   return (
-    <footer className="bg-[oklch(0.06_0.002_75)] border-t border-border">
+    <footer className="bg-[#0a0a0a] border-t border-border">
       <div className="container py-10 sm:py-16">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-10">
           {/* Brand */}

@@ -59,8 +59,8 @@ export default function Services() {
       />
 
       {/* Hero */}
-      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.002_75)] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_70%_50%,oklch(0.65_0.10_75/0.06),transparent)]" />
+      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[#0a0a0a] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_70%_50%,oklch(0.55_0.22_29/0.06),transparent)]" />
         <div className="container relative z-10 text-center">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.p
@@ -156,7 +156,7 @@ export default function Services() {
       </section>
 
       {/* Add-ons */}
-      <section className="py-12 sm:py-16 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-12 sm:py-16 bg-[#0a0a0a]">
         <div className="container">
           <div className="max-w-3xl mx-auto text-center mb-8">
             <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4">

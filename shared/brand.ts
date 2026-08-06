@@ -16,7 +16,21 @@ export const BRAND = {
   legalName: "Forma Auto Spa", // PLACEHOLDER: confirm registered legal entity name/suffix (LLC, etc.)
   displayName: "Forma Auto Spa",
   shortName: "Forma",
-  tagline: "Refined automotive care, delivered with precision.",
+  /** Primary tagline — from the official brand playbook. */
+  tagline: "Refined. Protected. Ready.",
+  /** Approved secondary lines, usable in rotation for section subheads, ads, etc. */
+  secondaryTaglines: [
+    "Precision care for every finish.",
+    "Professional auto care, shaped around your vehicle.",
+    "Restore the look. Protect the finish.",
+    "A higher standard of automotive care.",
+  ],
+  /** Approved ~50-word company description — for About-page-length copy, not meta descriptions (too long). */
+  approvedDescription:
+    "Forma Auto Spa provides professional interior and exterior automotive detailing, protection, and maintenance services. Every vehicle moves through a documented inspection, service process, and quality-control review so customers receive consistent workmanship, clear communication, and a finish they can feel confident driving away in.",
+  /** Approved elevator pitch — longer form, for About page / press-style copy. */
+  elevatorPitch:
+    "Forma Auto Spa is a premium automotive detailing and protection company built around consistency. We combine professional products, trained technicians, documented inspections, and final quality control to deliver a cleaner vehicle and a better ownership experience — without the guesswork common in traditional detailing.",
 
   // ── Contact ──────────────────────────────────────────────────────────────
   phone: "(262) 260-9474",
@@ -109,9 +123,11 @@ export const BRAND = {
 
   // ── SEO defaults ─────────────────────────────────────────────────────────
   seo: {
-    defaultTitle: "Forma Auto Spa — Premium Mobile Auto Detailing",
+    defaultTitle: "Forma Auto Spa — Automotive Care, Refined",
+    // Short enough for a meta description tag — see `approvedDescription`
+    // above for the full ~50-word brand-playbook version (About page, etc).
     defaultDescription:
-      "Forma Auto Spa is a premium mobile detailing studio serving Racine County, Kenosha County, and surrounding Southeast Wisconsin communities. Interior detailing, exterior detailing, paint correction, and ceramic coatings — we come to you.",
+      "Professional interior and exterior detailing, protection, and ceramic coatings in Racine & Kenosha County, WI. Documented process, consistent results.",
     keywords:
       "mobile auto detailing, car detailing Racine, ceramic coating Kenosha, paint correction Wisconsin, mobile detailing Southeast Wisconsin, auto detailing near me",
   },

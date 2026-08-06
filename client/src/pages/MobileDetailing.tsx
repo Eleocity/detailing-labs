@@ -60,8 +60,8 @@ export default function MobileDetailing() {
         ]}
       />
 
-      <section className="pt-24 pb-14 sm:pt-28 sm:pb-20 bg-[oklch(0.06_0.002_75)] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_70%_30%,oklch(0.65_0.10_75/0.07),transparent)]" />
+      <section className="pt-24 pb-14 sm:pt-28 sm:pb-20 bg-[#0a0a0a] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_70%_30%,oklch(0.55_0.22_29/0.07),transparent)]" />
         <div className="container relative z-10 text-center">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.p
@@ -195,7 +195,7 @@ export default function MobileDetailing() {
         </div>
       </section>
 
-      <section className="py-14 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-14 bg-[#0a0a0a]">
         <div className="container text-center">
           <h2 className="font-display font-bold text-2xl mb-3">
             Serving {BRAND.serviceArea.primaryRegionLabel}

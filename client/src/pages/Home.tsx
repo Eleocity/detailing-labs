@@ -213,7 +213,7 @@ function BeforeAfterSlider({
           className="absolute inset-0 overflow-hidden"
           style={{ width: `${pos}%` }}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.15_0.003_75)] to-[oklch(0.10_0.002_75)] flex items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1f1f1f] to-[#0d0d0d] flex items-center justify-center">
             <div className="text-center text-muted-foreground/30">
               <Wrench className="w-12 h-12 mx-auto mb-2" />
               <p className="text-xs font-medium">Before Photo</p>
@@ -306,12 +306,12 @@ export default function Home() {
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.06_0.002_75)] via-[oklch(0.09_0.003_75)] to-[oklch(0.10_0.005_75)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_60%_40%,oklch(0.65_0.10_75/0.08),transparent)]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#0a0a0a] to-[#0d0d0d]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_60%_40%,oklch(0.55_0.22_29/0.08),transparent)]" />
         <div
           className="absolute inset-0 opacity-[0.025]"
           style={{
-            backgroundImage: `linear-gradient(oklch(0.65 0.10 75) 1px,transparent 1px),linear-gradient(90deg,oklch(0.65 0.10 75) 1px,transparent 1px)`,
+            backgroundImage: `linear-gradient(oklch(0.55 0.22 29) 1px,transparent 1px),linear-gradient(90deg,oklch(0.55 0.22 29) 1px,transparent 1px)`,
             backgroundSize: "60px 60px",
           }}
         />
@@ -340,11 +340,9 @@ export default function Home() {
                   <span dangerouslySetInnerHTML={{ __html: hero.headline }} />
                 ) : (
                   <>
-                    Refined Automotive Care.
+                    Automotive care,
                     <br />
-                    <span className="text-primary">
-                      Delivered to Your Door.
-                    </span>
+                    <span className="text-primary">refined.</span>
                   </>
                 )}
               </motion.h1>
@@ -354,7 +352,7 @@ export default function Home() {
                 className="text-lg sm:text-xl text-muted-foreground max-w-2xl leading-relaxed"
               >
                 {hero.subheadline ||
-                  "Forma Auto Spa is a self-contained mobile detail service in Southeast Wisconsin. We carry our own water, run our own generator, and bring professional-grade products to your driveway. No hookups. No drop-offs. Book online in two minutes."}
+                  "Interior restoration, exterior detailing, and protection services delivered through a professional process with documented quality control."}
               </motion.p>
 
               <motion.div
@@ -366,13 +364,13 @@ export default function Home() {
                     size="lg"
                     className="bg-primary hover:bg-primary/85 text-primary-foreground font-bold px-10 h-14 text-lg shadow-xl shadow-primary/30 w-full sm:w-auto"
                   >
-                    {hero.cta_primary || "Book My Appointment"}
+                    {hero.cta_primary || "Book Your Service"}
                     <ChevronRight className="w-5 h-5 ml-1" />
                   </Button>
                 </Link>
-                <Link href="/services">
+                <Link href="/pricing">
                   <span className="flex items-center justify-center gap-1.5 h-14 px-6 text-muted-foreground hover:text-foreground text-sm font-medium transition-colors cursor-pointer">
-                    {hero.cta_secondary || "View Services"}
+                    {hero.cta_secondary || "View Packages"}
                     <ChevronRight className="w-4 h-4" />
                   </span>
                 </Link>
@@ -413,7 +411,7 @@ export default function Home() {
       </section>
 
       {/* ── STATS BAR ─────────────────────────────────────────────────────── */}
-      <section className="border-y border-border bg-[oklch(0.10_0.005_75)]">
+      <section className="border-y border-border bg-[#0d0d0d]">
         <div className="container py-5 sm:py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
@@ -501,7 +499,7 @@ export default function Home() {
       </section>
 
       {/* ── HOW IT WORKS ──────────────────────────────────────────────────── */}
-      <section className="py-20 sm:py-32 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-20 sm:py-32 bg-[#0a0a0a]">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -697,7 +695,7 @@ export default function Home() {
       </section>
 
       {/* ── CERAMIC + PAINT CORRECTION SPOTLIGHT ────────────────────────────── */}
-      <section className="py-20 sm:py-32 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-20 sm:py-32 bg-[#0a0a0a]">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -786,7 +784,7 @@ export default function Home() {
       </section>
 
       {/* ── WHY FORMA ─────────────────────────────────────────────────────── */}
-      <section className="py-20 sm:py-32 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-20 sm:py-32 bg-[#0a0a0a]">
         <div className="container">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <motion.div
@@ -1042,7 +1040,7 @@ export default function Home() {
       </section>
 
       {/* ── MID-PAGE CTA ──────────────────────────────────────────────────── */}
-      <section className="py-14 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-14 bg-[#0a0a0a]">
         <div className="container">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-7 rounded-2xl border border-primary/30 bg-primary/6">
             <div>
@@ -1095,7 +1093,7 @@ export default function Home() {
       </section>
 
       {/* ── SERVICE AREA ──────────────────────────────────────────────────── */}
-      <section className="py-14 sm:py-20 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-14 sm:py-20 bg-[#0a0a0a]">
         <div className="container">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-7 rounded-2xl border border-border bg-card">
             <div className="flex items-start gap-4">
@@ -1126,7 +1124,7 @@ export default function Home() {
       {/* ── FINAL CTA ─────────────────────────────────────────────────────── */}
       <section className="py-20 sm:py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_0%_50%,oklch(0.65_0.10_75/0.15),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_0%_50%,oklch(0.55_0.22_29/0.15),transparent)]" />
         <div className="container relative z-10 text-center">
           <motion.div
             initial="hidden"

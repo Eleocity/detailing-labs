@@ -205,7 +205,7 @@ export default function Blog() {
       />
 
       {/* Hero */}
-      <section className="pt-24 pb-12 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.002_75)]">
+      <section className="pt-24 pb-12 sm:pt-28 sm:pb-16 bg-[#0a0a0a]">
         <div className="container">
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
             <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">
@@ -278,7 +278,7 @@ export default function Blog() {
       </section>
 
       {/* CTA */}
-      <section className="py-12 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-12 bg-[#0a0a0a]">
         <div className="container text-center">
           <h2 className="text-2xl font-display font-bold mb-3">
             Ready to Book?
@@ -286,7 +286,7 @@ export default function Blog() {
           <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto">
             Professional mobile detailing in Southeast Wisconsin.
           </p>
-          <Link href="/booking">
+          <Link href="/book">
             <Button className="bg-primary hover:bg-primary/90 font-semibold px-8 h-11">
               Book Your Detail <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
@@ -404,7 +404,7 @@ export function BlogPost() {
       />
 
       {/* Hero */}
-      <section className="pt-24 pb-8 sm:pt-28 sm:pb-12 bg-[oklch(0.06_0.002_75)]">
+      <section className="pt-24 pb-8 sm:pt-28 sm:pb-12 bg-[#0a0a0a]">
         <div className="container max-w-3xl">
           <Link href="/blog">
             <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
@@ -449,7 +449,7 @@ export function BlogPost() {
             <p className="text-muted-foreground text-sm mb-5">
               Book online in under 2 minutes. We show up fully equipped.
             </p>
-            <Link href="/booking">
+            <Link href="/book">
               <Button className="bg-primary hover:bg-primary/90 font-semibold px-8">
                 Book Your Detail <ChevronRight className="w-4 h-4 ml-1" />
               </Button>

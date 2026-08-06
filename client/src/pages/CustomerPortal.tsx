@@ -433,7 +433,7 @@ function CeramicTracker({
       </div>
 
       {(needsService || isExpired) && (
-        <Link href="/booking">
+        <Link href="/book">
           <button className="w-full mt-3 py-2 rounded-lg bg-primary/90 hover:bg-primary text-white text-xs font-semibold transition-colors">
             {isExpired ? "Re-apply Ceramic Coating" : "Book Annual Inspection"}
           </button>
@@ -1076,7 +1076,7 @@ function AuthPortal({
                 </p>
               </div>
             </div>
-            <Link href="/booking">
+            <Link href="/book">
               <Button
                 size="sm"
                 className="bg-primary hover:bg-primary/90 font-semibold text-xs h-8 px-4"
@@ -1146,7 +1146,7 @@ function AuthPortal({
                     <p className="text-sm text-muted-foreground">
                       No upcoming appointments.
                     </p>
-                    <Link href="/booking">
+                    <Link href="/book">
                       <Button className="bg-primary hover:bg-primary/90 text-sm h-9">
                         Book a Service
                       </Button>

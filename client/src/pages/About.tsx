@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import SEO, { breadcrumbSchema } from "@/components/SEO";
+import { BRAND } from "@shared/brand";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -63,8 +64,8 @@ export default function About() {
       />
 
       {/* Hero */}
-      <section className="pt-24 pb-12 sm:pt-28 sm:pb-20 bg-[oklch(0.06_0.002_75)] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_80%_50%,oklch(0.65_0.10_75/0.07),transparent)]" />
+      <section className="pt-24 pb-12 sm:pt-28 sm:pb-20 bg-[#0a0a0a] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_80%_50%,oklch(0.55_0.22_29/0.07),transparent)]" />
         <div className="container relative z-10">
           <div className="max-w-3xl">
             <motion.div initial="hidden" animate="visible" variants={stagger}>
@@ -112,6 +113,12 @@ export default function About() {
               >
                 Why We Started This
               </motion.h2>
+              <motion.p
+                variants={fadeUp}
+                className="text-foreground leading-relaxed mb-6 pl-4 border-l-2 border-primary"
+              >
+                {BRAND.elevatorPitch}
+              </motion.p>
               <motion.div
                 variants={fadeUp}
                 className="space-y-5 text-muted-foreground leading-relaxed"
@@ -141,7 +148,7 @@ export default function About() {
                 variants={fadeUp}
                 className="mt-8 flex flex-col sm:flex-row gap-3"
               >
-                <Link href="/booking">
+                <Link href={BRAND.booking.primaryPath}>
                   <Button className="bg-primary hover:bg-primary/90 font-semibold px-7 w-full sm:w-auto">
                     Book a Service <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
@@ -219,7 +226,7 @@ export default function About() {
       </section>
 
       {/* How we work */}
-      <section className="py-12 sm:py-20 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-12 sm:py-20 bg-[#0a0a0a]">
         <div className="container">
           <div className="text-center mb-12">
             <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">
@@ -303,7 +310,7 @@ export default function About() {
       </section>
 
       {/* CTA */}
-      <section className="py-12 sm:py-16 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-12 sm:py-16 bg-[#0a0a0a]">
         <div className="container text-center">
           <h2 className="text-2xl sm:text-3xl font-display font-bold mb-4">
             Ready to See the Difference?
@@ -312,7 +319,7 @@ export default function About() {
             Book online and we'll handle everything from there. Same-week
             availability on most dates.
           </p>
-          <Link href="/booking">
+          <Link href="/book">
             <Button className="bg-primary hover:bg-primary/90 font-semibold px-10 h-12">
               Book Your Detail <ChevronRight className="w-4 h-4 ml-1" />
             </Button>

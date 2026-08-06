@@ -232,8 +232,8 @@ function LocationPage({ location }: { location: LocationData }) {
 
       {/* Hero */}
       <section className="relative pt-24 pb-14 sm:pt-32 sm:pb-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.06_0.002_75)] via-[oklch(0.09_0.003_75)] to-[oklch(0.10_0.005_75)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_30%_50%,oklch(0.65_0.10_75/0.07),transparent)]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#0a0a0a] to-[#0d0d0d]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_30%_50%,oklch(0.55_0.22_29/0.07),transparent)]" />
         <div className="container relative z-10">
           <motion.div
             initial="hidden"
@@ -263,7 +263,7 @@ function LocationPage({ location }: { location: LocationData }) {
               variants={fadeUp}
               className="flex flex-col sm:flex-row gap-3"
             >
-              <Link href="/booking">
+              <Link href="/book">
                 <Button
                   size="lg"
                   className="bg-primary hover:bg-primary/90 font-semibold px-8 h-12 w-full sm:w-auto"
@@ -377,7 +377,7 @@ function LocationPage({ location }: { location: LocationData }) {
                   Book online in under 2 minutes. We'll confirm your appointment
                   and show up equipped.
                 </p>
-                <Link href="/booking">
+                <Link href="/book">
                   <Button className="w-full bg-primary hover:bg-primary/90 font-semibold mb-3">
                     Book Your Detail <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
@@ -397,7 +397,7 @@ function LocationPage({ location }: { location: LocationData }) {
       </section>
 
       {/* Services section */}
-      <section className="py-12 sm:py-16 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-12 sm:py-16 bg-[#0a0a0a]">
         <div className="container">
           <div className="text-center mb-10">
             <p className="text-primary text-xs font-semibold tracking-widest uppercase mb-2">
@@ -478,7 +478,7 @@ function LocationPage({ location }: { location: LocationData }) {
       </section>
 
       {/* Final CTA */}
-      <section className="py-14 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-14 bg-[#0a0a0a]">
         <div className="container text-center">
           <h2 className="text-3xl sm:text-4xl font-display font-bold mb-4">
             Ready for a Professional Detail in {location.city}?
@@ -488,7 +488,7 @@ function LocationPage({ location }: { location: LocationData }) {
             equipped. No drop-off. No hassle.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 px-4 sm:px-0">
-            <Link href="/booking">
+            <Link href="/book">
               <Button className="bg-primary hover:bg-primary/90 font-semibold px-10 h-12 w-full sm:w-auto">
                 Book in {location.city}{" "}
                 <ChevronRight className="w-4 h-4 ml-1" />

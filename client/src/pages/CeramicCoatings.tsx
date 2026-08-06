@@ -43,8 +43,8 @@ export default function CeramicCoatings() {
         ]}
       />
 
-      <section className="pt-24 pb-14 sm:pt-28 sm:pb-20 bg-[oklch(0.06_0.002_75)] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_70%_30%,oklch(0.65_0.10_75/0.07),transparent)]" />
+      <section className="pt-24 pb-14 sm:pt-28 sm:pb-20 bg-[#0a0a0a] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_70%_30%,oklch(0.55_0.22_29/0.07),transparent)]" />
         <div className="container relative z-10">
           <motion.div
             initial="hidden"
@@ -173,7 +173,7 @@ export default function CeramicCoatings() {
         </div>
       </section>
 
-      <section className="py-14 bg-[oklch(0.06_0.002_75)]">
+      <section className="py-14 bg-[#0a0a0a]">
         <div className="container">
           <div className="max-w-2xl mx-auto text-center p-8 rounded-2xl border border-border bg-card">
             <h2 className="font-display font-bold text-xl mb-2">

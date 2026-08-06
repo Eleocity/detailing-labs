@@ -40,46 +40,61 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-silver: var(--silver);
 }
 
 :root {
-  /* Forma Auto Spa — Premium Automotive Studio Theme
-   * Neutral graphite base with a refined brass/bronze accent (hue ~75).
+  /* Forma Auto Spa — official brand palette (see internal Brand Standard
+   * playbook). Six colors, used exactly as specified:
+   *   Forma Red     #E10600  primary / CTAs / key accents
+   *   Deep Red      #A90000  hover states / secondary accent
+   *   Carbon Black  #050505  primary background
+   *   Graphite      #1A1A1A  panels / cards
+   *   Metallic Silver #C9CBCD  premium accent, used sparingly (--color-silver)
+   *   Clean White   #F5F5F5  text / negative space
    * Centralized here so no component should ever hardcode brand hues —
    * see also shared/brand.ts for non-visual brand identity. */
   --radius: 0.5rem;
-  --background: oklch(0.09 0.003 75);
-  --foreground: oklch(0.96 0.004 80);
-  --card: oklch(0.12 0.004 75);
-  --card-foreground: oklch(0.96 0.004 80);
-  --popover: oklch(0.13 0.004 75);
-  --popover-foreground: oklch(0.96 0.004 80);
-  --primary: oklch(0.72 0.11 75);
-  --primary-foreground: oklch(0.14 0.01 75);
-  --secondary: oklch(0.16 0.004 75);
-  --secondary-foreground: oklch(0.92 0.004 80);
-  --muted: oklch(0.15 0.004 75);
-  --muted-foreground: oklch(0.66 0.008 75);
-  --accent: oklch(0.58 0.1 75);
-  --accent-foreground: oklch(0.98 0.004 80);
-  --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: oklch(0.98 0.004 80);
-  --border: oklch(0.22 0.004 75);
-  --input: oklch(0.17 0.004 75);
-  --ring: oklch(0.65 0.1 75);
-  --chart-1: oklch(0.65 0.11 75);
-  --chart-2: oklch(0.55 0.03 75);
-  --chart-3: oklch(0.7 0.03 230);
-  --chart-4: oklch(0.5 0.09 45);
-  --chart-5: oklch(0.38 0.02 75);
-  --sidebar: oklch(0.1 0.004 75);
-  --sidebar-foreground: oklch(0.96 0.004 80);
-  --sidebar-primary: oklch(0.65 0.11 75);
-  --sidebar-primary-foreground: oklch(0.14 0.01 75);
-  --sidebar-accent: oklch(0.15 0.004 75);
-  --sidebar-accent-foreground: oklch(0.9 0.004 80);
-  --sidebar-border: oklch(0.22 0.004 75);
-  --sidebar-ring: oklch(0.65 0.1 75);
+  --background: #050505;
+  --foreground: #f5f5f5;
+  --card: #1a1a1a;
+  --card-foreground: #f5f5f5;
+  --popover: #1f1f1f;
+  --popover-foreground: #f5f5f5;
+  --primary: #e10600;
+  --primary-foreground: #f5f5f5;
+  --secondary: #141414;
+  --secondary-foreground: #f5f5f5;
+  --muted: #141414;
+  --muted-foreground: #9a9a9a;
+  --accent: #a90000;
+  --accent-foreground: #f5f5f5;
+  /* Distinct from --primary on purpose — Forma Red means "book/confirm",
+   * this means "error/danger". Using the same red for both would blur a
+   * meaningful distinction in the UI. */
+  --destructive: #dc2626;
+  --destructive-foreground: #f5f5f5;
+  --border: #262626;
+  --input: #1f1f1f;
+  --ring: #e10600;
+  --chart-1: #e10600;
+  --chart-2: #a90000;
+  --chart-3: #c9cbcd;
+  --chart-4: #6b6b6b;
+  --chart-5: #3a3a3a;
+  --sidebar: #0a0a0a;
+  --sidebar-foreground: #f5f5f5;
+  --sidebar-primary: #e10600;
+  --sidebar-primary-foreground: #f5f5f5;
+  --sidebar-accent: #1a1a1a;
+  --sidebar-accent-foreground: #f5f5f5;
+  --sidebar-border: #262626;
+  --sidebar-ring: #e10600;
+  /* Metallic Silver — "premium accent; simulated digitally, specified
+   * physically" per the brand playbook. Use sparingly (dividers, icon
+   * accents, premium badges) via bg-silver / text-silver / border-silver —
+   * it is NOT a replacement for muted-foreground. */
+  --silver: #c9cbcd;
 }
 
 /* Dark is the default theme — no separate .dark needed */
@@ -98,12 +113,12 @@
   h4,
   h5,
   h6 {
-    font-family: "Fraunces", "Inter", system-ui, sans-serif;
+    font-family: "Oswald", "Arial Narrow", Arial, sans-serif;
     @apply font-bold tracking-tight;
   }
   ::selection {
-    background: oklch(0.65 0.1 75 / 0.35);
-    color: oklch(0.96 0.004 80);
+    background: color-mix(in oklab, var(--primary) 35%, transparent);
+    color: var(--foreground);
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -162,7 +177,13 @@
 }
 /* Font utilities */
 .font-display {
-  font-family: "Fraunces", "Inter", system-ui, sans-serif;
+  font-family: "Oswald", "Arial Narrow", Arial, sans-serif;
+}
+
+/* Numbers/pricing — per brand playbook (DIN 2014 / Inter Tight). */
+.font-numeric {
+  font-family: "Inter Tight", "Arial Narrow", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Smooth scrolling */
@@ -190,12 +211,12 @@ html {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: oklch(0.1 0.004 75);
+  background: #0a0a0a;
 }
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.25 0.004 75);
+  background: #2e2e2e;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.35 0.006 75);
+  background: #3f3f3f;
 }

@@ -130,8 +130,8 @@ export default function Pricing() {
       />
 
       {/* Hero */}
-      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[oklch(0.06_0.002_75)] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_30%_50%,oklch(0.65_0.10_75/0.06),transparent)]" />
+      <section className="pt-24 pb-10 sm:pt-28 sm:pb-16 bg-[#0a0a0a] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_30%_50%,oklch(0.55_0.22_29/0.06),transparent)]" />
         <div className="container relative z-10 text-center">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.p
@@ -557,7 +557,7 @@ export default function Pricing() {
                                 ))}
                               </ul>
 
-                              <Link href="/booking">
+                              <Link href="/book">
                                 <Button
                                   className={cn(
                                     "w-full font-semibold",
@@ -579,7 +579,7 @@ export default function Pricing() {
                       </div>
 
                       {/* Add-Ons */}
-                      <div className="rounded-2xl border border-border bg-[oklch(0.06_0.002_75)] p-8 mb-8">
+                      <div className="rounded-2xl border border-border bg-[#0a0a0a] p-8 mb-8">
                         <div className="text-center mb-8">
                           <p className="text-primary text-xs font-semibold tracking-widest uppercase mb-2">
                             Customize Your Detail
@@ -1070,7 +1070,7 @@ export default function Pricing() {
 
       {/* Bottom CTA — only when no tab selected or detailing tab */}
       {tab !== "ceramic" && tab !== "fleet" && tab !== "paint" && (
-        <section className="py-16 bg-[oklch(0.06_0.002_75)]">
+        <section className="py-16 bg-[#0a0a0a]">
           <div className="container text-center">
             <h2 className="text-3xl font-display font-bold mb-4">
               {tab === "detailing"
@@ -1084,7 +1084,7 @@ export default function Pricing() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 px-4 sm:px-0">
               {tab === "detailing" ? (
-                <Link href="/booking">
+                <Link href="/book">
                   <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-10 h-12 text-base">
                     Book Your Detail <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>

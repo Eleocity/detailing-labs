@@ -1,15 +1,39 @@
 import { useState } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import {
-  Search, Filter, ChevronLeft, Car, Calendar, MapPin, Phone,
-  Mail, User, CheckCircle2, Clock, AlertCircle, Edit, Trash2,
-  UserCheck, DollarSign, Camera, Star, ChevronRight, Plus, Loader2, FileText
+  Search,
+  Filter,
+  ChevronLeft,
+  Car,
+  Calendar,
+  MapPin,
+  Phone,
+  Mail,
+  User,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Edit,
+  Trash2,
+  UserCheck,
+  DollarSign,
+  Camera,
+  Star,
+  ChevronRight,
+  Plus,
+  Loader2,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import AdminLayout from "@/components/AdminLayout";
@@ -46,16 +70,22 @@ function GenerateInvoiceButton({ bookingId }: { bookingId: number }) {
       toast.success("Invoice ready");
       navigate(`/admin/invoices/${invoiceId}`);
     },
-    onError: (err) => toast.error(err.message),
+    onError: err => toast.error(err.message),
   });
 
   return (
-    <Button variant="ghost" size="sm" className="w-full justify-start text-xs"
+    <Button
+      variant="ghost"
+      size="sm"
+      className="w-full justify-start text-xs"
       onClick={() => generate.mutate({ bookingId })}
-      disabled={generate.isPending}>
-      {generate.isPending
-        ? <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-        : <FileText className="w-3 h-3 mr-2" />}
+      disabled={generate.isPending}
+    >
+      {generate.isPending ? (
+        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+      ) : (
+        <FileText className="w-3 h-3 mr-2" />
+      )}
       {generate.isPending ? "Generating…" : "Generate / View Invoice"}
     </Button>
   );
@@ -83,9 +113,11 @@ export function AdminBookingsList() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-display font-bold">Bookings</h1>
-            <p className="text-muted-foreground text-sm">{total} total bookings</p>
+            <p className="text-muted-foreground text-sm">
+              {total} total bookings
+            </p>
           </div>
-          <Link href="/booking">
+          <Link href="/book">
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
               <Plus className="w-4 h-4 mr-2" /> New Booking
             </Button>
@@ -99,16 +131,26 @@ export function AdminBookingsList() {
             <Input
               placeholder="Search bookings..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+              onChange={e => {
+                setSearch(e.target.value);
+                setPage(0);
+              }}
               className="pl-9 bg-input border-border"
             />
           </div>
           <select
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
+            onChange={e => {
+              setStatusFilter(e.target.value);
+              setPage(0);
+            }}
             className="h-10 px-3 rounded-md border border-border bg-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+            {STATUS_OPTIONS.map(s => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -119,54 +161,93 @@ export function AdminBookingsList() {
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
           ) : bookings.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground">No bookings found.</div>
+            <div className="p-12 text-center text-muted-foreground">
+              No bookings found.
+            </div>
           ) : (
-            <div className="overflow-x-auto min-w-0"><div className="min-w-[600px]">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/30">
-                    <th className="text-left p-4 font-medium text-muted-foreground">Booking #</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Customer</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Vehicle</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Service</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Date</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Total</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {bookings.map((b) => (
-                    <tr key={b.id} className="hover:bg-muted/20 transition-colors">
-                      <td className="p-4 font-mono text-xs text-muted-foreground">{b.bookingNumber}</td>
-                      <td className="p-4">
-                        <div className="font-medium">{b.customerFirstName} {b.customerLastName}</div>
-                        <div className="text-xs text-muted-foreground">{b.customerPhone}</div>
-                      </td>
-                      <td className="p-4 text-muted-foreground">
-                        {b.vehicleYear} {b.vehicleMake} {b.vehicleModel}
-                      </td>
-                      <td className="p-4 text-muted-foreground">{b.packageName ?? "—"}</td>
-                      <td className="p-4 text-muted-foreground">
-                        {new Date(b.appointmentDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                      </td>
-                      <td className="p-4 font-medium">${Number(b.totalAmount ?? 0).toFixed(2)}</td>
-                      <td className="p-4">
-                        <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[b.status] ?? ""}`}>
-                          {b.status.replace("_", " ")}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <Link href={`/admin/bookings/${b.id}`}>
-                          <Button variant="ghost" size="sm" className="text-xs">
-                            View <ChevronRight className="w-3 h-3 ml-1" />
-                          </Button>
-                        </Link>
-                      </td>
+            <div className="overflow-x-auto min-w-0">
+              <div className="min-w-[600px]">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/30">
+                      <th className="text-left p-4 font-medium text-muted-foreground">
+                        Booking #
+                      </th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">
+                        Customer
+                      </th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">
+                        Vehicle
+                      </th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">
+                        Service
+                      </th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">
+                        Date
+                      </th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">
+                        Total
+                      </th>
+                      <th className="text-left p-4 font-medium text-muted-foreground">
+                        Status
+                      </th>
+                      <th className="text-left p-4 font-medium text-muted-foreground"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {bookings.map(b => (
+                      <tr
+                        key={b.id}
+                        className="hover:bg-muted/20 transition-colors"
+                      >
+                        <td className="p-4 font-mono text-xs text-muted-foreground">
+                          {b.bookingNumber}
+                        </td>
+                        <td className="p-4">
+                          <div className="font-medium">
+                            {b.customerFirstName} {b.customerLastName}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {b.customerPhone}
+                          </div>
+                        </td>
+                        <td className="p-4 text-muted-foreground">
+                          {b.vehicleYear} {b.vehicleMake} {b.vehicleModel}
+                        </td>
+                        <td className="p-4 text-muted-foreground">
+                          {b.packageName ?? "—"}
+                        </td>
+                        <td className="p-4 text-muted-foreground">
+                          {new Date(b.appointmentDate).toLocaleDateString(
+                            "en-US",
+                            { month: "short", day: "numeric", year: "numeric" }
+                          )}
+                        </td>
+                        <td className="p-4 font-medium">
+                          ${Number(b.totalAmount ?? 0).toFixed(2)}
+                        </td>
+                        <td className="p-4">
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[b.status] ?? ""}`}
+                          >
+                            {b.status.replace("_", " ")}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <Link href={`/admin/bookings/${b.id}`}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              View <ChevronRight className="w-3 h-3 ml-1" />
+                            </Button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
@@ -176,13 +257,26 @@ export function AdminBookingsList() {
         {total > PAGE_SIZE && (
           <div className="flex items-center justify-between mt-4">
             <p className="text-sm text-muted-foreground">
-              Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
+              Showing {page * PAGE_SIZE + 1}–
+              {Math.min((page + 1) * PAGE_SIZE, total)} of {total}
             </p>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setPage(page - 1)} disabled={page === 0} className="border-border">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(page - 1)}
+                disabled={page === 0}
+                className="border-border"
+              >
                 Previous
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setPage(page + 1)} disabled={(page + 1) * PAGE_SIZE >= total} className="border-border">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(page + 1)}
+                disabled={(page + 1) * PAGE_SIZE >= total}
+                className="border-border"
+              >
                 Next
               </Button>
             </div>
@@ -214,12 +308,15 @@ export function AdminBookingDetail() {
       setShowStatusModal(false);
       refetch();
     },
-    onError: (err) => toast.error(err.message),
+    onError: err => toast.error(err.message),
   });
 
   const sendReview = trpc.crm.sendReviewRequest.useMutation({
-    onSuccess: () => { toast.success("Review request sent!"); refetch(); },
-    onError: (err) => toast.error(err.message),
+    onSuccess: () => {
+      toast.success("Review request sent!");
+      refetch();
+    },
+    onError: err => toast.error(err.message),
   });
 
   if (!booking) {
@@ -237,25 +334,44 @@ export function AdminBookingDetail() {
       <div className="p-3 sm:p-6 max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/admin/bookings")} className="text-muted-foreground">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/admin/bookings")}
+            className="text-muted-foreground"
+          >
             <ChevronLeft className="w-4 h-4 mr-1" /> Back
           </Button>
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-display font-bold">{booking.bookingNumber}</h1>
-              <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[booking.status] ?? ""}`}>
+              <h1 className="text-xl font-display font-bold">
+                {booking.bookingNumber}
+              </h1>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[booking.status] ?? ""}`}
+              >
                 {booking.status.replace("_", " ")}
               </span>
             </div>
             <p className="text-muted-foreground text-sm">
-              {booking.customerFirstName} {booking.customerLastName} · {new Date(booking.appointmentDate).toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" })}
+              {booking.customerFirstName} {booking.customerLastName} ·{" "}
+              {new Date(booking.appointmentDate).toLocaleString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
             </p>
           </div>
           <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => { setNewStatus(booking.status); setShowStatusModal(true); }}
+              onClick={() => {
+                setNewStatus(booking.status);
+                setShowStatusModal(true);
+              }}
               className="border-border"
             >
               <Edit className="w-3 h-3 mr-1" /> Update Status
@@ -263,7 +379,12 @@ export function AdminBookingDetail() {
             {booking.status === "completed" && !booking.reviewRequestSent && (
               <Button
                 size="sm"
-                onClick={() => sendReview.mutate({ bookingId: booking.id, customerId: booking.customerId ?? undefined })}
+                onClick={() =>
+                  sendReview.mutate({
+                    bookingId: booking.id,
+                    customerId: booking.customerId ?? undefined,
+                  })
+                }
                 disabled={sendReview.isPending}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
@@ -278,35 +399,87 @@ export function AdminBookingDetail() {
           <div className="lg:col-span-2 space-y-5">
             {/* Customer */}
             <div className="p-5 rounded-xl border border-border bg-card">
-              <h3 className="font-semibold mb-4 flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Customer</h3>
+              <h3 className="font-semibold mb-4 flex items-center gap-2">
+                <User className="w-4 h-4 text-primary" /> Customer
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div><span className="text-muted-foreground">Name</span><div className="font-medium mt-0.5">{booking.customerFirstName} {booking.customerLastName}</div></div>
-                <div><span className="text-muted-foreground">Phone</span><div className="font-medium mt-0.5">{booking.customerPhone ?? "—"}</div></div>
-                <div><span className="text-muted-foreground">Email</span><div className="font-medium mt-0.5">{booking.customerEmail ?? "—"}</div></div>
-                <div><span className="text-muted-foreground">Source</span><div className="font-medium mt-0.5">{booking.howHeard ?? "—"}</div></div>
+                <div>
+                  <span className="text-muted-foreground">Name</span>
+                  <div className="font-medium mt-0.5">
+                    {booking.customerFirstName} {booking.customerLastName}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Phone</span>
+                  <div className="font-medium mt-0.5">
+                    {booking.customerPhone ?? "—"}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Email</span>
+                  <div className="font-medium mt-0.5">
+                    {booking.customerEmail ?? "—"}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Source</span>
+                  <div className="font-medium mt-0.5">
+                    {booking.howHeard ?? "—"}
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Vehicle */}
             <div className="p-5 rounded-xl border border-border bg-card">
-              <h3 className="font-semibold mb-4 flex items-center gap-2"><Car className="w-4 h-4 text-primary" /> Vehicle</h3>
+              <h3 className="font-semibold mb-4 flex items-center gap-2">
+                <Car className="w-4 h-4 text-primary" /> Vehicle
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div><span className="text-muted-foreground">Make / Model</span><div className="font-medium mt-0.5">{booking.vehicleYear} {booking.vehicleMake} {booking.vehicleModel}</div></div>
-                <div><span className="text-muted-foreground">Color</span><div className="font-medium mt-0.5">{booking.vehicleColor ?? "—"}</div></div>
-                <div><span className="text-muted-foreground">Type</span><div className="font-medium mt-0.5 capitalize">{booking.vehicleType ?? "—"}</div></div>
-                <div><span className="text-muted-foreground">Plate</span><div className="font-medium mt-0.5">{booking.vehicleLicensePlate ?? "—"}</div></div>
+                <div>
+                  <span className="text-muted-foreground">Make / Model</span>
+                  <div className="font-medium mt-0.5">
+                    {booking.vehicleYear} {booking.vehicleMake}{" "}
+                    {booking.vehicleModel}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Color</span>
+                  <div className="font-medium mt-0.5">
+                    {booking.vehicleColor ?? "—"}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Type</span>
+                  <div className="font-medium mt-0.5 capitalize">
+                    {booking.vehicleType ?? "—"}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Plate</span>
+                  <div className="font-medium mt-0.5">
+                    {booking.vehicleLicensePlate ?? "—"}
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Location */}
             <div className="p-5 rounded-xl border border-border bg-card">
-              <h3 className="font-semibold mb-4 flex items-center gap-2"><MapPin className="w-4 h-4 text-primary" /> Service Location</h3>
+              <h3 className="font-semibold mb-4 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" /> Service Location
+              </h3>
               <div className="text-sm">
                 <div className="font-medium">{booking.serviceAddress}</div>
-                <div className="text-muted-foreground">{booking.serviceCity}{booking.serviceState ? `, ${booking.serviceState}` : ""} {booking.serviceZip}</div>
+                <div className="text-muted-foreground">
+                  {booking.serviceCity}
+                  {booking.serviceState ? `, ${booking.serviceState}` : ""}{" "}
+                  {booking.serviceZip}
+                </div>
                 {booking.gateInstructions && (
                   <div className="mt-2 p-3 rounded-lg bg-muted/30 text-muted-foreground text-xs">
-                    <span className="font-medium text-foreground">Access:</span> {booking.gateInstructions}
+                    <span className="font-medium text-foreground">Access:</span>{" "}
+                    {booking.gateInstructions}
                   </div>
                 )}
               </div>
@@ -328,7 +501,9 @@ export function AdminBookingDetail() {
               <h3 className="font-semibold mb-4">Service & Pricing</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{booking.packageName ?? "Custom"}</span>
+                  <span className="text-muted-foreground">
+                    {booking.packageName ?? "Custom"}
+                  </span>
                   <span>${Number(booking.subtotal ?? 0).toFixed(2)}</span>
                 </div>
                 {Number(booking.travelFee ?? 0) > 0 && (
@@ -343,11 +518,15 @@ export function AdminBookingDetail() {
                 </div>
                 <div className="flex justify-between pt-2 border-t border-border font-semibold">
                   <span>Total</span>
-                  <span className="text-primary">${Number(booking.totalAmount ?? 0).toFixed(2)}</span>
+                  <span className="text-primary">
+                    ${Number(booking.totalAmount ?? 0).toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Payment</span>
-                  <span className={`capitalize ${booking.paymentStatus === "paid" ? "text-emerald-400" : "text-amber-400"}`}>
+                  <span
+                    className={`capitalize ${booking.paymentStatus === "paid" ? "text-emerald-400" : "text-amber-400"}`}
+                  >
                     {booking.paymentStatus?.replace("_", " ")}
                   </span>
                 </div>
@@ -359,14 +538,22 @@ export function AdminBookingDetail() {
               <h3 className="font-semibold mb-3">Actions</h3>
               <div className="space-y-1.5">
                 <Link href={`/admin/media?bookingId=${booking.id}`}>
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-xs">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs"
+                  >
                     <Camera className="w-3 h-3 mr-2" /> View Photos
                   </Button>
                 </Link>
                 <GenerateInvoiceButton bookingId={booking.id} />
                 {booking.customerId && (
                   <Link href={`/admin/crm/${booking.customerId}`}>
-                    <Button variant="ghost" size="sm" className="w-full justify-start text-xs">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-xs"
+                    >
                       <UserCheck className="w-3 h-3 mr-2" /> Customer Profile
                     </Button>
                   </Link>
@@ -387,11 +574,13 @@ export function AdminBookingDetail() {
                 <Label>New Status</Label>
                 <select
                   value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
+                  onChange={e => setNewStatus(e.target.value)}
                   className="w-full h-10 px-3 rounded-md border border-border bg-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  {STATUS_OPTIONS.filter((s) => s.value !== "all").map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
+                  {STATUS_OPTIONS.filter(s => s.value !== "all").map(s => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -399,20 +588,36 @@ export function AdminBookingDetail() {
                 <Label>Notes (optional)</Label>
                 <Textarea
                   value={statusNote}
-                  onChange={(e) => setStatusNote(e.target.value)}
+                  onChange={e => setStatusNote(e.target.value)}
                   placeholder="Add a note about this status change..."
                   className="bg-input border-border resize-none"
                   rows={3}
                 />
               </div>
               <div className="flex gap-3 justify-end">
-                <Button variant="outline" onClick={() => setShowStatusModal(false)} className="border-border">Cancel</Button>
                 <Button
-                  onClick={() => updateStatus.mutate({ id: bookingId, status: newStatus as any, notes: statusNote })}
+                  variant="outline"
+                  onClick={() => setShowStatusModal(false)}
+                  className="border-border"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() =>
+                    updateStatus.mutate({
+                      id: bookingId,
+                      status: newStatus as any,
+                      notes: statusNote,
+                    })
+                  }
                   disabled={updateStatus.isPending}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  {updateStatus.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update Status"}
+                  {updateStatus.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Update Status"
+                  )}
                 </Button>
               </div>
             </div>
