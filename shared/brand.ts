@@ -105,20 +105,22 @@ export const BRAND = {
   // ── Logo / brand assets ──────────────────────────────────────────────────
   // Centralized paths so every component/email/metadata tag points here
   // instead of hardcoding a URL. Swap the files in client/public/brand/
-  // to update branding everywhere at once.
+  // to update branding everywhere at once. Real logo (as of the brand
+  // playbook handoff) — cropped to content bounds from the source renders,
+  // solid black background (fine everywhere in this app: it's a 100%
+  // dark-theme site, Carbon Black #050505 throughout).
   logo: {
-    wordmarkSvg: "/brand/forma-wordmark.svg",
-    iconSvg: "/brand/forma-icon.svg",
+    wordmark: "/brand/forma-wordmark.png",
+    icon: "/brand/forma-icon.png",
     /**
-     * Absolute URL used in email templates and OG tags. No real 1200x630
-     * Forma social-share image exists yet (SVGs aren't reliably rendered by
-     * social crawlers), so this intentionally falls back to the old but
-     * still-live logo image rather than link to something that 404s.
-     * TODO(rebrand): replace with a real Forma OG image, then drop the
-     * siteUrl param (it'll just be a static CDN URL).
+     * Absolute URL used in email templates and OG tags. This is the real
+     * wordmark, not a perfect 1200x630 OG composition (it's a wide, short
+     * crop) — social platforms generally letterbox/crop-fit an off-ratio
+     * image acceptably, and real Forma branding beats the old fallback.
+     * TODO(rebrand): commission a proper 1200x630 OG image when there's
+     * time for one.
      */
-    ogImageAbsoluteUrl: (_siteUrl: string) =>
-      "https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png",
+    ogImageAbsoluteUrl: (siteUrl: string) => `${siteUrl}/brand/forma-wordmark.png`,
   },
 
   // ── SEO defaults ─────────────────────────────────────────────────────────

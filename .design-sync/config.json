@@ -1,0 +1,40 @@
+{
+  "projectId": "87287cef-b4fe-4247-82c0-87cc00cf4c18",
+  "shape": "package",
+  "pkg": "forma-ui",
+  "globalName": "FormaUI",
+  "entry": "./.ds-sync-entry.mjs",
+  "srcDir": "client/src/components/ui",
+  "tsconfig": "tsconfig.json",
+  "componentSrcMap": {
+    "Button": "client/src/components/ui/button.tsx",
+    "Card": "client/src/components/ui/card.tsx",
+    "Input": "client/src/components/ui/input.tsx",
+    "Label": "client/src/components/ui/label.tsx",
+    "Textarea": "client/src/components/ui/textarea.tsx",
+    "Badge": "client/src/components/ui/badge.tsx",
+    "Dialog": "client/src/components/ui/dialog.tsx",
+    "Select": "client/src/components/ui/select.tsx",
+    "Checkbox": "client/src/components/ui/checkbox.tsx",
+    "Tabs": "client/src/components/ui/tabs.tsx"
+  },
+  "cssEntry": ".ds-sync/compiled-styles.css",
+  "runtimeFontPrefixes": ["Oswald", "Inter"],
+  "guidelinesGlob": [],
+  "dtsPropsFor": {
+    "Button": "variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'; size?: 'default' | 'sm' | 'lg' | 'icon' | 'icon-sm' | 'icon-lg'; asChild?: boolean; disabled?: boolean; onClick?: (e: React.MouseEvent) => void; children?: React.ReactNode; className?: string;",
+    "Badge": "variant?: 'default' | 'secondary' | 'destructive' | 'outline'; asChild?: boolean; children?: React.ReactNode; className?: string;",
+    "Checkbox": "checked?: boolean | 'indeterminate'; defaultChecked?: boolean; onCheckedChange?: (checked: boolean | 'indeterminate') => void; disabled?: boolean; required?: boolean; name?: string; value?: string; id?: string; className?: string;",
+    "Input": "type?: React.HTMLInputTypeAttribute; placeholder?: string; disabled?: boolean; readOnly?: boolean; required?: boolean; value?: string | number; defaultValue?: string | number; onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; className?: string;",
+    "Textarea": "placeholder?: string; disabled?: boolean; readOnly?: boolean; required?: boolean; rows?: number; value?: string; defaultValue?: string; onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; className?: string;",
+    "Label": "htmlFor?: string; children?: React.ReactNode; className?: string;",
+    "Card": "children?: React.ReactNode; className?: string;",
+    "Dialog": "open?: boolean; defaultOpen?: boolean; onOpenChange?: (open: boolean) => void; modal?: boolean; children?: React.ReactNode;",
+    "Select": "value?: string; defaultValue?: string; onValueChange?: (value: string) => void; disabled?: boolean; name?: string; children?: React.ReactNode;",
+    "Tabs": "value?: string; defaultValue?: string; onValueChange?: (value: string) => void; orientation?: 'horizontal' | 'vertical'; children?: React.ReactNode; className?: string;"
+  },
+  "overrides": {
+    "Dialog": { "cardMode": "single", "viewport": "480x420" },
+    "Select": { "cardMode": "single", "viewport": "360x320" }
+  }
+}

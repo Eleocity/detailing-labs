@@ -21,7 +21,7 @@ const schema = z.object({
 });
 type ForgotForm = z.infer<typeof schema>;
 
-const LOGO_URL = "/brand/forma-wordmark.svg";
+const LOGO_URL = "/brand/forma-wordmark.png";
 
 export default function ForgotPassword() {
   const [submitted, setSubmitted] = useState(false);

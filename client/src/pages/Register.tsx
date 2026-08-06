@@ -31,7 +31,7 @@ const registerSchema = z
   });
 type RegisterForm = z.infer<typeof registerSchema>;
 
-const LOGO_URL = "/brand/forma-wordmark.svg";
+const LOGO_URL = "/brand/forma-wordmark.png";
 
 export default function Register() {
   const [, navigate] = useLocation();

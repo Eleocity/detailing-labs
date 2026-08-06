@@ -28,7 +28,7 @@ const schema = z
   });
 type ResetForm = z.infer<typeof schema>;
 
-const LOGO_URL = "/brand/forma-wordmark.svg";
+const LOGO_URL = "/brand/forma-wordmark.png";
 
 export default function ResetPassword() {
   const [, navigate] = useLocation();

@@ -32,7 +32,7 @@ export default function SiteFooter() {
           <div className="col-span-2 lg:col-span-1">
             <div className="mb-4">
               <img
-                src={BRAND.logo.wordmarkSvg}
+                src={BRAND.logo.wordmark}
                 alt={BRAND.displayName}
                 className="h-14 w-auto object-contain"
               />

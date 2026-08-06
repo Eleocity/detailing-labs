@@ -88,7 +88,7 @@ export default function SiteHeader() {
           <Link href="/">
             <div className="flex items-center cursor-pointer">
               <img
-                src={BRAND.logo.wordmarkSvg}
+                src={BRAND.logo.wordmark}
                 alt={BRAND.displayName}
                 className="h-12 sm:h-14 lg:h-16 w-auto object-contain"
               />

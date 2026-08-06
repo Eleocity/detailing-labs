@@ -10,9 +10,9 @@
   "categories": ["automotive", "lifestyle"],
   "icons": [
     {
-      "src": "/brand/forma-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "/brand/forma-icon.png",
+      "sizes": "494x467",
+      "type": "image/png"
     },
     {
       "src": "/favicon.ico",

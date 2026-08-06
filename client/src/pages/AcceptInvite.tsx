@@ -14,7 +14,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, Loader2, ShieldAlert, Eye, EyeOff } from "lucide-react";
 
-const LOGO_URL = "/brand/forma-wordmark.svg";
+const LOGO_URL = "/brand/forma-wordmark.png";
 
 export default function AcceptInvite() {
   const [, navigate] = useLocation();

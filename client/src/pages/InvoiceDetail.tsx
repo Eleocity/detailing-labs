@@ -102,7 +102,7 @@ export default function InvoiceDetail() {
             <div className="flex items-start justify-between mb-8">
               <div>
                 <img
-                  src="/brand/forma-wordmark.svg"
+                  src="/brand/forma-wordmark.png"
                   alt="Forma Auto Spa"
                   className="h-14 w-auto object-contain"
                 />

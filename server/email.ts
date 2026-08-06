@@ -2,6 +2,7 @@
  * Email helper using SendGrid.
  * All outgoing transactional emails go through this module.
  */
+import { BRAND } from "../shared/brand";
 
 const SENDGRID_API_URL = "https://api.sendgrid.com/v3/mail/send";
 
@@ -396,8 +397,7 @@ export function invoiceEmail(params: {
   };
 }
 
-const LOGO_URL =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663425808543/7UUm3VYuvjMZWzXs65cJTQ/detailing-labs-logo-clean_f1e7bfe0.png";
+const LOGO_URL = `https://${BRAND.domain.live}${BRAND.logo.wordmark}`;
 
 function emailBase(headerExtra: string, body: string): string {
   return `<!DOCTYPE html>

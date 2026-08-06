@@ -20,6 +20,12 @@ const SKIP_DIRS = new Set([
   "__manus__",
   ".vite",
   "coverage",
+  // design-sync scratch/build output (gitignored — see .design-sync/NOTES.md).
+  // Can contain the local absolute repo path, which coincidentally contains
+  // "Detailing Labs" on this machine (the parent folder name) — not a real
+  // brand-name leak, and not committed source either way.
+  ".ds-sync",
+  "ds-bundle",
 ]);
 
 const SKIP_FILES = new Set([

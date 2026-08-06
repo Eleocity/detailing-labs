@@ -24,7 +24,7 @@ const loginSchema = z.object({
 });
 type LoginForm = z.infer<typeof loginSchema>;
 
-const LOGO_URL = "/brand/forma-wordmark.svg";
+const LOGO_URL = "/brand/forma-wordmark.png";
 
 export default function Login() {
   const [, navigate] = useLocation();

@@ -108,3 +108,14 @@ temp/
 
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
+
+# design-sync (see .design-sync/NOTES.md) — staged scripts, generated
+# bundle output, machine-local cache/learnings, and the fork symlink.
+# .design-sync/config.json, NOTES.md, conventions.md, previews/, and
+# overrides/ are NOT ignored — they're the durable, committed set.
+.ds-sync/
+.ds-sync-entry.mjs
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
