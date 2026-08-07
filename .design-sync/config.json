@@ -21,6 +21,7 @@
   "cssEntry": ".ds-sync/compiled-styles.css",
   "runtimeFontPrefixes": ["Oswald", "Inter"],
   "guidelinesGlob": [],
+  "readmeHeader": ".design-sync/conventions.md",
   "dtsPropsFor": {
     "Button": "variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'; size?: 'default' | 'sm' | 'lg' | 'icon' | 'icon-sm' | 'icon-lg'; asChild?: boolean; disabled?: boolean; onClick?: (e: React.MouseEvent) => void; children?: React.ReactNode; className?: string;",
     "Badge": "variant?: 'default' | 'secondary' | 'destructive' | 'outline'; asChild?: boolean; children?: React.ReactNode; className?: string;",
@@ -36,5 +37,8 @@
   "overrides": {
     "Dialog": { "cardMode": "single", "viewport": "480x420" },
     "Select": { "cardMode": "single", "viewport": "360x320" }
+  },
+  "libOverrides": {
+    "emit.mjs": "Forma is a dark-only, single-theme app (body sets background:#050505/color:#f5f5f5 unconditionally, no light variant). The bundled card template hardcoded a white canvas, which only overrides background, not color — text that inherits body color (Button outline/ghost/link, Label, plain text) rendered near-invisible near-white-on-white. Fork lets the DS's own dark body win and recolors grid/floor-card chrome for a dark canvas."
   }
 }
