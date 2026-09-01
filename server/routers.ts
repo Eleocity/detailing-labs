@@ -19,6 +19,7 @@ import { conditionReportsRouter } from "./routers/conditionReports";
 import { giftCardsRouter } from "./routers/giftCards";
 import { followUpRouter } from "./routers/followUp";
 import { remindersRouter } from "./routers/reminders";
+import { formaopsRouter } from "./routers/formaops";
 
 export const appRouter = router({
   system: systemRouter,
@@ -41,6 +42,7 @@ export const appRouter = router({
   giftCards: giftCardsRouter,
   followUp: followUpRouter,
   reminders: remindersRouter,
+  formaops: formaopsRouter,
 });
 
 export type AppRouter = typeof appRouter;

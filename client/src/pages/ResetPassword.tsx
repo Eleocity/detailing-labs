@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import SEO from "@/components/SEO";
+import { BRAND } from "@shared/brand";
 
 const schema = z
   .object({
@@ -28,7 +30,7 @@ const schema = z
   });
 type ResetForm = z.infer<typeof schema>;
 
-const LOGO_URL = "/brand/forma-wordmark.png";
+const LOGO_URL = BRAND.logo.wordmark;
 
 export default function ResetPassword() {
   const [, navigate] = useLocation();
@@ -68,6 +70,7 @@ export default function ResetPassword() {
   if (!token) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <SEO title="Reset Password" canonical="/reset-password" noindex={true} />
         <div className="w-full max-w-md text-center space-y-4">
           <p className="text-muted-foreground">
             Invalid or missing reset token.
@@ -82,13 +85,14 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <SEO title="Reset Password" canonical="/reset-password" noindex={true} />
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/">
             <img
               src={LOGO_URL}
-              alt="Forma Auto Spa"
+              alt={BRAND.displayName}
               className="h-20 object-contain cursor-pointer"
             />
           </Link>

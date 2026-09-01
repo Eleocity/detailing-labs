@@ -145,7 +145,7 @@ export default function ProfileSettings() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="(555) 000-0000"
+                    placeholder="(XXX) XXX-XXXX"
                   />
                 </div>
               </div>

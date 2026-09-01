@@ -147,7 +147,15 @@ export const packages = mysqlTable("packages", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 200 }).notNull(),
   description: text("description"),
+  // `price` is the flat/"starting" price — kept in sync with `priceSedan`
+  // for any package that has vehicle-tiered pricing (see priceSedan below).
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  // Vehicle-size tier prices. NULL on all three means this package has no
+  // tiered pricing (e.g. quote-only services) — callers fall back to the
+  // flat `price`. See shared/services.ts's resolvePackagePrice().
+  priceSedan: decimal("priceSedan", { precision: 10, scale: 2 }),
+  priceSuv: decimal("priceSuv", { precision: 10, scale: 2 }),
+  priceLarge: decimal("priceLarge", { precision: 10, scale: 2 }),
   duration: int("duration").notNull(), // minutes
   features: text("features"), // JSON array of feature strings
   isPopular: boolean("isPopular").default(false),
@@ -670,3 +678,132 @@ export const bookingDrafts = mysqlTable("bookingDrafts", {
 
 export type BookingDraft = typeof bookingDrafts.$inferSelect;
 export type InsertBookingDraft = typeof bookingDrafts.$inferInsert;
+
+// ─── FormaOps: Governance Foundation ───────────────────────────────────────
+// See docs/formaops/DATABASE.md. Additive only — nothing above this section
+// is touched. `businessMemberships.role` is a separate concept from the
+// existing `users.role` and does not replace any existing admin check.
+
+export const businesses = mysqlTable("businesses", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 200 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Business = typeof businesses.$inferSelect;
+export type InsertBusiness = typeof businesses.$inferInsert;
+
+export const FORMAOPS_ROLES = [
+  "OWNER",
+  "OPERATIONS_MANAGER",
+  "MANAGER",
+  "EMPLOYEE",
+  "AI_SYSTEM",
+] as const;
+export type FormaOpsRole = (typeof FORMAOPS_ROLES)[number];
+
+export const businessMemberships = mysqlTable("businessMemberships", {
+  id: int("id").autoincrement().primaryKey(),
+  businessId: int("businessId").notNull(),
+  userId: int("userId").notNull(),
+  role: mysqlEnum("role", FORMAOPS_ROLES).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type BusinessMembership = typeof businessMemberships.$inferSelect;
+export type InsertBusinessMembership = typeof businessMemberships.$inferInsert;
+
+// Permission catalog — see docs/formaops/PERMISSIONS.md for the full list
+// and default grants. Stored as data (not scattered string literals) so
+// grants can be edited without a code deploy once an admin UI exists.
+export const permissions = mysqlTable("permissions", {
+  key: varchar("key", { length: 100 }).primaryKey(),
+  description: text("description").notNull(),
+});
+
+export type Permission = typeof permissions.$inferSelect;
+export type InsertPermission = typeof permissions.$inferInsert;
+
+export const rolePermissions = mysqlTable("rolePermissions", {
+  id: int("id").autoincrement().primaryKey(),
+  role: mysqlEnum("role", FORMAOPS_ROLES).notNull(),
+  permissionKey: varchar("permissionKey", { length: 100 }).notNull(),
+});
+
+export type RolePermission = typeof rolePermissions.$inferSelect;
+export type InsertRolePermission = typeof rolePermissions.$inferInsert;
+
+export const CHANGE_REQUEST_CATEGORIES = [
+  "pricing",
+  "hours",
+  "services",
+  "promotions",
+  "content",
+  "business_profile",
+  "other",
+] as const;
+export type ChangeRequestCategory = (typeof CHANGE_REQUEST_CATEGORIES)[number];
+
+export const CHANGE_REQUEST_STATUSES = [
+  "DRAFT",
+  "AWAITING_APPROVAL",
+  "APPROVED",
+  "REJECTED",
+  "EXECUTING",
+  "COMPLETED",
+  "FAILED",
+  "CANCELLED",
+] as const;
+export type ChangeRequestStatus = (typeof CHANGE_REQUEST_STATUSES)[number];
+
+// The current, real ChangeRequest model. Deliberately a smaller status set
+// and a single required-approval-role (not N-of-M) than the full spec
+// describes — see docs/formaops/DECISIONS.md ADR-005 for why.
+export const changeRequests = mysqlTable("changeRequests", {
+  id: int("id").autoincrement().primaryKey(),
+  businessId: int("businessId").notNull(),
+  submittedByUserId: int("submittedByUserId").notNull(),
+  source: varchar("source", { length: 40 }).notNull(), // e.g. "web_chat", "admin_dashboard"
+  category: mysqlEnum("category", CHANGE_REQUEST_CATEGORIES).notNull(),
+  riskLevel: mysqlEnum("riskLevel", ["GREEN", "YELLOW", "RED"]).notNull(),
+  status: mysqlEnum("status", CHANGE_REQUEST_STATUSES)
+    .default("AWAITING_APPROVAL")
+    .notNull(),
+  originalRequest: text("originalRequest").notNull(),
+  proposedChange: json("proposedChange").notNull(),
+  requiredApprovalRole: mysqlEnum("requiredApprovalRole", FORMAOPS_ROLES).notNull(),
+  reasoningSummary: text("reasoningSummary"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ChangeRequest = typeof changeRequests.$inferSelect;
+export type InsertChangeRequest = typeof changeRequests.$inferInsert;
+
+export const approvals = mysqlTable("approvals", {
+  id: int("id").autoincrement().primaryKey(),
+  changeRequestId: int("changeRequestId").notNull(),
+  approvedByUserId: int("approvedByUserId").notNull(),
+  decision: mysqlEnum("decision", ["APPROVED", "REJECTED"]).notNull(),
+  note: text("note"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Approval = typeof approvals.$inferSelect;
+export type InsertApproval = typeof approvals.$inferInsert;
+
+// Append-only. Nothing in server/formaops/ ever updates or deletes a row here.
+export const auditEvents = mysqlTable("auditEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  businessId: int("businessId").notNull(),
+  actorUserId: int("actorUserId"), // null only for genuinely system-initiated events
+  actorType: mysqlEnum("actorType", ["HUMAN", "AI_SYSTEM"]).notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
+  targetType: varchar("targetType", { length: 60 }).notNull(),
+  targetId: int("targetId"),
+  metadata: json("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AuditEvent = typeof auditEvents.$inferSelect;
+export type InsertAuditEvent = typeof auditEvents.$inferInsert;

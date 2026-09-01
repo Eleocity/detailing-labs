@@ -96,8 +96,8 @@ export default function AdminLayout({
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full text-center">
           <img
-            src="/brand/forma-wordmark.png"
-            alt="Forma Auto Spa"
+            src={BRAND.logo.wordmark}
+            alt={BRAND.displayName}
             className="h-20 w-auto object-contain"
           />
           <h1 className="text-2xl font-display font-bold mb-1">
@@ -253,8 +253,8 @@ function AdminLayoutContent({
               {!isCollapsed && (
                 <div className="flex items-center min-w-0 flex-1">
                   <img
-                    src="/brand/forma-wordmark.png"
-                    alt="Forma Auto Spa"
+                    src={BRAND.logo.wordmark}
+                    alt={BRAND.displayName}
                     className="h-8 w-auto object-contain"
                   />
                 </div>

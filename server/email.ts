@@ -20,7 +20,7 @@ export async function sendEmail({
   text,
 }: EmailPayload): Promise<boolean> {
   const apiKey = process.env.SENDGRID_API_KEY;
-  const from = process.env.EMAIL_FROM || "noreply@detailinglabswi.com";
+  const from = process.env.EMAIL_FROM || BRAND.emailFromLive;
 
   if (!apiKey) {
     console.warn("[Email] SENDGRID_API_KEY not set — email not sent.");
@@ -275,7 +275,7 @@ export function bookingConfirmationEmail(booking: {
         </td></tr>
         <!-- Footer -->
         <tr><td style="padding:20px 40px;background:#111827;text-align:center">
-          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Forma Auto Spa · Sturtevant, WI · <a href="https://detailinglabswi.com" style="color:#6d28d9;text-decoration:none">detailinglabswi.com</a></p>
+          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Forma Auto Spa · Sturtevant, WI · <a href="https://${BRAND.domain.live}" style="color:#6d28d9;text-decoration:none">${BRAND.domain.live}</a></p>
         </td></tr>
       </table>
     </td></tr>
@@ -387,7 +387,7 @@ export function invoiceEmail(params: {
         </td></tr>
         <!-- Footer -->
         <tr><td style="padding:20px 40px;background:#111827;text-align:center">
-          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Forma Auto Spa · Sturtevant, WI · <a href="https://detailinglabswi.com" style="color:#6d28d9;text-decoration:none">detailinglabswi.com</a></p>
+          <p style="margin:0;color:#475569;font-size:12px">© ${new Date().getFullYear()} Forma Auto Spa · Sturtevant, WI · <a href="https://${BRAND.domain.live}" style="color:#6d28d9;text-decoration:none">${BRAND.domain.live}</a></p>
         </td></tr>
       </table>
     </td></tr>
@@ -430,7 +430,7 @@ function emailBase(headerExtra: string, body: string): string {
         <!-- FOOTER -->
         <tr><td style="background:#080810;border-radius:0 0 16px 16px;border:1px solid #1e1e3a;border-top:1px solid #1a1a30;padding:20px 40px;text-align:center">
           <p style="margin:0 0 4px;color:#4a4a6a;font-size:12px">© ${new Date().getFullYear()} Forma Auto Spa · Sturtevant, WI</p>
-          <p style="margin:0"><a href="https://detailinglabswi.com" style="color:#6d28d9;font-size:12px;text-decoration:none">detailinglabswi.com</a></p>
+          <p style="margin:0"><a href="https://${BRAND.domain.live}" style="color:#6d28d9;font-size:12px;text-decoration:none">${BRAND.domain.live}</a></p>
         </td></tr>
 
       </table>

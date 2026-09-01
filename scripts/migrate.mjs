@@ -12,6 +12,51 @@ import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+/**
+ * Splits a migration file into individual SQL statements.
+ *
+ * drizzle-kit-generated files separate statements with a
+ * `--> statement-breakpoint` marker comment (sometimes on its own line,
+ * sometimes glued right after the previous statement's `;` with no
+ * newline). Hand-written migrations in this repo have no such marker —
+ * just `;`-terminated statements with ordinary `-- comment` lines.
+ *
+ * NOTE: server/_core/index.ts has its own independent copy of this same
+ * logic (used for auto-migrate-on-boot in production — this script is not
+ * part of the actual Railway deploy path, only a manual/local tool). That
+ * copy already had the fix below; this one didn't, which is how this bug
+ * went unnoticed — production never ran the buggy version. If you change
+ * statement-parsing behavior here, change it there too (or better, extract
+ * a shared module next time you're touching either).
+ *
+ * BUG THIS REPLACES: naively splitting on `;` first and then filtering out
+ * chunks that *start with* `--` silently discards a whole statement
+ * whenever the breakpoint marker ends up glued to the front of the next
+ * CREATE/ALTER statement (which is the common case) — every statement
+ * after the first in a multi-table migration file gets dropped with zero
+ * error. Splitting on the real breakpoint marker first, then stripping
+ * comment *lines* (not comment-prefixed chunks) within each piece, fixes
+ * both formats.
+ */
+function extractStatements(sql) {
+  const chunks = sql.includes("statement-breakpoint")
+    ? sql.split(/--> statement-breakpoint/g)
+    : [sql];
+
+  const statements = [];
+  for (const chunk of chunks) {
+    const withoutComments = chunk
+      .split("\n")
+      .filter(line => !line.trim().startsWith("--"))
+      .join("\n");
+    for (const stmt of withoutComments.split(";")) {
+      const trimmed = stmt.trim();
+      if (trimmed.length > 0) statements.push(trimmed);
+    }
+  }
+  return statements;
+}
+
 async function runMigrations() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
@@ -61,10 +106,7 @@ async function runMigrations() {
 
       // Apply the migration
       const sql = await readFile(join(migrationsDir, file), "utf-8");
-      const statements = sql
-        .split(";")
-        .map(s => s.trim())
-        .filter(s => s.length > 0 && !s.startsWith("--"));
+      const statements = extractStatements(sql);
 
       for (const statement of statements) {
         await conn.execute(statement);

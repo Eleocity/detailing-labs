@@ -5,6 +5,7 @@ import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { invoices, bookings, siteContent } from "../../drizzle/schema";
 import { sendEmail, receiptEmail } from "../email";
+import { BRAND } from "../../shared/brand";
 
 // ── Square helpers ────────────────────────────────────────────────────────────
 const SQ_BASE =
@@ -70,7 +71,7 @@ export const paymentsRouter = router({
       const customerName = booking
         ? `${booking.customerFirstName} ${booking.customerLastName}`.trim()
         : "Customer";
-      const redirectUrl = `${process.env.APP_URL ?? "https://detailinglabswi.com"}/invoice-paid?invoice=${inv.invoiceNumber}`;
+      const redirectUrl = `${process.env.APP_URL ?? `https://${BRAND.domain.live}`}/invoice-paid?invoice=${inv.invoiceNumber}`;
 
       const locationId = process.env.SQUARE_LOCATION_ID;
       if (!locationId)
@@ -85,15 +86,14 @@ export const paymentsRouter = router({
         {
           idempotency_key: `inv-${inv.invoiceNumber}-${Date.now()}`,
           quick_pay: {
-            name: `Forma Auto Spa — ${description}`,
+            name: `${BRAND.displayName} — ${description}`,
             price_money: { amount: amountCents, currency: "USD" },
             location_id: locationId,
           },
           checkout_options: {
             redirect_url: redirectUrl,
             ask_for_shipping_address: false,
-            merchant_support_email:
-              process.env.EMAIL_FROM ?? "hello@detailinglabswi.com",
+            merchant_support_email: process.env.EMAIL_FROM ?? BRAND.emailLive,
           },
           pre_populated_data: {
             buyer_email: booking?.customerEmail ?? undefined,
@@ -126,7 +126,7 @@ export const paymentsRouter = router({
 
   // ── Square webhook — payment completed ────────────────────────────────────
   // Called by Square when a payment is made. Set webhook URL in Square dashboard:
-  // https://yourdomain.com/api/webhooks/square
+  // https://formaautospa.com/api/webhooks/square
   webhook: publicProcedure
     .input(z.object({ body: z.string() }))
     .mutation(async ({ input }) => {
@@ -170,10 +170,9 @@ export const paymentsRouter = router({
           .where(eq(siteContent.section, "contact"))
           .limit(20);
         const phone =
-          contactRows.find(r => r.key === "phone")?.value || "(262) 260-9474";
+          contactRows.find(r => r.key === "phone")?.value || BRAND.phone;
         const bizEmail =
-          contactRows.find(r => r.key === "email")?.value ||
-          "hello@detailinglabswi.com";
+          contactRows.find(r => r.key === "email")?.value || BRAND.emailLive;
         const lineItems: { name: string; qty: number; price: number }[] =
           inv.lineItems ? JSON.parse(inv.lineItems) : [];
 

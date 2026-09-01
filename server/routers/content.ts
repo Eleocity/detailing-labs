@@ -4,6 +4,7 @@ import { getDb } from "../db";
 import { siteContent, packages, addOns } from "../../drizzle/schema";
 import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
+import { BRAND } from "../../shared/brand";
 
 function adminOnly(role: string) {
   if (role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
@@ -189,7 +190,7 @@ export const contentRouter = router({
     .mutation(async ({ input }) => {
       const db = await getDb();
       // Get owner email from site content
-      let ownerEmail = "hello@detailinglabswi.com";
+      let ownerEmail: string = BRAND.emailLive;
       if (db) {
         const rows = await db.select().from(siteContent).where(eq(siteContent.section, "contact")).limit(20);
         ownerEmail = rows.find(r => r.key === "email")?.value || ownerEmail;

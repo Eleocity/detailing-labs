@@ -315,10 +315,10 @@ function LocationPage({ location }: { location: LocationData }) {
               {/* What's included */}
               <div className="space-y-3">
                 {[
-                  "Exterior Decon & Shield — from $129",
-                  "Interior Deep Refresh — from $129",
                   "Full Showroom Reset — from $229",
-                  "Ceramic Coating — custom quoted",
+                  "The Signature Detail — from $449",
+                  "Ceramic Coating — from $650",
+                  "Paint Correction — custom quoted",
                   "Specialty add-ons available",
                 ].map(item => (
                   <div

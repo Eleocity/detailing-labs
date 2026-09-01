@@ -71,9 +71,13 @@ export const PACKAGES: ServicePackage[] = [
     recommendedFor:
       "Seasonal refresh, pre-event prep, or maintaining a clean car between full details.",
     isPopular: false,
-    isActive: true,
+    // Retired as a standalone booking — we no longer detail just the
+    // exterior on its own. Kept (not deleted) so historical bookings and
+    // name-based price lookups still resolve; hidden from every
+    // customer-facing list via isActive/bookingEligible.
+    isActive: false,
     sortOrder: 1,
-    bookingEligible: true,
+    bookingEligible: false,
     requiresQuote: false,
   },
   {
@@ -96,9 +100,13 @@ export const PACKAGES: ServicePackage[] = [
     recommendedFor:
       "Used car buyers, pet owners, or anyone whose cabin needs a proper reset.",
     isPopular: false,
-    isActive: true,
+    // Retired as a standalone booking — we no longer detail just the
+    // interior on its own. Kept (not deleted) so historical bookings and
+    // name-based price lookups still resolve; hidden from every
+    // customer-facing list via isActive/bookingEligible.
+    isActive: false,
     sortOrder: 2,
-    bookingEligible: true,
+    bookingEligible: false,
     requiresQuote: false,
   },
   {
@@ -107,14 +115,16 @@ export const PACKAGES: ServicePackage[] = [
     shortDescription:
       "Total vehicle transformation, inside and out — our most popular package.",
     fullDescription:
-      "Everything in Exterior Decon & Shield and Interior Deep Refresh, combined at a lower total cost than booking separately. The default choice for a like-new experience in one visit.",
+      "The complete interior-and-exterior treatment in one visit: hand wash, wheel and tire deep clean, iron and bug/tar removal, and a hydrophobic spray wax outside; compressed-air blowout, full vacuum, dash and door detailing, UV protectant, and streak-free glass inside. The default choice for a like-new experience in one visit.",
     pricingByVehicle: { sedan: 229.99, suv: 269.99, large: 359.99 },
     fromPrice: 229.99,
     durationMinutes: 240,
     included: [
-      "Everything in Exterior Decon & Shield",
-      "Everything in Interior Deep Refresh",
-      "Best value — save vs. booking separately",
+      "Signature hand wash + wheel & tire deep clean",
+      "Iron & bug/tar removal + hydrophobic spray wax (3-month protection)",
+      "Compressed air blowout + deep vacuum (all surfaces)",
+      "Dash / console / door scrub + UV protectant treatment",
+      "Streak-free glass + floor mat restoration",
       "Like-new vehicle experience inside and out",
     ],
     recommendedFor:
@@ -155,11 +165,11 @@ export const PACKAGES: ServicePackage[] = [
     internalKey: "ceramic-coating",
     name: "Ceramic Coating",
     shortDescription:
-      "Multi-year hydrophobic paint protection, custom-quoted to your vehicle's condition.",
+      "Multi-year hydrophobic paint protection, starting at $650.",
     fullDescription:
-      "Full paint decontamination and correction, followed by a professional-grade ceramic coating application. Pricing depends on vehicle size and the correction needed before coating, so every job starts with an assessment.",
+      "Full paint decontamination and correction, followed by a professional-grade ceramic coating application. Four coating tiers are available (see pricing below) — final price depends on vehicle size and the correction needed before coating, so every job starts with an assessment.",
     pricingByVehicle: null,
-    fromPrice: 0,
+    fromPrice: 650,
     durationMinutes: 480,
     included: [
       "Full paint decontamination & wash",
@@ -204,6 +214,72 @@ export const PACKAGES: ServicePackage[] = [
     requiresQuote: true,
   },
 ];
+
+/**
+ * Ceramic coating product tiers — a separate axis from vehicle size
+ * (Titanium 9M / Graphene Oxide 10+ / Matte Plus / Borophene 4.0 Grand
+ * Master are coating-product lines, not vehicle categories). Mirrors the
+ * printed "Ceramic Coating Price List" flyer. `fromPrice` is the published
+ * starting price; the final quote still depends on vehicle size and the
+ * paint correction needed before coating (see PACKAGES["ceramic-coating"]).
+ */
+export interface CeramicTier {
+  internalKey: string;
+  name: string;
+  /** e.g. "2-3 Years" — coating warranty/durability window. */
+  warrantyLabel: string;
+  fromPrice: number;
+  isPopular: boolean;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export const CERAMIC_COATING_BRAND = "NanoPro";
+
+export const CERAMIC_TIERS: CeramicTier[] = [
+  {
+    internalKey: "ceramic-titanium-9m",
+    name: "Titanium 9M",
+    warrantyLabel: "2-3 Years",
+    fromPrice: 650,
+    isPopular: false,
+    isActive: true,
+    sortOrder: 1,
+  },
+  {
+    internalKey: "ceramic-graphene-oxide-10",
+    name: "Graphene Oxide 10+",
+    warrantyLabel: "3-4 Years",
+    fromPrice: 850,
+    isPopular: true,
+    isActive: true,
+    sortOrder: 2,
+  },
+  {
+    internalKey: "ceramic-matte-plus",
+    name: "Matte Plus",
+    warrantyLabel: "2-3 Years",
+    fromPrice: 1150,
+    isPopular: false,
+    isActive: true,
+    sortOrder: 3,
+  },
+  {
+    internalKey: "ceramic-borophene-grand-master",
+    name: "Borophene 4.0 Grand Master",
+    warrantyLabel: "7-10 Years",
+    fromPrice: 1500,
+    isPopular: false,
+    isActive: true,
+    sortOrder: 4,
+  },
+];
+
+export function getActiveCeramicTiers(): CeramicTier[] {
+  return CERAMIC_TIERS.filter(t => t.isActive).sort(
+    (a, b) => a.sortOrder - b.sortOrder
+  );
+}
 
 export interface ServiceAddOn {
   internalKey: string;
@@ -311,12 +387,16 @@ export function getPackageByKey(
 }
 
 /**
- * Resolves the price to charge for a package + vehicle size. Prefers the
- * centralized tier pricing here (the same numbers shown on the marketing
- * pages) when the package name matches a known catalog entry; falls back to
- * a flat price (e.g. the database row's single `price` column) for packages
- * added through the admin that aren't in this static catalog, so a custom
- * package never fails to price at all.
+ * Resolves the price to charge for a package + vehicle size.
+ *
+ * Precedence: (1) the `packages` DB row's own per-vehicle-size tier column
+ * (`dbVehiclePricing`), which is what a FormaOps pricing ChangeRequest
+ * actually updates and is therefore the operational source of truth once
+ * set; (2) the centralized tier pricing in this file, for a known catalog
+ * entry that hasn't been given DB tier pricing yet; (3) a flat price (e.g.
+ * the database row's single `price` column) for packages added through the
+ * admin that aren't in this static catalog, so a custom package never
+ * fails to price at all.
  *
  * Matches by package *name*, not internalKey, because the operational
  * source of truth for packages is the `packages` DB table (editable via
@@ -327,11 +407,33 @@ export function getPackageByKey(
 export function resolvePackagePrice(
   packageName: string,
   fallbackFlatPrice: number,
-  vehicleSize: VehicleSize | ""
+  vehicleSize: VehicleSize | "",
+  dbVehiclePricing?: Partial<Record<VehicleSize, number | null>>
 ): number {
+  if (vehicleSize && dbVehiclePricing) {
+    const dbTierPrice = dbVehiclePricing[vehicleSize];
+    if (dbTierPrice != null) return dbTierPrice;
+  }
   const central = PACKAGES.find(p => p.name === packageName);
   if (central?.pricingByVehicle && vehicleSize) {
     return central.pricingByVehicle[vehicleSize];
   }
   return fallbackFlatPrice;
+}
+
+/**
+ * Builds the `dbVehiclePricing` argument for resolvePackagePrice() (and for
+ * any UI that needs all three tiers, e.g. Pricing.tsx's tier cards) from a
+ * `packages` DB row's priceSedan/priceSuv/priceLarge columns.
+ */
+export function dbVehiclePricingFromPackageRow(pkg: {
+  priceSedan?: string | number | null;
+  priceSuv?: string | number | null;
+  priceLarge?: string | number | null;
+}): Partial<Record<VehicleSize, number | null>> {
+  return {
+    sedan: pkg.priceSedan != null ? Number(pkg.priceSedan) : null,
+    suv: pkg.priceSuv != null ? Number(pkg.priceSuv) : null,
+    large: pkg.priceLarge != null ? Number(pkg.priceLarge) : null,
+  };
 }

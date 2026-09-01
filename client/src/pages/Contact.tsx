@@ -155,15 +155,13 @@ export default function Contact() {
                   {
                     icon: <Clock className="w-5 h-5" />,
                     label: "Weekday Hours",
-                    value:
-                      contact.hours_weekday || "Mon–Fri: 7:00 AM – 7:00 PM",
+                    value: contact.hours_weekday || BRAND.hours.weekday,
                     href: null,
                   },
                   {
                     icon: <Clock className="w-5 h-5" />,
                     label: "Weekend Hours",
-                    value:
-                      contact.hours_weekend || "Sat–Sun: 8:00 AM – 5:00 PM",
+                    value: contact.hours_weekend || BRAND.hours.weekend,
                     href: null,
                   },
                 ].map(item => (
@@ -193,29 +191,35 @@ export default function Contact() {
                 ))}
               </motion.div>
 
-              <motion.div variants={fadeUp}>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Follow us on social media
-                </p>
-                <div className="flex gap-3">
-                  <a
-                    href={BRAND.social.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-card hover:border-primary/40 hover:bg-primary/5 text-sm text-muted-foreground hover:text-foreground transition-all"
-                  >
-                    <Instagram className="w-4 h-4" /> Instagram
-                  </a>
-                  <a
-                    href={BRAND.social.facebook}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-card hover:border-primary/40 hover:bg-primary/5 text-sm text-muted-foreground hover:text-foreground transition-all"
-                  >
-                    <Facebook className="w-4 h-4" /> Facebook
-                  </a>
-                </div>
-              </motion.div>
+              {(BRAND.social.instagram || BRAND.social.facebook) && (
+                <motion.div variants={fadeUp}>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Follow us on social media
+                  </p>
+                  <div className="flex gap-3">
+                    {BRAND.social.instagram && (
+                      <a
+                        href={BRAND.social.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-card hover:border-primary/40 hover:bg-primary/5 text-sm text-muted-foreground hover:text-foreground transition-all"
+                      >
+                        <Instagram className="w-4 h-4" /> Instagram
+                      </a>
+                    )}
+                    {BRAND.social.facebook && (
+                      <a
+                        href={BRAND.social.facebook}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-card hover:border-primary/40 hover:bg-primary/5 text-sm text-muted-foreground hover:text-foreground transition-all"
+                      >
+                        <Facebook className="w-4 h-4" /> Facebook
+                      </a>
+                    )}
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
 
             {/* Contact Form */}

@@ -7,6 +7,7 @@ import {
   getBookingEligiblePackages,
   getPackageByKey,
   resolvePackagePrice,
+  dbVehiclePricingFromPackageRow,
 } from "../shared/services";
 
 describe("brand config", () => {
@@ -30,9 +31,9 @@ describe("brand config", () => {
     );
   });
 
-  it("uses the live (currently deployed) domain for canonical/OG purposes, not the unregistered placeholder", () => {
-    expect(BRAND.domain.live).toBe(BRAND.domain.legacy);
-    expect(BRAND.domain.live).not.toBe(BRAND.domain.primary);
+  it("uses the primary domain for canonical/OG purposes now that DNS cutover is complete", () => {
+    expect(BRAND.domain.live).toBe(BRAND.domain.primary);
+    expect(BRAND.domain.live).not.toBe(BRAND.domain.legacy);
   });
 });
 
@@ -95,5 +96,32 @@ describe("resolvePackagePrice", () => {
     const sedan = resolvePackagePrice("The Signature Detail", 0, "sedan");
     const large = resolvePackagePrice("The Signature Detail", 0, "large");
     expect(large).toBeGreaterThan(sedan);
+  });
+
+  it("prefers a FormaOps-approved DB tier price over the static catalog value", () => {
+    const dbTiers = dbVehiclePricingFromPackageRow({
+      priceSedan: "259.99",
+      priceSuv: null,
+      priceLarge: null,
+    });
+    // sedan: DB has an approved override -> wins over the catalog's 229.99
+    expect(
+      resolvePackagePrice("Full Showroom Reset", 229.99, "sedan", dbTiers)
+    ).toBe(259.99);
+    // suv/large: DB has no override yet -> falls back to the catalog tier
+    const central = getPackageByKey("full-showroom-reset")!;
+    expect(
+      resolvePackagePrice("Full Showroom Reset", 229.99, "suv", dbTiers)
+    ).toBe(central.pricingByVehicle!.suv);
+  });
+
+  it("dbVehiclePricingFromPackageRow treats null/undefined tier columns as absent", () => {
+    expect(
+      dbVehiclePricingFromPackageRow({
+        priceSedan: "259.99",
+        priceSuv: undefined,
+        priceLarge: null,
+      })
+    ).toEqual({ sedan: 259.99, suv: null, large: null });
   });
 });

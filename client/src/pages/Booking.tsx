@@ -32,6 +32,7 @@ import {
   ADD_ONS as CENTRAL_ADD_ONS,
   PACKAGES as CENTRAL_PACKAGES,
   resolvePackagePrice,
+  dbVehiclePricingFromPackageRow,
 } from "@shared/services";
 import { BRAND } from "@shared/brand";
 
@@ -739,7 +740,8 @@ function StepPackage({
             const price = resolvePackagePrice(
               pkg.name,
               Number(pkg.price),
-              data.vehicleCategory
+              data.vehicleCategory,
+              dbVehiclePricingFromPackageRow(pkg)
             );
             const hrs = Math.floor(pkg.duration / 60);
             const mins = pkg.duration % 60;
@@ -1890,6 +1892,12 @@ function StepContact({
             ))}
           </div>
         </div>
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          By providing your phone number, you agree to receive SMS
+          appointment reminders from {BRAND.displayName} regarding your
+          booking. Message and data rates may apply. Reply STOP to opt out
+          at any time.
+        </p>
         <p className="text-[11px] text-muted-foreground leading-relaxed">
           By submitting this booking you agree to our cancellation policy. We
           require 24-hour notice for any rescheduling or cancellations.

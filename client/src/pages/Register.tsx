@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import SEO from "@/components/SEO";
+import { BRAND } from "@shared/brand";
 
 const registerSchema = z
   .object({
@@ -31,7 +32,7 @@ const registerSchema = z
   });
 type RegisterForm = z.infer<typeof registerSchema>;
 
-const LOGO_URL = "/brand/forma-wordmark.png";
+const LOGO_URL = BRAND.logo.wordmark;
 
 export default function Register() {
   const [, navigate] = useLocation();
@@ -79,7 +80,7 @@ export default function Register() {
           <Link href="/">
             <img
               src={LOGO_URL}
-              alt="Forma Auto Spa"
+              alt={BRAND.displayName}
               className="h-20 object-contain cursor-pointer"
             />
           </Link>
@@ -203,7 +204,7 @@ export default function Register() {
 
         <p className="text-center text-xs text-muted-foreground mt-6">
           <Link href="/" className="hover:underline">
-            ← Back to Forma Auto Spa
+            ← Back to {BRAND.displayName}
           </Link>
         </p>
       </div>

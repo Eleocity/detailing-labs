@@ -5,6 +5,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import { BRAND } from "../../shared/brand";
 
 process.on("uncaughtException", err => {
   console.error("[Fatal] Uncaught exception:", err);
@@ -65,6 +66,12 @@ async function runMigrations(): Promise<{ applied: number; log: string[] }> {
     // We must strip those markers BEFORE splitting on ';' — otherwise the
     // '-->...' text (which starts with '--') gets treated as a comment and
     // every ALTER TABLE / CREATE TABLE after a breakpoint is silently dropped.
+    // NOTE: scripts/migrate.mjs has its own independent copy of this same
+    // logic (a manual/local migration tool — not part of the actual deploy
+    // path, which runs THIS function on every boot). That copy drifted out
+    // of sync and lacked this fix for a long time without anyone noticing,
+    // precisely because production only ever exercised this version. Keep
+    // both in sync if you touch either.
     const sanitized = sql.replace(/--> statement-breakpoint/g, "");
     const statements = sanitized
       .split(";")
@@ -166,10 +173,10 @@ async function startServer() {
           .where(eq(scTable.section, "contact"))
           .limit(20);
         const phone =
-          rows.find((r: any) => r.key === "phone")?.value || "(262) 260-9474";
+          rows.find((r: any) => r.key === "phone")?.value || BRAND.phone;
         const bizEmail =
           rows.find((r: any) => r.key === "email")?.value ||
-          "hello@detailinglabswi.com";
+          BRAND.emailLive;
         const lineItems: { name: string; qty: number; price: number }[] =
           inv.lineItems ? JSON.parse(inv.lineItems) : [];
 
@@ -306,6 +313,30 @@ async function startServer() {
     next();
   });
 
+  // ── Canonical domain redirect ──
+  // BRAND.domain.live (formaautospa.com) is canonical. Anything else this
+  // app is reachable on — the www subdomain, or the legacy detailinglabswi.com
+  // domain (still resolves; kept only as a redirect target, see the comment
+  // on BRAND.domain.legacy) — 301s through, preserving the full path and
+  // query string so e.g. detailinglabswi.com/pricing?tab=ceramic lands on
+  // formaautospa.com/pricing?tab=ceramic instead of a generic homepage
+  // redirect. Skipped outside production so local dev (localhost, Railway
+  // preview URLs) isn't redirected.
+  app.use((req, res, next) => {
+    if (process.env.NODE_ENV !== "production") return next();
+    const host = (req.headers.host ?? "").toLowerCase().split(":")[0];
+    if (host && host !== BRAND.domain.live) {
+      const isKnownAlias =
+        host === `www.${BRAND.domain.live}` ||
+        host === BRAND.domain.legacy ||
+        host === `www.${BRAND.domain.legacy}`;
+      if (isKnownAlias) {
+        return res.redirect(301, `https://${BRAND.domain.live}${req.originalUrl}`);
+      }
+    }
+    next();
+  });
+
   // ── Cron: process follow-up queue ──────────────────────────────────────────
   app.get("/api/cron/process-followup", async (req, res) => {
     const secret = process.env.CRON_SECRET;
@@ -353,15 +384,16 @@ async function startServer() {
           const name = booking.customerFirstName;
           let subject = "";
           let html = "";
+          const bookingUrl = `https://${BRAND.domain.live}${BRAND.booking.primaryPath}`;
           if (item.type === "review_request") {
             subject = `How did we do, ${name}?`;
-            html = `<p>Hi ${name},</p><p>Thank you for choosing Forma Auto Spa! We'd love your feedback.</p><p><a href="https://g.page/r/detailinglabs" style="background:#7c3aed;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block;margin:12px 0">Leave a Review</a></p><p>— The Forma Auto Spa Team</p>`;
+            html = `<p>Hi ${name},</p><p>Thank you for choosing ${BRAND.displayName}! We'd love your feedback — just reply to this email and let us know how it went.</p><p>— The ${BRAND.displayName} Team</p>`;
           } else if (item.type === "follow_up") {
             subject = `Checking in, ${name}`;
-            html = `<p>Hi ${name},</p><p>Just checking in — hope your vehicle is still looking great! Any questions, just reply.</p><p>— The Forma Auto Spa Team</p>`;
+            html = `<p>Hi ${name},</p><p>Just checking in — hope your vehicle is still looking great! Any questions, just reply.</p><p>— The ${BRAND.displayName} Team</p>`;
           } else {
             subject = `Time for another detail?`;
-            html = `<p>Hi ${name},</p><p>It's been about a month! <a href="https://detailinglabswi.com/booking">Book your next detail →</a></p><p>— The Forma Auto Spa Team</p>`;
+            html = `<p>Hi ${name},</p><p>It's been about a month! <a href="${bookingUrl}">Book your next detail →</a></p><p>— The ${BRAND.displayName} Team</p>`;
           }
           await sendEmail({ to: booking.customerEmail, subject, html });
           await db
@@ -549,13 +581,24 @@ async function seedDefaultContent() {
     },
     { section: "hero", key: "cta_primary", value: "Book Your Appointment" },
     { section: "hero", key: "cta_secondary", value: "See What's Included" },
-    { section: "hero", key: "trust_reviews", value: "5.0 · Racine County" },
+    // Not a review rating — no real review-rating data source exists yet
+    // (see docs/REBRAND_MIGRATION.md). Don't reintroduce a hardcoded
+    // number/star rating here until real review data is wired up.
+    {
+      section: "hero",
+      key: "trust_reviews",
+      value: "Documented before & after, every job",
+    },
     {
       section: "hero",
       key: "trust_certified",
       value: "Fully insured & certified",
     },
-    { section: "hero", key: "trust_availability", value: "Mon–Sat, 7am–7pm" },
+    {
+      section: "hero",
+      key: "trust_availability",
+      value: BRAND.hours.short,
+    },
     // About
     { section: "about", key: "headline", value: "Built on Passion for Paint" },
     {
@@ -569,22 +612,22 @@ async function seedDefaultContent() {
     { section: "about", key: "satisfaction_rate", value: "99%" },
     { section: "about", key: "service_areas", value: "10+" },
     // Contact
-    { section: "contact", key: "phone", value: "(262) 260-9474" },
-    { section: "contact", key: "email", value: "hello@detailinglabswi.com" },
+    { section: "contact", key: "phone", value: BRAND.phone },
+    { section: "contact", key: "email", value: BRAND.emailLive },
     {
       section: "contact",
       key: "address",
-      value: "Sturtevant, WI — Racine County",
+      value: `${BRAND.serviceArea.headquartersCity}, ${BRAND.serviceArea.headquartersState} — Racine County`,
     },
     {
       section: "contact",
       key: "hours_weekday",
-      value: "Mon–Fri: 9:00 AM – 5:00 PM",
+      value: BRAND.hours.weekday,
     },
     {
       section: "contact",
       key: "hours_weekend",
-      value: "Sat–Sun: 9:00 AM – 5:00 PM",
+      value: BRAND.hours.weekend,
     },
     // Business
     { section: "business", key: "name", value: "Forma Auto Spa" },
@@ -611,80 +654,83 @@ async function seedDefaultContent() {
       await db.insert(siteContent).values(row);
     }
   }
-  // Sync canonical packages (wipe & replace so the real menu always shows)
+  // Sync canonical packages — INSERT-IF-MISSING, not wipe & replace.
+  //
+  // This used to unconditionally delete+reinsert on every boot, which was
+  // the right call before FormaOps existed (it kept the DB in lockstep
+  // with shared/services.ts's PACKAGES on every deploy). As of FormaOps
+  // Phase 2, an approved pricing ChangeRequest durably updates a package's
+  // `price` column here (see server/formaops/executors/pricing.ts) — a
+  // wipe-and-reseed on the next restart would silently revert that,
+  // undoing an owner-approved change with no record of it happening. So
+  // this now only ever provides the INITIAL rows.
+  //
+  // Consequence: a source-code price/copy change in shared/services.ts no
+  // longer automatically propagates to this table once the row already
+  // exists — that now requires either a FormaOps ChangeRequest or a
+  // migration. See docs/formaops/STATUS.md.
   const { packages, addOns } = await import("../../drizzle/schema");
 
-  await db.delete(packages);
-  await db.insert(packages).values([
+  const canonicalPackages = [
     {
-      name: "Exterior Decon & Shield",
-      description: "Total decontamination and 3-month hydrophobic protection.",
-      price: "129.99" as any,
-      duration: 120,
+      name: "Full Showroom Reset",
+      description:
+        "Our most popular package — total vehicle transformation inside and out in one visit.",
+      price: "229.99" as any,
+      priceSedan: "229.99" as any,
+      priceSuv: "269.99" as any,
+      priceLarge: "359.99" as any,
+      duration: 240,
       features: JSON.stringify([
-        "Signature hand wash",
-        "Wheel & tire deep clean",
-        "Iron Remover treatment",
-        "Bug & Tar Removal",
-        "Hydrophobic Spray Wax (3-month protection)",
+        "Signature hand wash + wheel & tire deep clean",
+        "Iron & bug/tar removal + hydrophobic spray wax (3-month protection)",
+        "Compressed air blowout + deep vacuum (all surfaces)",
+        "Dash / console / door scrub + UV protectant treatment",
+        "Streak-free glass + floor mat restoration",
       ]),
-      isPopular: false,
+      isPopular: true,
       isActive: true,
       sortOrder: 1,
     },
     {
-      name: "Interior Deep Refresh",
-      description: "Complete cabin sanitization and restoration.",
-      price: "129.99" as any,
-      duration: 120,
+      name: "The Signature Detail",
+      description:
+        "Our most intensive single-day service — paint-corrected, decontaminated, and coated.",
+      price: "449.99" as any,
+      priceSedan: "449.99" as any,
+      priceSuv: "529.99" as any,
+      priceLarge: "649.99" as any,
+      duration: 480,
       features: JSON.stringify([
-        "Compressed air blowout",
-        "Deep vacuum (all surfaces)",
-        "Dash / console / door scrub",
-        "UV protectant treatment",
-        "Streak-free interior glass",
-        "Floor mat restoration",
+        "Everything in Full Showroom Reset",
+        "Iron & fallout decontamination",
+        "Clay bar paint decontamination",
+        "1-stage paint correction (swirl & scratch reduction)",
+        "Ceramic spray sealant (6-month protection)",
+        "Before & after photo documentation",
       ]),
       isPopular: false,
       isActive: true,
       sortOrder: 2,
     },
-    {
-      name: "Full Showroom Reset",
-      description:
-        "Our most popular package — total vehicle transformation inside and out. Save up to $39 vs. booking separately.",
-      price: "229.99" as any,
-      duration: 240,
-      features: JSON.stringify([
-        "Everything in Exterior Decon & Shield",
-        "Everything in Interior Deep Refresh",
-        "Best value — save up to $39",
-        "Like-new vehicle experience inside and out",
-      ]),
-      isPopular: true,
-      isActive: true,
-      sortOrder: 3,
-    },
-    {
-      name: "The Ultimate Bundle",
-      description:
-        "The most complete service we offer — graphene spray coating, steam cleaning, extraction if needed, plus our full interior and exterior treatment.",
-      price: "449.99" as any,
-      duration: 360,
-      features: JSON.stringify([
-        "Everything in Full Showroom Reset",
-        "Graphene spray coating",
-        "Steam cleaning",
-        "Extraction if needed",
-        "Our most comprehensive single-visit service",
-      ]),
-      isPopular: false,
-      isActive: true,
-      sortOrder: 4,
-    },
-  ]);
-  console.log("[Seed] Packages synced ✅");
+  ];
+  for (const pkg of canonicalPackages) {
+    const existing = await db
+      .select()
+      .from(packages)
+      .where(eq(packages.name, pkg.name))
+      .limit(1);
+    if (existing.length === 0) {
+      await db.insert(packages).values(pkg);
+    }
+  }
+  console.log("[Seed] Packages synced (insert-if-missing) ✅");
 
+  // NOTE: add-ons still wipe & replace on every boot — the same durability
+  // problem `packages` had, just not yet fixed here because no FormaOps
+  // executor writes to `addOns` yet (only `pricing` category → `packages`
+  // is wired as of Phase 2). Apply the same insert-if-missing fix the
+  // moment an add-on-pricing ChangeRequest category is added.
   await db.delete(addOns);
   await db.insert(addOns).values([
     {

@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { BRAND, absoluteUrl } from "@shared/brand";
+import { getActivePackages } from "@shared/services";
 
 const SITE_NAME = BRAND.displayName;
 // Points at the domain actually deployed today, not the future `primary`
@@ -7,6 +8,11 @@ const SITE_NAME = BRAND.displayName;
 const SITE_URL = `https://${BRAND.domain.live}`;
 const DEFAULT_DESCRIPTION = BRAND.seo.defaultDescription;
 const DEFAULT_IMAGE = BRAND.logo.ogImageAbsoluteUrl(SITE_URL);
+const VERIFIED_SOCIAL_URLS = [
+  BRAND.social.instagram,
+  BRAND.social.facebook,
+  BRAND.social.tiktok,
+].filter((url): url is string => Boolean(url));
 
 interface SEOProps {
   title?: string;
@@ -66,7 +72,13 @@ export default function SEO({
 
 export const localBusinessSchema = {
   "@context": "https://schema.org",
-  "@type": "AutoRepair",
+  // schema.org has no dedicated "auto detailing" type. Of the
+  // AutomotiveBusiness subtypes, AutoWash (a car-wash/cosmetic-care
+  // business) is the closest accurate fit — Forma does exterior/interior
+  // detailing, paint correction, and ceramic coating, none of which is
+  // mechanical repair, so "AutoRepair" (a body/repair shop) misrepresents
+  // the business.
+  "@type": "AutoWash",
   name: BRAND.displayName,
   description: `${BRAND.tagline} Mobile detailing studio serving ${BRAND.serviceArea.primaryRegionLabel}.`,
   url: SITE_URL,
@@ -85,20 +97,12 @@ export const localBusinessSchema = {
     latitude: BRAND.serviceArea.headquartersLat,
     longitude: BRAND.serviceArea.headquartersLng,
   },
-  openingHoursSpecification: [
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-      opens: "09:00",
-      closes: "17:00",
-    },
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Saturday"],
-      opens: "09:00",
-      closes: "17:00",
-    },
-  ],
+  openingHoursSpecification: BRAND.hours.schema.map(s => ({
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: s.days,
+    opens: s.opens,
+    closes: s.closes,
+  })),
   areaServed: {
     "@type": "GeoCircle",
     geoMidpoint: {
@@ -108,33 +112,22 @@ export const localBusinessSchema = {
     },
     geoRadius: "50000",
   },
+  // Built from the same catalog the marketing/booking pages use — see
+  // shared/services.ts — so a package rename/retirement (e.g. standalone
+  // interior/exterior detailing being discontinued) can't silently leave
+  // stale offers in structured data.
   hasOfferCatalog: {
     "@type": "OfferCatalog",
     name: "Auto Detailing Services",
-    itemListElement: [
-      {
-        "@type": "Offer",
-        itemOffered: { "@type": "Service", name: "Interior Detail" },
-      },
-      {
-        "@type": "Offer",
-        itemOffered: { "@type": "Service", name: "Exterior Detail" },
-      },
-      {
-        "@type": "Offer",
-        itemOffered: { "@type": "Service", name: "Full Detail" },
-      },
-      {
-        "@type": "Offer",
-        itemOffered: { "@type": "Service", name: "Ceramic Coating" },
-      },
-      {
-        "@type": "Offer",
-        itemOffered: { "@type": "Service", name: "Paint Correction" },
-      },
-    ],
+    itemListElement: getActivePackages().map(p => ({
+      "@type": "Offer",
+      itemOffered: { "@type": "Service", name: p.name },
+    })),
   },
-  sameAs: [BRAND.social.instagram, BRAND.social.facebook],
+  // Omit rather than list social profiles we can't confirm are real/correct
+  // — see the comment on BRAND.social in shared/brand.ts for why every
+  // value there is currently `null`.
+  ...(VERIFIED_SOCIAL_URLS.length ? { sameAs: VERIFIED_SOCIAL_URLS } : {}),
 };
 
 export const faqSchema = (faqs: { q: string; a: string }[]) => ({

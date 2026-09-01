@@ -15,13 +15,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
+import SEO from "@/components/SEO";
+import { BRAND } from "@shared/brand";
 
 const schema = z.object({
   email: z.string().email("Please enter a valid email address"),
 });
 type ForgotForm = z.infer<typeof schema>;
 
-const LOGO_URL = "/brand/forma-wordmark.png";
+const LOGO_URL = BRAND.logo.wordmark;
 
 export default function ForgotPassword() {
   const [submitted, setSubmitted] = useState(false);
@@ -43,13 +45,18 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <SEO
+        title="Forgot Password"
+        canonical="/forgot-password"
+        noindex={true}
+      />
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/">
             <img
               src={LOGO_URL}
-              alt="Forma Auto Spa"
+              alt={BRAND.displayName}
               className="h-20 object-contain cursor-pointer"
             />
           </Link>

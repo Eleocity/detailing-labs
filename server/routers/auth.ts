@@ -7,6 +7,7 @@ import { getSessionCookieOptions } from "../_core/cookies";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { sendEmail, passwordResetEmail } from "../email";
+import { BRAND } from "../../shared/brand";
 
 const BCRYPT_ROUNDS = 12;
 const RESET_TOKEN_EXPIRY_MS = 1000 * 60 * 60; // 1 hour
@@ -154,7 +155,7 @@ export const authRouter = router({
       const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRY_MS);
       await db.setResetToken(user.id, token, expiresAt);
 
-      const origin = input.origin ?? process.env.APP_URL ?? "https://detailinglabswi.com";
+      const origin = input.origin ?? process.env.APP_URL ?? `https://${BRAND.domain.live}`;
       const resetUrl = `${origin}/reset-password?token=${token}`;
       const emailContent = passwordResetEmail(resetUrl, user.name ?? "there");
       const emailSent = await sendEmail({ to: user.email!, ...emailContent });

@@ -112,16 +112,22 @@ export default function Gallery() {
                 No photos in this category yet.
               </p>
               <p className="text-muted-foreground/60 text-sm mt-1">
-                Follow us on{" "}
-                <a
-                  href={BRAND.social.instagram}
-                  className="text-primary hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Instagram
-                </a>{" "}
-                for the latest work.
+                {BRAND.social.instagram ? (
+                  <>
+                    Follow us on{" "}
+                    <a
+                      href={BRAND.social.instagram}
+                      className="text-primary hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Instagram
+                    </a>{" "}
+                    for the latest work.
+                  </>
+                ) : (
+                  "New transformations are being added soon."
+                )}
               </p>
             </div>
           ) : (
@@ -167,7 +173,7 @@ export default function Gallery() {
             </div>
           )}
 
-          {!isLoading && items.length > 0 && (
+          {!isLoading && items.length > 0 && BRAND.social.instagram && (
             <div className="text-center mt-12">
               <p className="text-muted-foreground text-sm">
                 Follow us on{" "}

@@ -5,6 +5,7 @@ import { adminProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { followUpQueue, bookings, customers } from "../../drizzle/schema";
 import { sendEmail } from "../email";
+import { BRAND } from "../../shared/brand";
 
 export async function scheduleFollowUpsForBooking(
   db: any,
@@ -70,15 +71,16 @@ export const followUpRouter = router({
         let subject = "";
         let html = "";
 
+        const bookingUrl = `https://${BRAND.domain.live}${BRAND.booking.primaryPath}`;
         if (item.type === "review_request") {
           subject = `How did we do, ${name}?`;
-          html = `<p>Hi ${name},</p><p>Thank you for choosing Forma Auto Spa! We'd love to hear about your experience. Could you take a moment to leave us a review?</p><p><a href="https://g.page/r/detailinglabs" style="background:#7c3aed;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block;margin:12px 0">Leave a Review</a></p><p>It means the world to our small team. Thanks again!</p><p>— The Forma Auto Spa Team</p>`;
+          html = `<p>Hi ${name},</p><p>Thank you for choosing ${BRAND.displayName}! We'd love to hear about your experience — just reply to this email and let us know how it went.</p><p>It means the world to our small team. Thanks again!</p><p>— The ${BRAND.displayName} Team</p>`;
         } else if (item.type === "follow_up") {
           subject = `Checking in, ${name}`;
-          html = `<p>Hi ${name},</p><p>Just checking in! It's been a week since your Forma Auto Spa appointment — we hope your vehicle is still looking great!</p><p>If you have any questions or feedback, just reply to this email. We're always here to help.</p><p>— The Forma Auto Spa Team</p>`;
+          html = `<p>Hi ${name},</p><p>Just checking in! It's been a week since your ${BRAND.displayName} appointment — we hope your vehicle is still looking great!</p><p>If you have any questions or feedback, just reply to this email. We're always here to help.</p><p>— The ${BRAND.displayName} Team</p>`;
         } else {
           subject = `Time for another detail? Special offer inside`;
-          html = `<p>Hi ${name},</p><p>It's been about a month since your last Forma Auto Spa appointment! Your vehicle is probably due for another round of TLC.</p><p><a href="https://detailinglabswi.com/booking" style="background:#7c3aed;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block;margin:12px 0">Book Now →</a></p><p>As a returning customer, you'll automatically earn loyalty points on your next booking.</p><p>— The Forma Auto Spa Team</p>`;
+          html = `<p>Hi ${name},</p><p>It's been about a month since your last ${BRAND.displayName} appointment! Your vehicle is probably due for another round of TLC.</p><p><a href="${bookingUrl}" style="background:#7c3aed;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block;margin:12px 0">Book Now →</a></p><p>As a returning customer, you'll automatically earn loyalty points on your next booking.</p><p>— The ${BRAND.displayName} Team</p>`;
         }
 
         await sendEmail({ to: booking.customerEmail, subject, html });

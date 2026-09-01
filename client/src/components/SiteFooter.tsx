@@ -41,38 +41,48 @@ export default function SiteFooter() {
               {BRAND.tagline} Mobile detailing, paint correction, and ceramic
               coatings — we come to you.
             </p>
-            <div className="flex items-center gap-3">
-              <a
-                href={BRAND.social.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-lg bg-secondary hover:bg-primary/20 border border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-all"
-              >
-                <Instagram className="w-4 h-4" />
-              </a>
-              <a
-                href={BRAND.social.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-lg bg-secondary hover:bg-primary/20 border border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-all"
-              >
-                <Facebook className="w-4 h-4" />
-              </a>
-              <a
-                href={BRAND.social.tiktok}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-lg bg-secondary hover:bg-primary/20 border border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-all"
-              >
-                <svg
-                  className="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.52V6.77a4.85 4.85 0 01-1.02-.08z" />
-                </svg>
-              </a>
-            </div>
+            {(BRAND.social.instagram ||
+              BRAND.social.facebook ||
+              BRAND.social.tiktok) && (
+              <div className="flex items-center gap-3">
+                {BRAND.social.instagram && (
+                  <a
+                    href={BRAND.social.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-lg bg-secondary hover:bg-primary/20 border border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-all"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                )}
+                {BRAND.social.facebook && (
+                  <a
+                    href={BRAND.social.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-lg bg-secondary hover:bg-primary/20 border border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-all"
+                  >
+                    <Facebook className="w-4 h-4" />
+                  </a>
+                )}
+                {BRAND.social.tiktok && (
+                  <a
+                    href={BRAND.social.tiktok}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-lg bg-secondary hover:bg-primary/20 border border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-all"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.52V6.77a4.85 4.85 0 01-1.02-.08z" />
+                    </svg>
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Services */}
@@ -178,22 +188,22 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        <p className="mt-8 sm:mt-10 text-center text-xs text-muted-foreground/70">
-          {BRAND.rebrandNotice}
-        </p>
-
-        <div className="mt-4 sm:mt-6 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-8 sm:mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} {BRAND.displayName}. All rights
             reserved.
           </p>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span className="hover:text-foreground transition-colors cursor-pointer">
-              Privacy Policy
-            </span>
-            <span className="hover:text-foreground transition-colors cursor-pointer">
-              Terms of Service
-            </span>
+            <Link href="/privacy">
+              <span className="hover:text-foreground transition-colors cursor-pointer">
+                Privacy Policy
+              </span>
+            </Link>
+            <Link href="/terms">
+              <span className="hover:text-foreground transition-colors cursor-pointer">
+                Terms of Service
+              </span>
+            </Link>
             <Link href="/admin">
               <span className="hover:text-foreground transition-colors cursor-pointer opacity-40 hover:opacity-70">
                 Admin

@@ -1,3 +1,16 @@
-ALTER TABLE `customers`
-  ADD COLUMN `urableId` varchar(100),
-  ADD COLUMN `urableSyncedAt` timestamp NULL;
+-- Originally re-added `urableId`/`urableSyncedAt` to `customers` because
+-- migration 0005 had silently failed to apply them — a statement-parsing
+-- bug in the migration runner (drizzle-kit's per-statement separator
+-- comment getting glued to the next statement and misread as an ordinary
+-- comment; see scripts/migrate.mjs / server/_core/index.ts) meant only the
+-- FIRST statement in a multi-statement migration file ever actually ran.
+--
+-- That bug is fixed now, so 0005 applies both columns correctly on its
+-- own, and this migration has nothing left to do on a database that
+-- replays history from empty. Left as a no-op (not deleted) because
+-- production already has this exact filename recorded as applied in
+-- __drizzle_migrations — migrations are tracked by filename only, not a
+-- content hash, so changing this file's content has zero effect there.
+-- It only matters for bootstrapping a fresh database, which is exactly
+-- the case this fixes.
+SELECT 1;

@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import SEO from "@/components/SEO";
+import { BRAND } from "@shared/brand";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -24,7 +25,7 @@ const loginSchema = z.object({
 });
 type LoginForm = z.infer<typeof loginSchema>;
 
-const LOGO_URL = "/brand/forma-wordmark.png";
+const LOGO_URL = BRAND.logo.wordmark;
 
 export default function Login() {
   const [, navigate] = useLocation();
@@ -70,7 +71,7 @@ export default function Login() {
           <Link href="/">
             <img
               src={LOGO_URL}
-              alt="Forma Auto Spa"
+              alt={BRAND.displayName}
               className="h-20 object-contain cursor-pointer"
             />
           </Link>
@@ -168,7 +169,7 @@ export default function Login() {
 
         <p className="text-center text-xs text-muted-foreground mt-6">
           <Link href="/" className="hover:underline">
-            ← Back to Forma Auto Spa
+            ← Back to {BRAND.displayName}
           </Link>
         </p>
       </div>

@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import {
   ChevronRight,
   CheckCircle2,
-  Droplets,
   Sparkles,
   Shield,
   Wrench,
@@ -13,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import SEO, { breadcrumbSchema, serviceSchema } from "@/components/SEO";
+import { trpc } from "@/lib/trpc";
 import { PACKAGES, ADD_ONS } from "@shared/services";
 import { BRAND } from "@shared/brand";
 
@@ -23,8 +23,6 @@ const fadeUp = {
 const stagger = { visible: { transition: { staggerChildren: 0.1 } } };
 
 const ICONS: Record<string, React.ReactNode> = {
-  "exterior-decon-shield": <Droplets className="w-7 h-7" />,
-  "interior-deep-refresh": <Sparkles className="w-7 h-7" />,
   "full-showroom-reset": <Sparkles className="w-7 h-7" />,
   "signature-detail": <Wrench className="w-7 h-7" />,
   "ceramic-coating": <Shield className="w-7 h-7" />,
@@ -39,6 +37,19 @@ const activeAddOns = ADD_ONS.filter(a => a.isActive).sort(
 );
 
 export default function Services() {
+  // Package NAME/description/icon/included-items/etc. still come from the
+  // static catalog (shared/services.ts) — it's the only place quote-only
+  // services (ceramic, paint correction) and retired ones (isActive:false)
+  // are defined at all. But the displayed PRICE now prefers the DB
+  // `packages` table row when one exists by name, so an approved FormaOps
+  // pricing ChangeRequest (which only writes to that table — see
+  // server/formaops/executors/pricing.ts) is reflected here too, not just
+  // on /pricing.
+  const { data: dbPackages } = trpc.bookings.getPackages.useQuery();
+  const dbPriceByName = new Map(
+    (dbPackages ?? []).map(p => [p.name, Number(p.price)])
+  );
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
@@ -97,7 +108,9 @@ export default function Services() {
             variants={stagger}
             className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-5xl mx-auto"
           >
-            {activePackages.map(pkg => (
+            {activePackages.map(pkg => {
+              const displayPrice = dbPriceByName.get(pkg.name) ?? pkg.fromPrice;
+              return (
               <motion.div key={pkg.internalKey} variants={fadeUp}>
                 <Link
                   href={
@@ -123,9 +136,9 @@ export default function Services() {
                           {pkg.name}
                         </h3>
                         <span className="text-sm font-semibold text-primary whitespace-nowrap">
-                          {pkg.requiresQuote
-                            ? "Custom quote"
-                            : `From $${pkg.fromPrice}`}
+                          {displayPrice > 0
+                            ? `From $${displayPrice}`
+                            : "Custom quote"}
                         </span>
                       </div>
                       <p className="text-muted-foreground text-sm leading-relaxed mb-3">
@@ -150,7 +163,8 @@ export default function Services() {
                   </div>
                 </Link>
               </motion.div>
-            ))}
+              );
+            })}
           </motion.div>
         </div>
       </section>

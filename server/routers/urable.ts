@@ -281,7 +281,7 @@ export const urableRouter = router({
   }),
 
   // ── Urable webhook → your site ─────────────────────────────────────────────
-  // Configure in Urable: Settings → Webhooks → https://detailinglabswi.com/api/webhooks/urable
+  // Configure in Urable: Settings → Webhooks → https://formaautospa.com/api/webhooks/urable
   webhook: publicProcedure
     .input(z.object({ body: z.string() }))
     .mutation(async ({ input }) => {

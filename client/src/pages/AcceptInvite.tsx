@@ -13,8 +13,10 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, Loader2, ShieldAlert, Eye, EyeOff } from "lucide-react";
+import SEO from "@/components/SEO";
+import { BRAND } from "@shared/brand";
 
-const LOGO_URL = "/brand/forma-wordmark.png";
+const LOGO_URL = BRAND.logo.wordmark;
 
 export default function AcceptInvite() {
   const [, navigate] = useLocation();
@@ -60,6 +62,7 @@ export default function AcceptInvite() {
   if (!token) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <SEO title="Accept Invitation" canonical="/accept-invite" noindex={true} />
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <ShieldAlert className="h-12 w-12 text-destructive mx-auto mb-4" />
@@ -79,6 +82,7 @@ export default function AcceptInvite() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
+        <SEO title="Accept Invitation" canonical="/accept-invite" noindex={true} />
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -87,6 +91,7 @@ export default function AcceptInvite() {
   if (inviteError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <SEO title="Accept Invitation" canonical="/accept-invite" noindex={true} />
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <ShieldAlert className="h-12 w-12 text-destructive mx-auto mb-4" />
@@ -112,6 +117,7 @@ export default function AcceptInvite() {
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <SEO title="Accept Invitation" canonical="/accept-invite" noindex={true} />
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
@@ -136,10 +142,15 @@ export default function AcceptInvite() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <SEO title="Accept Invitation" canonical="/accept-invite" noindex={true} />
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center">
-          <img src={LOGO_URL} alt="Forma Auto Spa" className="h-16 mx-auto" />
+          <img
+            src={LOGO_URL}
+            alt={BRAND.displayName}
+            className="h-16 mx-auto"
+          />
         </div>
 
         <Card className="border-border/50">
@@ -148,7 +159,7 @@ export default function AcceptInvite() {
               Accept Invitation
             </CardTitle>
             <CardDescription>
-              You've been invited to join Forma Auto Spa as a{" "}
+              You've been invited to join {BRAND.displayName} as a{" "}
               <span className="text-primary font-medium">{roleLabel}</span>. Set
               up your account below.
             </CardDescription>

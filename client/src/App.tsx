@@ -21,6 +21,8 @@ const About = lazy(() => import("./pages/About"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Contact = lazy(() => import("./pages/Contact"));
 const FAQ = lazy(() => import("./pages/FAQ"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 const CeramicCoatings = lazy(() => import("./pages/CeramicCoatings"));
 const PaintCorrection = lazy(() => import("./pages/PaintCorrection"));
 const MobileDetailing = lazy(() => import("./pages/MobileDetailing"));
@@ -162,6 +164,8 @@ function Router() {
         <Route path="/gallery" component={Gallery} />
         <Route path="/contact" component={Contact} />
         <Route path="/faq" component={FAQ} />
+        <Route path="/terms" component={Terms} />
+        <Route path="/privacy" component={Privacy} />
 
         {/* Booking — /book is canonical; /booking kept live as an alias for
             the previously-indexed URL (see docs/REBRAND_MIGRATION.md) */}
@@ -191,8 +195,6 @@ function Router() {
         <Route path="/admin/employees" component={AdminEmployeesList} />
         <Route path="/admin/employees/:id" component={AdminEmployeeDetail} />
         <Route path="/admin/invoices" component={AdminInvoicesList} />
-        <Route path="/admin/invoices/:id" component={AdminInvoiceDetail} />
-        <Route path="/admin/urable" component={AdminUrable} />
         <Route path="/admin/invoices/:id" component={AdminInvoiceDetail} />
         <Route path="/admin/urable" component={AdminUrable} />
         <Route path="/admin/media" component={AdminMedia} />

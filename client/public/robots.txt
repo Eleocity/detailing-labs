@@ -5,9 +5,11 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /portal
 Disallow: /portal/
+Disallow: /login
+Disallow: /register
 Disallow: /accept-invite
 Disallow: /reset-password
 Disallow: /forgot-password
 
 # Sitemap
-Sitemap: https://detailinglabswi.com/sitemap.xml
+Sitemap: https://formaautospa.com/sitemap.xml

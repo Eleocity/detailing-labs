@@ -5,6 +5,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { sendEmail, invoiceEmailV2, receiptEmail } from "../email";
 import { getDb } from "../db";
 import { invoices, bookings, siteContent } from "../../drizzle/schema";
+import { BRAND } from "../../shared/brand";
 
 function adminOnly(role: string) {
   if (role !== "admin")
@@ -216,10 +217,9 @@ export const invoicesRouter = router({
         .where(eq(siteContent.section, "contact"))
         .limit(20);
       const phone =
-        contactRows.find(r => r.key === "phone")?.value || "(262) 260-9474";
+        contactRows.find(r => r.key === "phone")?.value || BRAND.phone;
       const bizEmail =
-        contactRows.find(r => r.key === "email")?.value ||
-        "hello@detailinglabswi.com";
+        contactRows.find(r => r.key === "email")?.value || BRAND.emailLive;
 
       const lineItems: { name: string; qty: number; price: number }[] =
         inv.lineItems ? JSON.parse(inv.lineItems) : [];
@@ -310,10 +310,9 @@ export const invoicesRouter = router({
           .where(eq(siteContent.section, "contact"))
           .limit(20);
         const phone =
-          contactRows.find(r => r.key === "phone")?.value || "(262) 260-9474";
+          contactRows.find(r => r.key === "phone")?.value || BRAND.phone;
         const bizEmail =
-          contactRows.find(r => r.key === "email")?.value ||
-          "hello@detailinglabswi.com";
+          contactRows.find(r => r.key === "email")?.value || BRAND.emailLive;
         const lineItems: { name: string; qty: number; price: number }[] =
           inv.lineItems ? JSON.parse(inv.lineItems) : [];
 

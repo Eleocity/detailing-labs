@@ -48,7 +48,7 @@ const faqs = [
       },
       {
         q: "Can I reschedule or cancel my appointment?",
-        a: "Yes. Please give us at least 24 hours' notice for rescheduling and 48 hours for cancellations to avoid any fees.",
+        a: "Yes. Please give us at least 24 hours' notice for rescheduling or cancellations to avoid any fees.",
       },
     ],
   },
@@ -56,16 +56,16 @@ const faqs = [
     category: "Our Packages",
     questions: [
       {
-        q: "What's included in the Exterior Decon & Shield?",
-        a: "This package includes a signature hand wash, wheel and tire deep clean, iron remover treatment, bug and tar removal, and a hydrophobic spray wax for up to 3 months of protection.",
+        q: "Can I book just the interior or just the exterior?",
+        a: "No — we no longer offer interior-only or exterior-only detailing. Every package covers both for the most consistent, complete result. The Full Showroom Reset is our standard inside-and-out package, and The Signature Detail adds paint correction and a ceramic sealant on top.",
       },
       {
-        q: "What's included in the Interior Deep Refresh?",
-        a: "This service includes a compressed air blowout, deep vacuum, dash, console, and door panel scrub, UV protectant, streak-free glass cleaning, and floor mat restoration.",
+        q: "What's included in the Full Showroom Reset?",
+        a: "A signature hand wash, wheel and tire deep clean, iron and bug/tar removal, and a hydrophobic spray wax outside; a compressed air blowout, deep vacuum, dash/console/door scrub, UV protectant, streak-free glass, and floor mat restoration inside.",
       },
       {
-        q: "What is the Full Showroom Reset?",
-        a: "The Full Showroom Reset is our best-value package that combines both our Exterior Decon & Shield and Interior Deep Refresh for a complete inside-and-out transformation.",
+        q: "What's included in The Signature Detail?",
+        a: "Everything in the Full Showroom Reset, plus iron and fallout decontamination, a clay bar treatment, a single-stage paint correction pass, and a ceramic spray sealant for up to 6 months of protection.",
       },
       {
         q: "Do you charge more for larger vehicles?",

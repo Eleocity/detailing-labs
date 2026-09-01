@@ -25,7 +25,15 @@ import { BRAND } from "@shared/brand";
 import {
   PACKAGES as CENTRAL_PACKAGES,
   ADD_ONS as CENTRAL_ADDONS,
+  getActiveCeramicTiers,
+  CERAMIC_COATING_BRAND,
+  resolvePackagePrice,
+  dbVehiclePricingFromPackageRow,
+  VEHICLE_SIZE_LABELS,
+  type VehicleSize,
 } from "@shared/services";
+
+const CERAMIC_TIERS = getActiveCeramicTiers();
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -33,19 +41,41 @@ const fadeUp = {
 };
 const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
 
-// Vehicle pricing tiers shown on package cards — derived from the central
-// service catalog (shared/services.ts) so pricing only lives in one place.
-const VEHICLE_TIERS: Record<string, { label: string; price: number }[]> =
-  Object.fromEntries(
-    CENTRAL_PACKAGES.filter(p => p.pricingByVehicle).map(p => [
-      p.name,
-      [
-        { label: "Sedan / Coupe", price: p.pricingByVehicle!.sedan },
-        { label: "Small SUV / Truck", price: p.pricingByVehicle!.suv },
-        { label: "Large SUV / Minivan", price: p.pricingByVehicle!.large },
-      ],
+const VEHICLE_SIZES: VehicleSize[] = ["sedan", "suv", "large"];
+
+/**
+ * Per-vehicle-size tier prices for a package card, or null if the package
+ * has no tiered pricing at all (flat price only). Resolves through
+ * resolvePackagePrice() for each size, so the DB's priceSedan/priceSuv/
+ * priceLarge columns (what a FormaOps pricing ChangeRequest actually
+ * updates) win over the static catalog here — this is the same precedence
+ * Booking.tsx uses for the actual checkout price, so this page's displayed
+ * price and the booked price never disagree.
+ */
+function packageVehiclePricing(pkg: {
+  name: string;
+  price: string | number;
+  priceSedan?: string | number | null;
+  priceSuv?: string | number | null;
+  priceLarge?: string | number | null;
+}): Record<VehicleSize, number> | null {
+  const central = CENTRAL_PACKAGES.find(p => p.name === pkg.name);
+  const hasAnyTier =
+    pkg.priceSedan != null ||
+    pkg.priceSuv != null ||
+    pkg.priceLarge != null ||
+    !!central?.pricingByVehicle;
+  if (!hasAnyTier) return null;
+
+  const dbTiers = dbVehiclePricingFromPackageRow(pkg);
+  const flat = Number(pkg.price);
+  return Object.fromEntries(
+    VEHICLE_SIZES.map(size => [
+      size,
+      resolvePackagePrice(pkg.name, flat, size, dbTiers),
     ])
-  );
+  ) as Record<VehicleSize, number>;
+}
 
 // Fallback packages (used if DB is empty / not yet configured) — derived
 // from the central catalog to avoid drift between this page, Home, and Services.
@@ -55,6 +85,9 @@ const FALLBACK_PACKAGES = CENTRAL_PACKAGES.filter(
   id: i + 1,
   name: p.name,
   price: p.fromPrice.toFixed(2),
+  priceSedan: p.pricingByVehicle ? p.pricingByVehicle.sedan.toFixed(2) : null,
+  priceSuv: p.pricingByVehicle ? p.pricingByVehicle.suv.toFixed(2) : null,
+  priceLarge: p.pricingByVehicle ? p.pricingByVehicle.large.toFixed(2) : null,
   duration: p.durationMinutes,
   description: `${p.shortDescription} From $${p.fromPrice}.`,
   features: JSON.stringify(p.included),
@@ -80,22 +113,18 @@ export default function Pricing() {
     "sedan" | "suv" | "large" | null
   >(null);
 
-  const VEHICLE_SIZE_LABELS: Record<string, string> = {
-    sedan: "Sedan / Coupe",
-    suv: "Small SUV / Truck",
-    large: "Large SUV / Minivan",
-  };
-  const VEHICLE_SIZE_INDEX: Record<string, number> = {
-    sedan: 0,
-    suv: 1,
-    large: 2,
-  };
   const vehicleSizeSelected = vehicleSize !== null;
   const search = useSearch();
   useEffect(() => {
     const params = new URLSearchParams(search);
     const t = params.get("tab");
-    if (t === "detailing" || t === "ceramic") setTab(t);
+    if (
+      t === "detailing" ||
+      t === "ceramic" ||
+      t === "fleet" ||
+      t === "paint"
+    )
+      setTab(t);
   }, [search]);
 
   const { data: dbPackages } = trpc.bookings.getPackages.useQuery();
@@ -121,7 +150,7 @@ export default function Pricing() {
       <SiteHeader />
       <SEO
         title="Detailing Packages & Pricing | Racine County, WI"
-        description="Transparent pricing on all our mobile detailing packages in Southeast Wisconsin. Interior, exterior, and full-service from $129. Ceramic coating quoted on request."
+        description="Transparent pricing on all our mobile detailing packages in Southeast Wisconsin. Interior, exterior, and full-service from $129. Ceramic coating from $650."
         canonical="/pricing"
         jsonLd={breadcrumbSchema([
           { name: "Home", url: "/" },
@@ -477,6 +506,7 @@ export default function Pricing() {
                             hrs > 0
                               ? `~${hrs}h${mins > 0 ? ` ${mins}m` : ""}`
                               : `~${mins}m`;
+                          const tiers = packageVehiclePricing(pkg);
                           return (
                             <motion.div
                               key={pkg.name}
@@ -511,14 +541,12 @@ export default function Pricing() {
 
                               {/* Single price for selected vehicle size */}
                               <div className="mb-5">
-                                {VEHICLE_TIERS[pkg.name] ? (
+                                {tiers ? (
                                   <div className="flex items-end gap-2">
                                     <span className="text-4xl font-display font-bold text-foreground">
                                       $
                                       {vehicleSize
-                                        ? (VEHICLE_TIERS[pkg.name][
-                                            VEHICLE_SIZE_INDEX[vehicleSize]
-                                          ]?.price ?? Number(pkg.price))
+                                        ? tiers[vehicleSize]
                                         : Number(pkg.price)}
                                     </span>
                                     <span className="text-muted-foreground text-sm mb-1.5">
@@ -675,19 +703,58 @@ export default function Pricing() {
                   transition={{ duration: 0.3 }}
                   className="max-w-2xl mx-auto"
                 >
+                  {/* Ceramic Coating Price List */}
+                  <div className="rounded-2xl border border-border bg-card p-6 sm:p-8 mb-6">
+                    <div className="text-center mb-6">
+                      <h2 className="text-2xl font-display font-bold mb-1">
+                        Ceramic Coating Price List
+                      </h2>
+                      <p className="text-muted-foreground text-sm">
+                        Powered by {CERAMIC_COATING_BRAND}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {CERAMIC_TIERS.map(tier => (
+                        <div
+                          key={tier.internalKey}
+                          className={cn(
+                            "relative rounded-xl border-2 p-5 flex flex-col gap-1",
+                            tier.isPopular
+                              ? "border-primary/60 bg-primary/5"
+                              : "border-border"
+                          )}
+                        >
+                          {tier.isPopular && (
+                            <span className="absolute -top-3 left-4 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold tracking-wide">
+                              MOST POPULAR
+                            </span>
+                          )}
+                          <h3 className="font-display font-bold text-lg">
+                            {tier.name}
+                          </h3>
+                          <p className="text-xs text-muted-foreground mb-2">
+                            {tier.warrantyLabel}
+                          </p>
+                          <p className="font-numeric text-2xl font-bold text-primary">
+                            From ${tier.fromPrice.toLocaleString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Why custom pricing */}
                   <div className="rounded-2xl border border-amber-500/25 bg-amber-500/5 p-8 mb-6 text-center">
                     <div className="w-14 h-14 rounded-full bg-amber-500/15 flex items-center justify-center mx-auto mb-5">
                       <Shield className="w-7 h-7 text-amber-500" />
                     </div>
                     <h2 className="text-2xl font-display font-bold mb-3">
-                      Every Ceramic Job is Custom
+                      Your Exact Price, Confirmed on Assessment
                     </h2>
                     <p className="text-muted-foreground leading-relaxed mb-2">
-                      Ceramic coating pricing depends on your vehicle's size,
-                      paint condition, and the level of correction needed before
-                      coating. We don't believe in one-size-fits-all pricing for
-                      a job this important.
+                      Prices above are starting prices. Your final quote
+                      depends on your vehicle's size, paint condition, and the
+                      level of correction needed before coating.
                     </p>
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 mb-3">
                       <span className="text-amber-400 font-bold text-sm">

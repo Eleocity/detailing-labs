@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import AdminLayout from "@/components/AdminLayout";
+import { BRAND } from "@shared/brand";
 import { toast } from "sonner";
 import {
   Globe,
@@ -133,11 +134,11 @@ const SECTIONS: SectionDef[] = [
     icon: <Phone className="w-4 h-4" />,
     color: "text-green-400",
     fields: [
-      { key: "phone", label: "Phone Number", placeholder: "(262) 260-9474" },
+      { key: "phone", label: "Phone Number", placeholder: BRAND.phone },
       {
         key: "email",
         label: "Email Address",
-        placeholder: "hello@detailinglabswi.com",
+        placeholder: BRAND.emailLive,
       },
       {
         key: "address",

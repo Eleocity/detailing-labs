@@ -174,8 +174,8 @@ export default function About() {
             >
               <motion.div variants={fadeUp} className="grid grid-cols-2 gap-4">
                 {[
-                  { value: "100+", label: "Vehicles Detailed" },
-                  { value: "5.0★", label: "Average Rating" },
+                  { value: "Self-Contained", label: "Own Water & Power" },
+                  { value: "Documented", label: "Before & After, Every Job" },
                   { value: "3 yrs", label: "In SE Wisconsin" },
                   { value: "100%", label: "Mobile Service" },
                 ].map(stat => (

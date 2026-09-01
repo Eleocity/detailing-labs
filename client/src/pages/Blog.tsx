@@ -53,7 +53,7 @@ Once the salt is gone, summer is about keeping the protection in place. UV expos
 
 **Before winter (October–November) — Protective service**
 
-This is the best time to apply a quality wax or sealant before the first snowfall. Our Exterior Decon & Shield includes a hydrophobic spray wax that provides around 3 months of protection — which gets you right through a Wisconsin winter with far less damage to your finish.
+This is the best time to apply a quality wax or sealant before the first snowfall. Our Full Showroom Reset includes a hydrophobic spray wax that provides around 3 months of protection — which gets you right through a Wisconsin winter with far less damage to your finish.
 
 **The honest answer**
 

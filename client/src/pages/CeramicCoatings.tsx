@@ -2,12 +2,19 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ChevronRight, CheckCircle2, Shield, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import SEO, { breadcrumbSchema, serviceSchema } from "@/components/SEO";
 import { trpc } from "@/lib/trpc";
 import { BRAND } from "@shared/brand";
-import { getPackageByKey } from "@shared/services";
+import {
+  getPackageByKey,
+  getActiveCeramicTiers,
+  CERAMIC_COATING_BRAND,
+} from "@shared/services";
+
+const ceramicTiers = getActiveCeramicTiers();
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -32,7 +39,7 @@ export default function CeramicCoatings() {
       <SiteHeader />
       <SEO
         title="Ceramic Coating — Racine & Kenosha County, WI"
-        description={`Professional ceramic coating in ${BRAND.serviceArea.primaryRegionLabel}. Multi-year hydrophobic paint protection, custom-quoted to your vehicle. Full paint prep and correction included.`}
+        description={`Professional ceramic coating in ${BRAND.serviceArea.primaryRegionLabel}, from $${ceramicTiers[0]?.fromPrice}. Multi-year hydrophobic paint protection. Full paint prep and correction included.`}
         canonical="/ceramic-coatings"
         jsonLd={[
           serviceSchema("Ceramic Coating", pkg.fullDescription),
@@ -92,6 +99,65 @@ export default function CeramicCoatings() {
                 </Button>
               </Link>
             </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="py-16 sm:py-24 bg-[#0a0a0a]">
+        <div className="container max-w-3xl">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={stagger}
+          >
+            <motion.div variants={fadeUp} className="text-center mb-8">
+              <h2 className="text-2xl sm:text-3xl font-display font-bold mb-1">
+                Ceramic Coating Price List
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                Powered by {CERAMIC_COATING_BRAND}
+              </p>
+            </motion.div>
+            <motion.div
+              variants={stagger}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            >
+              {ceramicTiers.map(tier => (
+                <motion.div
+                  key={tier.internalKey}
+                  variants={fadeUp}
+                  className={cn(
+                    "relative rounded-xl border-2 p-5 flex flex-col gap-1 bg-card",
+                    tier.isPopular
+                      ? "border-primary/60 bg-primary/5"
+                      : "border-border"
+                  )}
+                >
+                  {tier.isPopular && (
+                    <span className="absolute -top-3 left-4 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold tracking-wide">
+                      MOST POPULAR
+                    </span>
+                  )}
+                  <h3 className="font-display font-bold text-lg">
+                    {tier.name}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {tier.warrantyLabel}
+                  </p>
+                  <p className="font-numeric text-2xl font-bold text-primary">
+                    From ${tier.fromPrice.toLocaleString()}
+                  </p>
+                </motion.div>
+              ))}
+            </motion.div>
+            <motion.p
+              variants={fadeUp}
+              className="text-center text-xs text-muted-foreground mt-6"
+            >
+              Prices shown are starting prices — your final quote depends on
+              vehicle size and paint correction needed before coating.
+            </motion.p>
           </motion.div>
         </div>
       </section>
