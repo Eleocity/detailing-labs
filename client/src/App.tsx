@@ -88,6 +88,9 @@ const AdminGiftCards = lazy(() => import("./pages/admin/AdminGiftCards"));
 const AdminScheduleBoard = lazy(
   () => import("./pages/admin/AdminScheduleBoard")
 );
+const AdminChangeRequests = lazy(
+  () => import("./pages/admin/AdminChangeRequests")
+);
 const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 
@@ -202,6 +205,7 @@ function Router() {
         <Route path="/admin/route-planner" component={AdminRoutePlanner} />
         <Route path="/admin/service-areas" component={AdminServiceAreas} />
         <Route path="/admin/site-editor" component={AdminSiteEditor} />
+        <Route path="/admin/change-requests" component={AdminChangeRequests} />
         <Route path="/admin/users" component={AdminUsers} />
         <Route path="/admin/analytics" component={AdminAnalytics} />
         <Route path="/admin/blog" component={AdminBlog} />

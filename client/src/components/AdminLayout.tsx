@@ -40,6 +40,7 @@ import {
   BookOpen,
   Gift,
   LayoutGrid,
+  ClipboardCheck,
 } from "lucide-react";
 import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { CSSProperties, useEffect, useRef, useState } from "react";
@@ -65,6 +66,7 @@ const menuItems = [
   { icon: BookOpen, label: "Blog", path: "/admin/blog" },
   { icon: Zap, label: "Urable Sync", path: "/admin/urable" },
   { icon: Globe, label: "Site Editor", path: "/admin/site-editor" },
+  { icon: ClipboardCheck, label: "Change Requests", path: "/admin/change-requests" },
   { icon: Users, label: "Users", path: "/admin/users" },
 ];
 
