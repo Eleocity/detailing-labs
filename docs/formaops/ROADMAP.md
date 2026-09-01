@@ -8,9 +8,9 @@ than this table.
 | 0 | Discovery + Architecture | ✅ Done — `ARCHITECTURE-REVIEW.md` |
 | 1 | Governance Foundation (roles, permissions, policy, ChangeRequest, approvals, audit) | ✅ Done — schema + `server/formaops/*` + tRPC router + tests |
 | 2 | Structured Business Data (services/pricing/hours/promotions as DB-backed authoritative data, wired to approved ChangeRequests) | 🟡 Partial — `pricing` and `hours` categories execute end-to-end and are visible across every page that shows them; `services`/`promotions`/`content`/`business_profile` still only reach `APPROVED` with no execution |
-| 3 | Change Management UI (admin dashboard: pending approvals, ChangeRequest timeline) | ⬜ Not started |
+| 3 | Change Management UI (admin dashboard: pending approvals, ChangeRequest timeline) | ✅ Done — `/admin/change-requests` (`client/src/pages/admin/AdminChangeRequests.tsx`): submit pricing/hours changes, approve/reject, history. No client-side permission hiding — the server's checks are what actually enforce it, the UI just surfaces whatever it returns. |
 | 4 | OpenAI Foundation (Agents SDK, FormaOps Manager, read-only tools, tracing) | ⬜ Not started — no `openai` dependency in this repo yet |
-| 5 | Conversational Operations (chat surface, ChangeRequest creation from conversation) | ⬜ Not started |
+| 5 | Conversational Operations (chat surface, ChangeRequest creation from conversation) | ⬜ Not started — **must support SMS as a first-class input channel from the start**, not a later add-on (owner requirement, see `DECISIONS.md` open decision #2) |
 | 6 | Website Inspector (Playwright crawl, `WebsiteIssue`) | ⬜ Not started |
 | 7 | Controlled Source Changes (sandbox, patch, tests, preview) | ⬜ Not started |
 | 8 | Deployment Automation (deploy, verify, rollback) | ⬜ Not started |

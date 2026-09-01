@@ -1,8 +1,8 @@
 # FormaOps — Status
 
-Last updated: 2026-09-01 (tiered vehicle-size pricing gap closed —
-`Booking.tsx` and `Pricing.tsx` now resolve prices from the same DB
-columns a pricing ChangeRequest actually updates).
+Last updated: 2026-09-01 (Phase 3 admin UI shipped — `/admin/change-requests`
+is now a real way to use FormaOps by clicking instead of calling the API
+directly; tiered vehicle-size pricing gap closed).
 
 ## WORKING
 
@@ -47,6 +47,19 @@ columns a pricing ChangeRequest actually updates).
   for any package with code-based tiered pricing — meaning it looked
   DB-driven but wasn't, for the price specifically. `/pricing`, `/services`,
   and the homepage now all agree after an approved pricing change.
+- **Phase 3 admin UI**: `/admin/change-requests`
+  (`client/src/pages/admin/AdminChangeRequests.tsx`) — submit a pricing or
+  hours change (package dropdown pulls live from the DB; vehicle-tier
+  fields appear automatically for packages that have them), see what's
+  awaiting approval, approve/reject, browse history. Gated by the existing
+  legacy `users.role` admin check to even load the page, same as every
+  other `/admin/*` page — the FormaOps-specific authorization (which
+  business role can do what) is still enforced entirely server-side by
+  `withPermissionCheck`; the UI does no client-side permission hiding and
+  just surfaces whatever error a mutation returns (verified live: an
+  owner's own self-approval attempt through this page surfaced the exact
+  "You cannot approve or reject your own request" error, not a silent
+  failure or a hidden button).
 
 ## Verified this session
 
@@ -148,10 +161,9 @@ columns a pricing ChangeRequest actually updates).
 
 ## NOT IMPLEMENTED
 
-Everything in Phases 3-10 of `ROADMAP.md`, plus the untouched parts of
-Phase 2:
+Everything in Phases 4-10 of `ROADMAP.md` (Phase 3 is now done — see
+WORKING above), plus the untouched parts of Phase 2:
 
-- No admin UI — `changeRequests` are reachable only via direct tRPC calls
 - No submitter-initiated cancellation
 - No per-date hours override
 - No `services`/`promotions`/`content`/`business_profile` executors

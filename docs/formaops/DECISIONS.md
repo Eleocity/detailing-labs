@@ -238,6 +238,15 @@ judgment calls:
    confirm it's also the intended Phase 9 inbound/two-way provider before
    that work starts (different Twilio product surface — Programmable
    Messaging inbound webhooks vs. the current send-only usage).
+   **Confirmed requirement (2026-09-01, owner)**: owners/staff must be able
+   to text the Phase 5 AI agent (Conversational Operations) to create a
+   ChangeRequest — SMS is not a later add-on to a web-only chat surface,
+   it's a first-class input channel from day one of the AI integration.
+   Scope Phase 5 and Phase 9 together rather than sequentially: the agent's
+   request-parsing logic needs to work the same way regardless of whether
+   the text came from SMS or a web chat, and `changeRequests.create`'s
+   `source` field should account for an `"sms"` value alongside
+   `"admin_dashboard"`.
 3. **Phase 4 worker-split timing** — ADR-001 defers this until "justified."
    You may prefer a firmer trigger (e.g. "before any production deployment
    automation," Phase 8) rather than an engineering judgment call at the
