@@ -236,12 +236,14 @@ judgment calls:
    (a handful of owner-submitted requests a week, narrow structured
    extraction rather than open-ended chat) is closer to $1–5/month, so
    this is a guardrail against a bug/abuse loop, not a number Phase 4/5
-   should expect to hit in normal operation. **Still open**: what the
-   agent should do when the cutoff IS hit — recommend failing gracefully
-   with a message back to whoever texted/typed the request ("AI budget
-   reached this month, use the admin panel instead") rather than the
-   request silently vanishing, but not yet confirmed by the owner. Decide
-   this before Phase 4 implementation, not after.
+   should expect to hit in normal operation. **Cutoff behavior, also
+   resolved**: fail gracefully — whoever texted/typed the request gets a
+   reply like "AI budget reached this month, use the admin panel instead"
+   (linking to `/admin/change-requests`, which keeps working regardless,
+   since it never calls OpenAI). The request must not silently vanish.
+   Implementation note for Phase 4: track spend server-side (don't rely on
+   OpenAI's own dashboard alone) so this reply can trigger deterministically
+   the moment $20 is crossed, not after a delayed billing sync.
 2. **SMS provider** — Twilio is already integrated for outbound reminders;
    confirm it's also the intended Phase 9 inbound/two-way provider before
    that work starts (different Twilio product surface — Programmable
