@@ -231,9 +231,17 @@ Not yet decided — flagged per spec §33 as genuinely needing your input
 (business governance / money / vendor choice), not ordinary engineering
 judgment calls:
 
-1. **OpenAI API budget ceiling** — before Phase 4 adds a real dependency
-   with per-request cost, what's an acceptable monthly spend, and should
-   there be a hard cutoff?
+1. **Resolved (2026-09-01, owner)**: OpenAI API budget ceiling is a hard
+   **$20/month** cutoff. Expected real usage for this business's volume
+   (a handful of owner-submitted requests a week, narrow structured
+   extraction rather than open-ended chat) is closer to $1–5/month, so
+   this is a guardrail against a bug/abuse loop, not a number Phase 4/5
+   should expect to hit in normal operation. **Still open**: what the
+   agent should do when the cutoff IS hit — recommend failing gracefully
+   with a message back to whoever texted/typed the request ("AI budget
+   reached this month, use the admin panel instead") rather than the
+   request silently vanishing, but not yet confirmed by the owner. Decide
+   this before Phase 4 implementation, not after.
 2. **SMS provider** — Twilio is already integrated for outbound reminders;
    confirm it's also the intended Phase 9 inbound/two-way provider before
    that work starts (different Twilio product surface — Programmable
