@@ -1,14 +1,19 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import {
   changeRequests,
   CHANGE_REQUEST_CATEGORIES,
   CHANGE_REQUEST_STATUSES,
 } from "../../drizzle/schema";
-import { router } from "../_core/trpc";
-import { withPermissionCheck } from "../formaops/trpc";
-import { requestChangePermissionFor } from "../formaops/permissions";
+import { protectedProcedure, router } from "../_core/trpc";
+import { requireFormaOpsDb, withPermissionCheck } from "../formaops/trpc";
+import {
+  getMembershipRole,
+  requestChangePermissionFor,
+} from "../formaops/permissions";
 import * as changeRequestsService from "../formaops/changeRequests";
+import { handleIncomingMessage } from "../formaops/agents/manager";
 
 const createInput = z.object({
   businessId: z.number().int().positive(),
@@ -99,5 +104,46 @@ export const formaopsRouter = router({
         note: input.note,
       });
     }),
+  }),
+
+  agent: router({
+    // Not gated by withPermissionCheck's single-permission model, since
+    // "can talk to the agent" isn't itself one FormaOps permission — the
+    // real category-specific permission (e.g. pricing.request_change) is
+    // still enforced deeper, inside changeRequestsService.create(), the
+    // exact moment a tool actually tries to propose something (see
+    // formaops/agents/tools.ts). This check is a coarser, earlier gate:
+    // are you even a recognized staff member of this business at all,
+    // so a customer account can't burn AI budget talking to an internal
+    // ops tool it has no reason to reach.
+    chat: protectedProcedure
+      .input(
+        z.object({
+          businessId: z.number().int().positive(),
+          message: z.string().min(1).max(2000),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (!process.env.OPENAI_API_KEY) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "The AI agent isn't configured yet (missing OPENAI_API_KEY).",
+          });
+        }
+        const db = await requireFormaOpsDb();
+        const role = await getMembershipRole(db, input.businessId, ctx.user.id);
+        if (!role) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You're not a member of this business.",
+          });
+        }
+        return handleIncomingMessage({
+          db,
+          businessId: input.businessId,
+          actingUserId: ctx.user.id,
+          text: input.message,
+        });
+      }),
   }),
 });

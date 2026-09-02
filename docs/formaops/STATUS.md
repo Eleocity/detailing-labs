@@ -1,8 +1,8 @@
 # FormaOps — Status
 
-Last updated: 2026-09-01 (Phase 3 admin UI shipped — `/admin/change-requests`
-is now a real way to use FormaOps by clicking instead of calling the API
-directly; tiered vehicle-size pricing gap closed).
+Last updated: 2026-09-01 (Phase 4/5 groundwork: FormaOps Manager agent
+built and wired into the admin UI as a chat panel — untested against a
+real OpenAI key, since none exists in this environment yet).
 
 ## WORKING
 
@@ -60,6 +60,30 @@ directly; tiered vehicle-size pricing gap closed).
   owner's own self-approval attempt through this page surfaced the exact
   "You cannot approve or reject your own request" error, not a silent
   failure or a hidden button).
+- **FormaOps Manager agent (Phase 4/5 groundwork)**:
+  `server/formaops/agents/{tools,manager,budget}.ts`. `handleIncomingMessage()`
+  is a single channel-agnostic entry point — a future SMS webhook and the
+  current web chat panel both call it identically, so the agent can't
+  behave differently per channel by construction, not by later discipline
+  (`DECISIONS.md` open decision #2 required this). Tools: `get_pricing`/
+  `get_hours` (read-only) and `propose_pricing_change`/
+  `propose_hours_change`, which call the exact same
+  `changeRequestsService.create()` the admin UI and tRPC router call — no
+  privileged shortcut, and no approve/execute/deploy/SQL tool exists for
+  it to call, per `AGENTS.md`'s boundary. `budget.ts` enforces the
+  $20/month cutoff (`DECISIONS.md` open decision #1): checked before every
+  run via a new `aiUsageLedger` table (migration
+  `0016_ai_usage_ledger.sql`, one row per business per calendar month),
+  not just logged after. `handleIncomingMessage` never throws — every
+  failure (budget exceeded, OpenAI error, unusable output) degrades to a
+  reply pointing at `/admin/change-requests`, which never calls OpenAI, so
+  a broken agent never blocks real work. Wired into the admin UI as an
+  "Ask the AI" chat panel on `/admin/change-requests` via a new
+  `formaops.agent.chat` tRPC mutation, gated on "is this user a member of
+  this business at all" (not a specific permission — the real
+  category-specific permission is still enforced deeper, inside
+  `changeRequestsService.create()`, exactly when a tool tries to actually
+  propose something).
 
 ## Verified this session
 
@@ -146,6 +170,25 @@ directly; tiered vehicle-size pricing gap closed).
   full suite now 82/84 (up from 77/79 — same 2 pre-existing environmental
   failures), `npm run check` still clean, `npm run build` still succeeds.
 
+- **FormaOps Manager agent — built, typechecked, NOT run against a real
+  OpenAI key.** No `OPENAI_API_KEY` exists in this working environment.
+  What was actually verified: `npm run check` and `npm run build` both
+  stay clean with `@openai/agents` installed and the SDK's `tool`/`Agent`/
+  `run`/`errorFunction`/`result.state.usage` APIs used as documented
+  (confirmed against the SDK's own docs and source, not assumed from
+  training knowledge, since model/pricing/API details shift); 6 new tests
+  for `budget.ts`'s pure logic (cutoff threshold, insert-vs-update
+  running-total math) all pass; and, live in a real browser logged in as
+  the OWNER test account, the "Ask the AI" panel on `/admin/change-requests`
+  correctly sent a message, called `formaops.agent.chat`, and displayed
+  the graceful `PRECONDITION_FAILED` error ("The AI agent isn't configured
+  yet (missing OPENAI_API_KEY)") in the chat log — no crash, no raw stack
+  trace. **What was NOT verified**: that the agent actually calls OpenAI
+  successfully, that its instructions produce sensible tool calls, that
+  `gpt-5-mini` (the default model) is a real, currently-callable model ID,
+  or that the budget cost-per-token defaults are accurate for whatever
+  model actually gets used. All of that needs a real `OPENAI_API_KEY`.
+
 ## PARTIAL
 
 - **Two categories, not five.** `services`, `promotions`, `content`,
@@ -158,17 +201,22 @@ directly; tiered vehicle-size pricing gap closed).
 - **Residual security gap unchanged from last session**: a future
   procedure could still be written without `withPermissionCheck`,
   bypassing the guarantee. See `SECURITY.md` "Residual gap."
+- **FormaOps Manager agent exists but is unverified against a real
+  OpenAI key** — see "Verified this session" above for exactly what was
+  and wasn't checked.
 
 ## NOT IMPLEMENTED
 
-Everything in Phases 4-10 of `ROADMAP.md` (Phase 3 is now done — see
-WORKING above), plus the untouched parts of Phase 2:
+Everything in Phases 6-10 of `ROADMAP.md`, the untested/SMS parts of
+Phases 4-5 (see PARTIAL above), plus the untouched parts of Phase 2:
 
 - No submitter-initiated cancellation
 - No per-date hours override
 - No `services`/`promotions`/`content`/`business_profile` executors
-- No OpenAI dependency, no chat, no SMS, no website inspector, no
-  code-change pipeline, no deployment automation
+- No SMS transport or phone-number → user identity mapping (needs Twilio
+  inbound credentials — see `DECISIONS.md` open decision #2)
+- No tracing/observability for the agent
+- No website inspector, no code-change pipeline, no deployment automation
 
 ## KNOWN ISSUES
 
@@ -177,7 +225,7 @@ WORKING above), plus the untouched parts of Phase 2:
    has been verified live end to end — see "Verified this session" above.
 2. `MANAGER` role still has identical grants to `OPERATIONS_MANAGER`
    (unchanged — no code path distinguishes them yet).
-3. **RESOLVED this update.** `packages` now carries `priceSedan`/
+3. **RESOLVED (previous update).** `packages` now carries `priceSedan`/
    `priceSuv`/`priceLarge` (migration `0015`), and `resolvePackagePrice()`
    checks those before falling back to the static catalog. Approving a
    pricing ChangeRequest for a tiered package now reaches the actual
@@ -187,11 +235,27 @@ WORKING above), plus the untouched parts of Phase 2:
 4. `addOns` still has the same wipe-and-reseed durability bug `packages`
    had — deliberately not fixed, since no executor writes to it yet (see
    `DECISIONS.md` ADR-007's closing note).
+5. **New this update**: `FORMAOPS_AGENT_MODEL` defaults to `"gpt-5-mini"`
+   and the budget cost-per-token defaults assume that model's published
+   pricing — neither has been confirmed against a live OpenAI account.
+   Verify both (or override via `FORMAOPS_AGENT_MODEL` /
+   `FORMAOPS_AGENT_INPUT_COST_CENTS_PER_1M` /
+   `FORMAOPS_AGENT_OUTPUT_COST_CENTS_PER_1M`) once a real API key exists,
+   before relying on the $20/month cutoff being accurate.
 
 ## NEXT RECOMMENDED WORK
 
-Wire a third executor. `ROADMAP.md` suggests `services` or `promotions` as
-next-simplest but doesn't pick one — that's a real product-priority
-question (which kind of change does the business actually want to make
-through FormaOps first?), not an engineering judgment call, so it's left
-for `DECISIONS.md`'s open list rather than assumed.
+1. **Get a real `OPENAI_API_KEY` into `.env`** — nothing about the agent
+   is provably correct until it's actually run. This is the immediate
+   blocker for everything else in Phase 4/5.
+2. Once verified, wire real Twilio inbound SMS (needs
+   `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/a number capable of receiving
+   SMS, and a public webhook URL — a local dev server can't receive
+   Twilio's webhook without a tunnel). Confirm the same Twilio account
+   already used for outbound reminders is the intended one first
+   (`DECISIONS.md` open decision #2), and design phone-number → user
+   identity resolution (not built yet).
+3. Wire a third executor. `ROADMAP.md` suggests `services` or `promotions`
+   as next-simplest but doesn't pick one — a real product-priority
+   question, not an engineering judgment call, left for `DECISIONS.md`'s
+   open list rather than assumed.

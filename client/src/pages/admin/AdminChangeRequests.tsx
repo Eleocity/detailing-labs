@@ -6,6 +6,8 @@ import {
   XCircle,
   Clock,
   AlertTriangle,
+  Sparkles,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +71,31 @@ export default function AdminChangeRequests() {
     },
     onError: err => toast.error(err.message),
   });
+
+  // AI chat — talks to the same FormaOps Manager agent an SMS would reach
+  // (server/formaops/agents/manager.ts). Proposing a change through it
+  // shows up in "Awaiting Approval" below exactly like the manual forms.
+  const [chatLog, setChatLog] = useState<
+    { role: "user" | "assistant"; text: string }[]
+  >([]);
+  const [chatInput, setChatInput] = useState("");
+  const chat = trpc.formaops.agent.chat.useMutation({
+    onSuccess: result => {
+      setChatLog(log => [...log, { role: "assistant", text: result.reply }]);
+      utils.formaops.changeRequests.list.invalidate();
+    },
+    onError: err => {
+      setChatLog(log => [...log, { role: "assistant", text: `Error: ${err.message}` }]);
+    },
+  });
+
+  function sendChat() {
+    const message = chatInput.trim();
+    if (!message || chat.isPending) return;
+    setChatLog(log => [...log, { role: "user", text: message }]);
+    setChatInput("");
+    chat.mutate({ businessId: BUSINESS_ID, message });
+  }
 
   const [form, setForm] = useState<"pricing" | "hours">("pricing");
 
@@ -155,6 +182,78 @@ export default function AdminChangeRequests() {
             Propose a pricing or hours change, then approve it to apply it live.
             Every change is logged in the audit trail.
           </p>
+        </div>
+
+        {/* AI chat */}
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <h2 className="font-display font-semibold text-sm">Ask the AI</h2>
+            <span className="text-xs text-muted-foreground">
+              — same assistant a text message will reach, once SMS is wired up
+            </span>
+          </div>
+
+          {chatLog.length > 0 && (
+            <div className="mb-3 max-h-72 overflow-y-auto flex flex-col gap-2 pr-1">
+              {chatLog.map((m, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "flex gap-2 text-sm",
+                    m.role === "user" ? "justify-end" : "justify-start"
+                  )}
+                >
+                  {m.role === "assistant" && (
+                    <Sparkles className="w-4 h-4 text-primary flex-shrink-0 mt-1" />
+                  )}
+                  <div
+                    className={cn(
+                      "rounded-lg px-3 py-2 max-w-[85%] whitespace-pre-wrap",
+                      m.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card border border-border"
+                    )}
+                  >
+                    {m.text}
+                  </div>
+                  {m.role === "user" && (
+                    <User className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
+                  )}
+                </div>
+              ))}
+              {chat.isPending && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Thinking…
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <Input
+              placeholder='e.g. "raise Full Showroom Reset to $270"'
+              value={chatInput}
+              onChange={e => setChatInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendChat();
+                }
+              }}
+            />
+            <Button
+              onClick={sendChat}
+              disabled={chat.isPending || !chatInput.trim()}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground flex-shrink-0"
+            >
+              {chat.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* New request form */}

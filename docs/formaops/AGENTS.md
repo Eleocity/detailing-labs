@@ -1,10 +1,39 @@
 # FormaOps — Agents
 
-**Status: design intent only. No OpenAI SDK dependency exists in this
-repository. Nothing in this document is implemented.** It's written now so
-Phase 4 starts from an agreed shape instead of a blank page, per spec §27's
-continuity requirement — but per spec §28, it must not be mistaken for
-working code.
+**Status: FormaOps Manager (the only agent in the table below marked
+built) exists as of 2026-09-01** — `@openai/agents` is a real dependency,
+and `server/formaops/agents/{tools,manager,budget}.ts` implement it. Every
+other agent in the table is still design intent only, written so its
+phase starts from an agreed shape instead of a blank page (spec §27) — not
+to be mistaken for working code (spec §28).
+
+## FormaOps Manager — what actually exists
+
+`server/formaops/agents/manager.ts`'s `handleIncomingMessage()` is the
+single channel-agnostic entry point — currently reachable via
+`formaops.agent.chat` (a tRPC mutation, surfaced as an "Ask the AI" panel
+on `/admin/change-requests`). SMS is not wired yet (needs Twilio inbound
+credentials — see `DECISIONS.md` open decision #2) but calls the exact
+same function once it is, by design, not by later refactor.
+
+Tools: `get_pricing` / `get_hours` (read-only) and
+`propose_pricing_change` / `propose_hours_change`, which call the exact
+same `changeRequestsService.create()` the admin UI and tRPC router call —
+no privileged shortcut. There is no approve/execute/deploy/SQL tool, per
+the boundary below.
+
+Budget: `server/formaops/agents/budget.ts` enforces the $20/month cutoff
+decided in `DECISIONS.md` — checked before every run (not just logged
+after), and `handleIncomingMessage` never throws: every failure mode
+(budget exceeded, OpenAI error, no usable output) degrades to a reply
+pointing at `/admin/change-requests`, which never calls OpenAI.
+
+**Not yet done**: real end-to-end testing against a live OpenAI API key
+(none was available in this working environment as of this writing — the
+graceful-failure path was verified live instead, real usage was not),
+SMS transport, and identity resolution for a channel where the caller
+isn't already an authenticated web session (SMS needs phone-number → user
+mapping, which doesn't exist yet).
 
 ## Boundary (non-negotiable, from Phase 1 onward)
 

@@ -807,3 +807,23 @@ export const auditEvents = mysqlTable("auditEvents", {
 
 export type AuditEvent = typeof auditEvents.$inferSelect;
 export type InsertAuditEvent = typeof auditEvents.$inferInsert;
+
+// FormaOps Phase 4: tracks OpenAI token usage per business per calendar
+// month, so the $20/month hard budget cutoff (docs/formaops/DECISIONS.md
+// open decision #1) can be enforced deterministically in our own code
+// before calling OpenAI, not by waiting on OpenAI's own billing dashboard
+// to catch up. See server/formaops/agents/budget.ts. One row per
+// (businessId, yearMonth) — enforced by a unique key in the migration, not
+// repeated here, matching how businessMemberships' composite key is done.
+export const aiUsageLedger = mysqlTable("aiUsageLedger", {
+  id: int("id").autoincrement().primaryKey(),
+  businessId: int("businessId").notNull(),
+  yearMonth: varchar("yearMonth", { length: 7 }).notNull(), // e.g. "2026-09"
+  inputTokens: int("inputTokens").default(0).notNull(),
+  outputTokens: int("outputTokens").default(0).notNull(),
+  estimatedCostCents: int("estimatedCostCents").default(0).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AiUsageLedger = typeof aiUsageLedger.$inferSelect;
+export type InsertAiUsageLedger = typeof aiUsageLedger.$inferInsert;
