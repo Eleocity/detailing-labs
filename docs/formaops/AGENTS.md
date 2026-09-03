@@ -15,11 +15,17 @@ code (spec §28).
 ## FormaOps Manager — what actually exists
 
 `server/formaops/agents/manager.ts`'s `handleIncomingMessage()` is the
-single channel-agnostic entry point — currently reachable via
-`formaops.agent.chat` (a tRPC mutation, surfaced as an "Ask the AI" panel
-on `/admin/change-requests`). SMS is not wired yet (needs Twilio inbound
-credentials — see `DECISIONS.md` open decision #2) but calls the exact
-same function once it is, by design, not by later refactor.
+single channel-agnostic entry point — reachable two ways now, both
+calling this exact function, proving the "by design, not by later
+refactor" claim: `formaops.agent.chat` (a tRPC mutation, surfaced as an
+"Ask the AI" panel on `/admin/change-requests`), and
+`POST /api/webhooks/twilio-sms` (`server/_core/index.ts`), which verifies
+the inbound request is genuinely from Twilio (`server/sms.ts`'s
+`verifyTwilioSignature()`), resolves the texting phone number to a user
+and their business membership (`server/formaops/agents/identity.ts`'s
+`resolvePhoneToBusinessUser()`), then calls `handleIncomingMessage()` the
+same as the web chat does. Not yet verified against a real Twilio
+account — see `STATUS.md` for exactly what was and wasn't confirmed.
 
 Tools: `get_pricing` / `get_hours` (read-only — `get_pricing` also
 returns each package's included-features list, useful grounding for a
@@ -42,10 +48,11 @@ added, real usage was confirmed to actually accumulate correctly in the
 ledger (a real precision bug was found and fixed here: costs were being
 rounded to zero on every write — see `DECISIONS.md` ADR-010).
 
-**Not yet done**: SMS transport, and identity resolution for a channel
-where the caller isn't already an authenticated web session (SMS needs
-phone-number → user mapping, which doesn't exist yet). Also not yet
-done: cross-checking the budget's cost-per-token defaults against
+**Not yet done**: an actual verified Twilio round-trip (needs real
+`TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/a number), and "approve by
+replying to a text" (SMS can currently only *propose*, via the same tools
+as web chat — approving still requires `/admin/change-requests`). Also
+not yet done: cross-checking the budget's cost-per-token defaults against
 OpenAI's own billing page (only checked against third-party pricing
 trackers so far).
 

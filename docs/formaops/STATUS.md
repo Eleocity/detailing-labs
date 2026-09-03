@@ -1,10 +1,12 @@
 # FormaOps — Status
 
-Last updated: 2026-09-03 (agent verified working for real — correct,
-grounded answers and a correct proposal from natural language. Found and
-fixed a real budget-tracking precision bug in the process: fractional-cent
-costs were being rounded to zero on every write, so the $20/month cutoff
-would almost never have actually triggered).
+Last updated: 2026-09-03 (SMS transport + phone-number identity
+resolution built: signature-verified Twilio webhook, phone → user →
+business resolution, wired into the same `handleIncomingMessage()` the
+web chat uses. Verified everything that can be verified without a real
+Twilio account — signature crypto, identity resolution, and the full
+agent pipeline against the real dev DB — but sending an actual SMS still
+needs real `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/a number).
 
 ## WORKING
 
@@ -97,6 +99,35 @@ would almost never have actually triggered).
   category-specific permission is still enforced deeper, inside
   `changeRequestsService.create()`, exactly when a tool tries to actually
   propose something).
+- **SMS transport + phone-number identity resolution.**
+  `POST /api/webhooks/twilio-sms` (`server/_core/index.ts`, grouped with
+  the existing Square/Urable webhooks): verifies the `X-Twilio-Signature`
+  header with the official `twilio` package's `validateRequest` before
+  touching anything else in the request — a failure rejects with 403, not
+  a warn-and-continue. `server/formaops/agents/identity.ts`'s
+  `resolvePhoneToBusinessUser()` matches the texting number against
+  `users.phone` (last-10-digits comparison via `shared/brand.ts`'s
+  `phoneDigits()`, so storage-format differences and a US country-code
+  prefix don't cause a false miss), refuses to guess if a number matches
+  more than one account, and confirms the matched user actually has a
+  FormaOps membership on the business before proceeding. On success, calls
+  the exact same channel-agnostic `handleIncomingMessage()` the web chat
+  uses — no SMS-specific agent logic exists, by design (see
+  `DECISIONS.md` open decision #2). `handleIncomingMessage()` (and
+  `ManagerToolContext`) now takes an explicit `channel: "web_chat" |
+  "sms"`, threaded down into every proposal tool's `source` field —
+  `changeRequests.source` now genuinely distinguishes "proposed by
+  texting the agent" from "proposed via the web chat panel" instead of
+  both recording a generic `"ai_agent"`, closing a requirement
+  `DECISIONS.md` had recorded but this code hadn't actually fulfilled
+  until this same session caught the gap. Verified live: a services
+  proposal sent through the exact non-HTTP pipeline the SMS webhook uses
+  landed in the database with `source: "sms"`. Replies async via a shared
+  `server/sms.ts` (`sendSMS()`, extracted from `reminders.ts`'s
+  previously-duplicated copy — now one send implementation, not two) since
+  the agent's LLM call can take longer than is safe to hold a synchronous
+  Twilio webhook response open for; the immediate response is empty TwiML.
+  An unrecognized number gets a plain reply explaining why, not silence.
 
 ## Verified this session (2026-09-03)
 
@@ -174,6 +205,53 @@ would almost never have actually triggered).
   (up from 88/90 — 5 new `services` tests + 3 new budget-precision
   regression tests; same 2 pre-existing environmental failures), `npm run
   check` clean, `npm run build` succeeds.
+- **SMS transport built and verified as far as possible without a real
+  Twilio account.** No `TWILIO_ACCOUNT_SID`/number exist in this working
+  environment, so the actual HTTP round-trip through
+  `/api/webhooks/twilio-sms` and a genuinely-delivered SMS reply are
+  unverified — but everything else in the pipeline is:
+  - **Signature verification, proven cryptographically correct**, not
+    just plumbing-checked: 6 tests in `server/sms.test.ts` use the
+    `twilio` package's own `getExpectedTwilioSignature()` to generate a
+    real valid signature, then confirm `verifyTwilioSignature()` accepts
+    it — and confirm it correctly rejects a forged signature, a valid
+    signature replayed against tampered params (body swapped), a valid
+    signature against the wrong URL, a missing signature header, and a
+    request when no `TWILIO_AUTH_TOKEN` is configured at all.
+  - **Identity resolution, verified against the real dev database.** Set
+    a test phone number on the OWNER test account, then ran a script that
+    calls `resolvePhoneToBusinessUser()` directly (the exact function the
+    webhook calls) against the real DB: an unrecognized number correctly
+    returns `{ok: false}`, and the real number — sent in a *different*
+    format (`+12625550173`) than how it's stored (`(262) 555-0173`) —
+    correctly resolved to the right user, proving the digit-normalization
+    matching actually works, not just in isolation with pre-normalized
+    test data. 6 more tests in `identity.test.ts` cover no-match,
+    multiple-match (refuses to guess), no-membership, and
+    not-a-phone-number cases with a mocked db.
+  - **The full non-HTTP pipeline, run against the real dev DB and the
+    real OpenAI key.** The same script then called `handleIncomingMessage()`
+    with the resolved identity — exactly what the webhook does after
+    identity resolution succeeds — and got a real, grounded reply:
+    "Signature Detail — Sedan: $449.99, SUV: $529.99, Large: $649.99,"
+    matching the actual database. This proves every piece downstream of
+    "an HTTP request with a valid signature arrived" genuinely works.
+  - **What's still unverified**: the live HTTP route itself (Express
+    routing, header parsing, the empty-TwiML immediate response) and an
+    actual SMS delivery via `sendSMS()` — both need real
+    `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/`TWILIO_FROM_NUMBER`, which
+    don't exist here. Deliberately did not add a placeholder
+    `TWILIO_AUTH_TOKEN` to `.env` to work around this, unlike earlier
+    credential gaps this session — that file holds real secrets the owner
+    manages directly, and unlike the empty `DATABASE_URL` placeholder
+    created earlier (which the owner explicitly said yes to), adding one
+    here wasn't asked for.
+  - `reminders.ts`'s previously-duplicated `sendSMS()` was extracted to
+    `server/sms.ts` in the process — one send implementation now, not two
+    that could silently drift apart. Full suite now 107/109 (up from
+    95/97 — 6 new signature tests + 6 new identity tests; same 2
+    pre-existing environmental failures), `npm run check` clean, `npm run
+    build` succeeds.
 
 ## Verified this session (2026-09-01)
 
@@ -293,20 +371,23 @@ would almost never have actually triggered).
   bypassing the guarantee. See `SECURITY.md` "Residual gap."
 - **FormaOps Manager agent is fully verified for the web-chat channel**
   (real grounded answers, real correct proposals — see "Verified this
-  session (2026-09-03)" above) **but SMS itself is still not wired**, and
-  there's no tracing/observability yet. Both are scoped, known gaps, not
-  open questions about whether the core agent works.
+  session (2026-09-03)" above), and the **SMS transport is built and
+  verified as far as possible without a real Twilio account** (signature
+  crypto, identity resolution, and the full downstream pipeline all
+  confirmed live — see above). What's left is genuinely just plugging in
+  real Twilio credentials and confirming the live HTTP round-trip and an
+  actual SMS delivery — no more code is anticipated to be needed for
+  that, but it hasn't been proven yet. There's also no tracing/
+  observability for the agent yet.
 
 ## NOT IMPLEMENTED
 
-Everything in Phases 6-10 of `ROADMAP.md`, the untested/SMS parts of
-Phases 4-5 (see PARTIAL above), plus the untouched parts of Phase 2:
+Everything in Phases 6-10 of `ROADMAP.md`, the untested parts of Phases
+4-5 (see PARTIAL above), plus the untouched parts of Phase 2:
 
 - No submitter-initiated cancellation
 - No per-date hours override
 - No `promotions`/`content`/`business_profile` executors
-- No SMS transport or phone-number → user identity mapping (needs Twilio
-  inbound credentials — see `DECISIONS.md` open decision #2)
 - No tracing/observability for the agent
 - No website inspector, no code-change pipeline, no deployment automation
 
@@ -345,21 +426,33 @@ Phases 4-5 (see PARTIAL above), plus the untouched parts of Phase 2:
    `DECIMAL(12,4)` (migration `0017`) — see "Found and fixed a real
    precision bug..." above for the full account, including a live
    before/after confirmation.
+8. **New this update, still open**: the SMS webhook's public-URL
+   reconstruction for signature verification (`TWILIO_WEBHOOK_BASE_URL`,
+   defaulting to `https://${BRAND.domain.live}`) has never been tested
+   against a real reverse-proxy/tunnel topology — Railway's `x-forwarded-*`
+   handling is already relied on elsewhere in this file for HTTPS
+   redirects, so production should be fine, but local dev testing via a
+   tunnel (ngrok or similar) will need `TWILIO_WEBHOOK_BASE_URL` set to
+   the tunnel's actual public URL, not the default.
 
 ## NEXT RECOMMENDED WORK
 
-1. **Cross-check the budget's cost-per-token defaults against OpenAI's
+1. **Add real Twilio credentials** (`TWILIO_ACCOUNT_SID`,
+   `TWILIO_AUTH_TOKEN`, a phone number capable of receiving SMS) and
+   confirm the same Twilio account already used for outbound reminders is
+   the intended one (`DECISIONS.md` open decision #2). For local testing,
+   also need a public tunnel (ngrok or similar) pointed at the dev
+   server, since Twilio can't reach `localhost` directly — set
+   `TWILIO_WEBHOOK_BASE_URL` to the tunnel's URL and configure that same
+   URL as the number's "A message comes in" webhook in the Twilio
+   console. This is the only remaining blocker on verifying SMS actually
+   works — the code is built and verified everywhere else it can be (see
+   "Verified this session (2026-09-03)" above).
+2. **Cross-check the budget's cost-per-token defaults against OpenAI's
    actual billing page** once real usage has accrued there — the
    $20/month cutoff's accuracy depends on it, and it's only been
    cross-checked against third-party pricing trackers so far, not
    OpenAI's own invoice.
-2. Wire real Twilio inbound SMS (needs
-   `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/a number capable of receiving
-   SMS, and a public webhook URL — a local dev server can't receive
-   Twilio's webhook without a tunnel). Confirm the same Twilio account
-   already used for outbound reminders is the intended one first
-   (`DECISIONS.md` open decision #2), and design phone-number → user
-   identity resolution (not built yet).
 3. **Done**: a third executor (`services`) is wired — see WORKING above.
    `promotions`/`content`/`business_profile` remain, in that rough order
    of likely usefulness, but still no forcing product reason to pick one

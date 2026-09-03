@@ -329,19 +329,21 @@ judgment calls:
    Implementation note for Phase 4: track spend server-side (don't rely on
    OpenAI's own dashboard alone) so this reply can trigger deterministically
    the moment $20 is crossed, not after a delayed billing sync.
-2. **SMS provider** — Twilio is already integrated for outbound reminders;
-   confirm it's also the intended Phase 9 inbound/two-way provider before
-   that work starts (different Twilio product surface — Programmable
-   Messaging inbound webhooks vs. the current send-only usage).
-   **Confirmed requirement (2026-09-01, owner)**: owners/staff must be able
-   to text the Phase 5 AI agent (Conversational Operations) to create a
-   ChangeRequest — SMS is not a later add-on to a web-only chat surface,
-   it's a first-class input channel from day one of the AI integration.
-   Scope Phase 5 and Phase 9 together rather than sequentially: the agent's
-   request-parsing logic needs to work the same way regardless of whether
-   the text came from SMS or a web chat, and `changeRequests.create`'s
-   `source` field should account for an `"sms"` value alongside
-   `"admin_dashboard"`.
+2. **Still partially open**: which Twilio account is the intended Phase 9
+   inbound/two-way provider — presumed to be the same one already
+   integrated for outbound reminders (different Twilio product surface,
+   Programmable Messaging inbound webhooks vs. the current send-only
+   usage), but not explicitly confirmed by the owner. **Everything else
+   about this decision is resolved and built**: owners/staff can text the
+   Phase 5 AI agent to create a ChangeRequest — SMS was built as a
+   first-class input channel from day one (`server/formaops/agents/`'s
+   `handleIncomingMessage()` is identical for both channels; only the
+   transport — `POST /api/webhooks/twilio-sms` vs. `formaops.agent.chat`
+   — differs), and `changeRequests.create`'s `source` field now records
+   `"sms"` or `"web_chat"` (not a generic `"ai_agent"` for both), verified
+   live against the real dev DB. What's actually still needed: the real
+   Twilio credentials themselves, to confirm the live HTTP path and an
+   actual SMS delivery (see `STATUS.md`).
 3. **Phase 4 worker-split timing** — ADR-001 defers this until "justified."
    You may prefer a firmer trigger (e.g. "before any production deployment
    automation," Phase 8) rather than an engineering judgment call at the

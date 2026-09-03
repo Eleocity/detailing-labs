@@ -71,6 +71,7 @@ export async function handleIncomingMessage(input: {
   db: any;
   businessId: number;
   actingUserId: number;
+  channel: "web_chat" | "sms";
   text: string;
 }): Promise<{ reply: string }> {
   if (await isBudgetExceeded(input.db, input.businessId)) {

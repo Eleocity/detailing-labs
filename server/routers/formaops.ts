@@ -142,6 +142,7 @@ export const formaopsRouter = router({
           db,
           businessId: input.businessId,
           actingUserId: ctx.user.id,
+          channel: "web_chat",
           text: input.message,
         });
       }),

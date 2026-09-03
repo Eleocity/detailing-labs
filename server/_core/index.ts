@@ -301,6 +301,78 @@ async function startServer() {
     }
   );
 
+  // ── FormaOps SMS webhook ─────────────────────────────────────────────────
+  // Inbound texts to the FormaOps Manager agent (docs/formaops/AGENTS.md).
+  // Twilio POSTs application/x-www-form-urlencoded — already parsed into
+  // req.body by the global express.urlencoded() above, no route-specific
+  // body parser needed.
+  app.post("/api/webhooks/twilio-sms", async (req, res) => {
+    // Signature verification MUST happen before anything else touches
+    // req.body's contents — this is the only thing standing between the
+    // public internet and the FormaOps agent's tools.
+    try {
+      const { verifyTwilioSignature } = await import("../sms");
+      const base =
+        process.env.TWILIO_WEBHOOK_BASE_URL || `https://${BRAND.domain.live}`;
+      const publicUrl = `${base}/api/webhooks/twilio-sms`;
+      const signature = req.headers["x-twilio-signature"] as string | undefined;
+      if (!verifyTwilioSignature(signature, publicUrl, req.body)) {
+        console.error("[Twilio SMS webhook] signature verification failed — rejecting");
+        return res.status(403).send("Invalid signature");
+      }
+    } catch (err: any) {
+      console.error("[Twilio SMS webhook] verification error:", err?.message);
+      return res.status(403).send("Invalid signature");
+    }
+
+    // Ack immediately with empty TwiML — the real reply is sent async via
+    // the outbound REST API below (server/sms.ts's sendSMS), since the
+    // agent can take several seconds (a real LLM call with tool calls),
+    // longer than is safe to hold a synchronous webhook response open for.
+    res.type("text/xml").status(200).send("<Response></Response>");
+
+    try {
+      const from = req.body.From as string | undefined;
+      const text = (req.body.Body as string | undefined)?.trim();
+      if (!from || !text) return;
+
+      const { getDb } = await import("../db");
+      const db = await getDb();
+      if (!db) return;
+
+      const { resolvePhoneToBusinessUser } = await import(
+        "../formaops/agents/identity"
+      );
+      const { sendSMS } = await import("../sms");
+
+      // Single-tenant for now — see docs/formaops/ROADMAP.md. Every
+      // business row created so far (migration 0014's seed) is id 1.
+      const BUSINESS_ID = 1;
+      const resolved = await resolvePhoneToBusinessUser(db, BUSINESS_ID, from);
+      if (!resolved.ok) {
+        await sendSMS(
+          from,
+          `Sorry, I can't help from this number (${resolved.reason}). Contact the business directly.`
+        );
+        return;
+      }
+
+      const { handleIncomingMessage } = await import(
+        "../formaops/agents/manager"
+      );
+      const { reply } = await handleIncomingMessage({
+        db,
+        businessId: resolved.identity.businessId,
+        actingUserId: resolved.identity.userId,
+        channel: "sms",
+        text,
+      });
+      await sendSMS(from, reply);
+    } catch (err: any) {
+      console.error("[Twilio SMS webhook processing error]", err?.message);
+    }
+  });
+
   // ── Force HTTPS in production ──
   // Railway terminates TLS at the edge and sets x-forwarded-proto
   app.use((req, res, next) => {

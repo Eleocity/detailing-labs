@@ -19,6 +19,11 @@ export interface ManagerToolContext {
   db: any;
   businessId: number;
   actingUserId: number;
+  /** Recorded as the ChangeRequest's `source` — lets the audit trail (and
+   *  a future admin UI) distinguish "proposed by texting the agent" from
+   *  "proposed via the web chat panel," not just "some AI proposed this."
+   *  See docs/formaops/DECISIONS.md open decision #2. */
+  channel: "web_chat" | "sms";
 }
 
 /** Turns a thrown error (e.g. FORBIDDEN from a permission check) into a
@@ -101,7 +106,7 @@ export function buildManagerTools(ctx: ManagerToolContext) {
         businessId: ctx.businessId,
         submittedByUserId: ctx.actingUserId,
         actorType: "AI_SYSTEM",
-        source: "ai_agent",
+        source: ctx.channel,
         category: "pricing",
         originalRequest: args.reasoning,
         proposedChange,
@@ -130,7 +135,7 @@ export function buildManagerTools(ctx: ManagerToolContext) {
         businessId: ctx.businessId,
         submittedByUserId: ctx.actingUserId,
         actorType: "AI_SYSTEM",
-        source: "ai_agent",
+        source: ctx.channel,
         category: "services",
         originalRequest: args.reasoning,
         proposedChange: {
@@ -162,7 +167,7 @@ export function buildManagerTools(ctx: ManagerToolContext) {
         businessId: ctx.businessId,
         submittedByUserId: ctx.actingUserId,
         actorType: "AI_SYSTEM",
-        source: "ai_agent",
+        source: ctx.channel,
         category: "hours",
         originalRequest: args.reasoning,
         proposedChange: { field: args.field, newValue: args.newValue },
