@@ -267,6 +267,49 @@ category's data for the same pattern before assuming it's fine.
 
 ---
 
+## ADR-010 — AI usage ledger cost tracking needs decimal precision, not integer cents
+
+**Context**: Once OpenAI billing credits were added and the agent could
+be tested for real, checking the usage ledger after two live calls showed
+`estimatedCostCents: 0` despite real, confirmed token usage. Root cause:
+`aiUsageLedger.estimatedCostCents` (added alongside the agent itself —
+see `STATUS.md`'s "Phase 4/5 groundwork") was an `INT`, and
+`recordUsage()` rounded to a whole cent on every write via `Math.round()`.
+A cheap model call (`gpt-5-mini`) costs a fraction of a cent — confirmed
+live, ~0.06-0.17 cents per call. Simulated 20 repeated realistic-sized
+calls against the exact production logic: the stored total stayed at
+exactly 0 cents for all 20, when the true cumulative cost had passed 1
+cent. The reason: every write recomputed `round(existing + newCost)`
+starting from an *already-rounded* `existing` value — if `existing` is
+always 0 (because the last write rounded its own fractional contribution
+away), the next write's tiny addition rounds away too, forever, no matter
+how many calls happen or how much real money is actually being spent.
+
+**Decision**: Changed `estimatedCostCents` from `INT` to `DECIMAL(12,4)`
+(migration `0017_ai_usage_ledger_cost_precision.sql`) and removed the
+per-write rounding in `budget.ts` — the running total now accumulates
+with real fractional-cent precision, matching the column's own storage
+precision rather than an artificial whole-cent floor imposed by the code.
+
+**Reasoning**: This directly undermined a decision the owner explicitly
+made (`DECISIONS.md` open decision #1: a **hard** $20/month cutoff). A
+budget guardrail that silently fails to count most of what it's supposed
+to be counting is worse than having no tracking at all, because it looks
+like it's working. This wasn't a hypothetical found by code review — it
+was caught by actually checking the real database after real usage,
+which is exactly why "verified live" has been the standard held to
+everywhere else this session, not just for this one bug.
+
+**Consequences**: The one existing ledger row (already corrupted to `0`
+by the bug) was backfilled from its accurate token counts, which the bug
+never touched — only the derived cost estimate was wrong, not the raw
+usage. Confirmed live afterward: a further real call moved the stored
+cost from `0.1234` to `0.1705`, an increase that exactly matches that
+call's token usage. 3 new regression tests assert repeated small amounts
+actually sum instead of getting rounded away every time.
+
+---
+
 ## Open decisions requiring owner input
 
 Not yet decided — flagged per spec §33 as genuinely needing your input

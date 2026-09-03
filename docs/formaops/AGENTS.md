@@ -1,14 +1,16 @@
 # FormaOps — Agents
 
 **Status: FormaOps Manager (the only agent in the table below marked
-built) exists as of 2026-09-03** — `@openai/agents` is a real dependency,
-and `server/formaops/agents/{tools,manager,budget}.ts` implement it. A
-real API key confirmed a request genuinely reaches OpenAI (rejected only
-for lack of billing credits, an account issue, not a code one — a real
-successful response is still unverified). Every other agent in the table
-below is still design intent only, written so its phase starts from an
-agreed shape instead of a blank page (spec §27) — not to be mistaken for
-working code (spec §28).
+built) is verified working end-to-end as of 2026-09-03** —
+`@openai/agents` is a real dependency, and
+`server/formaops/agents/{tools,manager,budget}.ts` implement it. Real,
+grounded answers ("what's the current price of X?" → the actual DB value)
+and real correct proposals from natural language ("raise X to $Y" →
+`propose_pricing_change` called with the right arguments) both confirmed
+live against a real OpenAI account. Every other agent in the table below
+is still design intent only, written so its phase starts from an agreed
+shape instead of a blank page (spec §27) — not to be mistaken for working
+code (spec §28).
 
 ## FormaOps Manager — what actually exists
 
@@ -34,13 +36,18 @@ decided in `DECISIONS.md` — checked before every run (not just logged
 after), and `handleIncomingMessage` never throws: every failure mode
 (budget exceeded, OpenAI error, no usable output) degrades to a reply
 pointing at `/admin/change-requests`, which never calls OpenAI. Verified
-live: a real 429 "no credits remaining" error from OpenAI came back as a
-clean message in the chat log, not a crash.
+live twice: a real 429 "no credits remaining" error from OpenAI came back
+as a clean message in the chat log, not a crash — and once credits were
+added, real usage was confirmed to actually accumulate correctly in the
+ledger (a real precision bug was found and fixed here: costs were being
+rounded to zero on every write — see `DECISIONS.md` ADR-010).
 
-**Not yet done**: a real successful OpenAI response (blocked on the
-account's billing, not code), SMS transport, and identity resolution for
-a channel where the caller isn't already an authenticated web session
-(SMS needs phone-number → user mapping, which doesn't exist yet).
+**Not yet done**: SMS transport, and identity resolution for a channel
+where the caller isn't already an authenticated web session (SMS needs
+phone-number → user mapping, which doesn't exist yet). Also not yet
+done: cross-checking the budget's cost-per-token defaults against
+OpenAI's own billing page (only checked against third-party pricing
+trackers so far).
 
 ## Boundary (non-negotiable, from Phase 1 onward)
 

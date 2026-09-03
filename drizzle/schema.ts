@@ -815,13 +815,21 @@ export type InsertAuditEvent = typeof auditEvents.$inferInsert;
 // to catch up. See server/formaops/agents/budget.ts. One row per
 // (businessId, yearMonth) — enforced by a unique key in the migration, not
 // repeated here, matching how businessMemberships' composite key is done.
+// estimatedCostCents is DECIMAL, not INT — a single cheap agent call costs
+// a fraction of a cent (e.g. gpt-5-mini: ~0.06-0.15 cents/call), and
+// rounding to a whole cent on every write means fractional cents never
+// accumulate: each update starts from an already-rounded-down base, so
+// repeated small calls can stay stuck reporting near-zero spend forever
+// even after real usage has genuinely crossed a cent. See budget.ts.
 export const aiUsageLedger = mysqlTable("aiUsageLedger", {
   id: int("id").autoincrement().primaryKey(),
   businessId: int("businessId").notNull(),
   yearMonth: varchar("yearMonth", { length: 7 }).notNull(), // e.g. "2026-09"
   inputTokens: int("inputTokens").default(0).notNull(),
   outputTokens: int("outputTokens").default(0).notNull(),
-  estimatedCostCents: int("estimatedCostCents").default(0).notNull(),
+  estimatedCostCents: decimal("estimatedCostCents", { precision: 12, scale: 4 })
+    .default("0")
+    .notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 

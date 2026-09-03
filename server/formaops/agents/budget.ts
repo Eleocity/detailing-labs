@@ -52,10 +52,17 @@ export async function isBudgetExceeded(
   businessId: number
 ): Promise<boolean> {
   const row = await getLedgerRow(db, businessId, currentYearMonth());
-  return (row?.estimatedCostCents ?? 0) >= MONTHLY_BUDGET_CENTS;
+  return Number(row?.estimatedCostCents ?? 0) >= MONTHLY_BUDGET_CENTS;
 }
 
-/** Records usage from a completed agent run against the current month's running total. */
+/**
+ * Records usage from a completed agent run against the current month's
+ * running total. Accumulates with full decimal precision (no rounding on
+ * write) — `estimatedCostCents` is a DECIMAL column specifically so a long
+ * run of cheap calls (each a fraction of a cent) actually sums up to real
+ * money over time, instead of every individual update rounding its own
+ * fractional contribution away before the next one can build on it.
+ */
 export async function recordUsage(
   db: any,
   businessId: number,
@@ -68,14 +75,13 @@ export async function recordUsage(
 
   const existing = await getLedgerRow(db, businessId, yearMonth);
   if (existing) {
+    const newTotal = Number(existing.estimatedCostCents) + costCents;
     await db
       .update(aiUsageLedger)
       .set({
         inputTokens: existing.inputTokens + usage.inputTokens,
         outputTokens: existing.outputTokens + usage.outputTokens,
-        estimatedCostCents: Math.round(
-          existing.estimatedCostCents + costCents
-        ),
+        estimatedCostCents: newTotal.toFixed(4) as any,
       })
       .where(eq(aiUsageLedger.id, existing.id));
     return;
@@ -86,6 +92,6 @@ export async function recordUsage(
     yearMonth,
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,
-    estimatedCostCents: Math.round(costCents),
+    estimatedCostCents: costCents.toFixed(4) as any,
   });
 }

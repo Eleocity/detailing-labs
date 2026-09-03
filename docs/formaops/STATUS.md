@@ -1,8 +1,10 @@
 # FormaOps — Status
 
-Last updated: 2026-09-03 (real OpenAI key confirmed working end-to-end —
-blocked only on the account having no billing credits; third executor,
-`services`, wired while waiting on that).
+Last updated: 2026-09-03 (agent verified working for real — correct,
+grounded answers and a correct proposal from natural language. Found and
+fixed a real budget-tracking precision bug in the process: fractional-cent
+costs were being rounded to zero on every write, so the $20/month cutoff
+would almost never have actually triggered).
 
 ## WORKING
 
@@ -108,9 +110,41 @@ blocked only on the account having no billing credits; third executor,
   issue, not a bug). `handleIncomingMessage`'s error handling worked
   exactly as designed: the raw OpenAI error was caught and shown as a
   clean, readable message in the chat log, not a crash or a raw stack
-  trace. **Still unverified**: an actual successful agent response — that
-  needs the OpenAI account to have billing/credits added at
-  platform.openai.com, not any further code change here.
+  trace.
+- **A real successful agent response, confirmed once billing credits were
+  added.** Asked "what's the current price of Full Showroom Reset?" —
+  the agent called `get_pricing` and answered "Sedan/base: $259.99; SUV:
+  $269.99; Large: $359.99," matching the real database exactly (not a
+  hallucinated number). Then asked it to "raise the base price of Full
+  Showroom Reset to $264.99, it's a seasonal bump" — it correctly called
+  `propose_pricing_change` with `{packageName: "Full Showroom Reset",
+  newPrice: 264.99}` (no `newPriceSuv`/`newPriceLarge`, since neither was
+  mentioned), and replied that the change is "now awaiting approval and
+  not yet live" — the real ChangeRequest shows up correctly in "Awaiting
+  Approval" with `YELLOW`/`OWNER` required, same as one submitted through
+  the manual form. Left this one actually pending (not cleaned up like
+  the throwaway test data elsewhere this session) since it's a real,
+  legitimate proposal the owner can choose to approve or reject.
+- **Found and fixed a real precision bug in the budget tracker while
+  checking the usage ledger updated correctly.** `estimatedCostCents` was
+  an `INT`, and `recordUsage()` rounded to a whole cent on every single
+  write. A cheap model call costs a fraction of a cent (confirmed live:
+  ~0.06-0.12 cents/call with `gpt-5-mini`), so each write started from an
+  already-rounded-down integer and rounded straight back to it —
+  confirmed by simulation that 20 real-sized calls in a row left the
+  stored total at exactly 0 cents forever, when the true cost was over 1
+  cent. This would have meant the $20/month hard cutoff almost never
+  actually triggered in practice for normal usage, silently defeating the
+  one thing it was built to guarantee. Fixed by changing the column to
+  `DECIMAL(12,4)` (migration `0017_ai_usage_ledger_cost_precision.sql`)
+  and removing the per-write rounding — cost now accumulates with real
+  fractional precision. Backfilled the one existing (corrupted-by-the-bug)
+  ledger row from its accurate token counts, then confirmed live: sent
+  another real message and watched the stored cost move from `0.1234` to
+  `0.1705`, an increase that exactly matches that call's actual token
+  usage. 3 new regression tests in `budget.test.ts` (8 total) prove
+  repeated small amounts now genuinely sum instead of getting rounded away
+  every time.
 - **Third executor wired: `services`.** `server/formaops/executors/services.ts`
   adds/removes one `features` line item on a package; registered in
   `executors/index.ts`; a matching `propose_services_change` tool added to
@@ -136,10 +170,10 @@ blocked only on the account having no billing credits; third executor,
   while showing everywhere else. Fixed the same way the price gap was
   fixed: prefer the DB `features` list when the package has one, fall back
   to the static catalog's `included` only when it doesn't (quote-only
-  packages, or a name-based rename lookup miss). Full suite now 93/95
-  (up from 88/90 — the 5 new `services` tests; same 2 pre-existing
-  environmental failures), `npm run check` clean, `npm run build`
-  succeeds.
+  packages, or a name-based rename lookup miss). Full suite now 95/97
+  (up from 88/90 — 5 new `services` tests + 3 new budget-precision
+  regression tests; same 2 pre-existing environmental failures), `npm run
+  check` clean, `npm run build` succeeds.
 
 ## Verified this session (2026-09-01)
 
@@ -257,11 +291,11 @@ blocked only on the account having no billing credits; third executor,
 - **Residual security gap unchanged from last session**: a future
   procedure could still be written without `withPermissionCheck`,
   bypassing the guarantee. See `SECURITY.md` "Residual gap."
-- **FormaOps Manager agent's plumbing is confirmed live** (a real message
-  genuinely reached OpenAI and the response — an error — was handled
-  correctly) **but a real successful response is still unverified**,
-  blocked on the OpenAI account having no billing credits. Not a code
-  problem — see "Verified this session (2026-09-03)" above.
+- **FormaOps Manager agent is fully verified for the web-chat channel**
+  (real grounded answers, real correct proposals — see "Verified this
+  session (2026-09-03)" above) **but SMS itself is still not wired**, and
+  there's no tracing/observability yet. Both are scoped, known gaps, not
+  open questions about whether the core agent works.
 
 ## NOT IMPLEMENTED
 
@@ -293,27 +327,33 @@ Phases 4-5 (see PARTIAL above), plus the untouched parts of Phase 2:
 4. `addOns` still has the same wipe-and-reseed durability bug `packages`
    had — deliberately not fixed, since no executor writes to it yet (see
    `DECISIONS.md` ADR-007's closing note).
-5. **Still open**: `FORMAOPS_AGENT_MODEL` defaults to `"gpt-5-mini"` and
-   the budget cost-per-token defaults assume that model's published
-   pricing — neither has been confirmed against a live OpenAI account
-   (blocked on the same missing billing credits as the rest of live agent
-   testing). Verify both (or override via `FORMAOPS_AGENT_MODEL` /
-   `FORMAOPS_AGENT_INPUT_COST_CENTS_PER_1M` /
-   `FORMAOPS_AGENT_OUTPUT_COST_CENTS_PER_1M`) once credits are added,
-   before relying on the $20/month cutoff being accurate.
+5. **RESOLVED this update.** `FORMAOPS_AGENT_MODEL`'s default
+   (`"gpt-5-mini"`) is confirmed real and callable — used successfully in
+   live testing. The budget cost-per-token defaults are still
+   *unconfirmed against OpenAI's actual invoice* (only cross-checked
+   against a few independent pricing-tracker sites during research, not
+   OpenAI's own billing page) — low-stakes at this usage volume, but
+   worth a real check before trusting the $20 cutoff at higher volume.
 6. **RESOLVED this update.** `Services.tsx`'s included-items list now
    reads the DB `features` column when a matching package row has one,
    same as `Pricing.tsx`/`Booking.tsx` already did — see "Found and fixed
    a real, second instance of..." above.
+7. **RESOLVED this update, was a real bug.** `aiUsageLedger.estimatedCostCents`
+   was an `INT` rounded to a whole cent on every write, so fractional-cent
+   costs (typical for a cheap model) could never accumulate — the
+   $20/month cutoff would have almost never actually triggered. Fixed via
+   `DECIMAL(12,4)` (migration `0017`) — see "Found and fixed a real
+   precision bug..." above for the full account, including a live
+   before/after confirmation.
 
 ## NEXT RECOMMENDED WORK
 
-1. **Add billing credits to the OpenAI account** at
-   platform.openai.com/settings/organization/billing — this is the only
-   remaining blocker on verifying the agent actually works, not a code
-   change. Confirmed working end-to-end otherwise (see "Verified this
-   session (2026-09-03)" above).
-2. Once verified, wire real Twilio inbound SMS (needs
+1. **Cross-check the budget's cost-per-token defaults against OpenAI's
+   actual billing page** once real usage has accrued there — the
+   $20/month cutoff's accuracy depends on it, and it's only been
+   cross-checked against third-party pricing trackers so far, not
+   OpenAI's own invoice.
+2. Wire real Twilio inbound SMS (needs
    `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/a number capable of receiving
    SMS, and a public webhook URL — a local dev server can't receive
    Twilio's webhook without a tunnel). Confirm the same Twilio account
