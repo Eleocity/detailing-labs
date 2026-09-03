@@ -225,6 +225,48 @@ executor only touches tier columns that already exist.
 
 ---
 
+## ADR-009 — Third executor category: `services`, picked over `promotions`
+
+**Context**: The owner asked to "work on something else" while an OpenAI
+billing issue got sorted out (see the AI agent work in `STATUS.md`).
+Wiring a third `changeRequests` category's executor was the clearly
+flagged next step (`ROADMAP.md`'s "Next step (continuing Phase 2)"), but
+which category — `services` or `promotions` — was explicitly left open in
+this same doc's item #4 as "a real product-priority question, not an
+engineering judgment call." The owner wasn't available to answer it in
+the moment.
+
+**Decision**: Built `services` (add/remove one `features` line item on a
+package), not `promotions`.
+
+**Reasoning**: This is a judgment call made in the owner's absence, not a
+belated claim that it was actually an engineering-only decision —
+flagged here so it's easy to revisit. Two things tipped it: (1)
+`services` extends the same `packages` table `pricing` already touches,
+so it needed no new table or new page concept, while `promotions` (a
+homepage banner) has no existing structured home anywhere in the schema
+yet — building it would mean designing that structure too, a second
+judgment call stacked on the first. (2) "Add ceramic top coat to the
+Signature Detail" is a narrower, more obviously-correct operation to get
+right than "create a homepage promotion," which raises open questions
+(one active promotion at a time, or several? does it expire? does it need
+its own risk classification?) that a business-priority conversation
+should settle, not an assumption made while the owner was away.
+
+**Consequences**: If `promotions` was actually the more wanted one,
+building `services` first didn't foreclose it — the registry pattern
+means `promotions` is still "write an executor, add one line" whenever
+it's picked. Also surfaced a real, second instance of the "looks
+DB-driven but isn't" bug (`Services.tsx`'s included-items list, fixed
+alongside — see `STATUS.md`), the same way `ADR`-adjacent work on tiered
+pricing surfaced one for `Home.tsx`'s price display. Worth noticing: this
+bug class (a page reads the DB for one field but a static catalog for a
+related one, so they silently drift) has now shown up twice — anyone
+wiring a fourth category should check every page that displays that
+category's data for the same pattern before assuming it's fine.
+
+---
+
 ## Open decisions requiring owner input
 
 Not yet decided — flagged per spec §33 as genuinely needing your input
@@ -261,9 +303,10 @@ judgment calls:
    You may prefer a firmer trigger (e.g. "before any production deployment
    automation," Phase 8) rather than an engineering judgment call at the
    time.
-4. **Resolved**: pricing and hours are both wired end to end, and
+4. **Resolved**: pricing, hours, and services are all wired end to end, and
    `Services.tsx`/`Home.tsx` are DB-driven for pricing (see ADR-007 and
-   `ROADMAP.md`). What's now open: which category to wire third —
-   `ROADMAP.md` suggests `services` or `promotions` as the next-simplest,
-   but hasn't picked one, since which matters more depends on what the
-   business actually wants to change through FormaOps first.
+   `ROADMAP.md`). `services` was picked over `promotions` as a third
+   category by engineering judgment call while the owner was unavailable
+   (see ADR-009) — flag if `promotions` was actually wanted first. What's
+   now open: `promotions`/`content`/`business_profile` all remain
+   unwired, still no forcing product reason to pick one first.

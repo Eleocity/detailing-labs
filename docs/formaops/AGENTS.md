@@ -1,11 +1,14 @@
 # FormaOps — Agents
 
 **Status: FormaOps Manager (the only agent in the table below marked
-built) exists as of 2026-09-01** — `@openai/agents` is a real dependency,
-and `server/formaops/agents/{tools,manager,budget}.ts` implement it. Every
-other agent in the table is still design intent only, written so its
-phase starts from an agreed shape instead of a blank page (spec §27) — not
-to be mistaken for working code (spec §28).
+built) exists as of 2026-09-03** — `@openai/agents` is a real dependency,
+and `server/formaops/agents/{tools,manager,budget}.ts` implement it. A
+real API key confirmed a request genuinely reaches OpenAI (rejected only
+for lack of billing credits, an account issue, not a code one — a real
+successful response is still unverified). Every other agent in the table
+below is still design intent only, written so its phase starts from an
+agreed shape instead of a blank page (spec §27) — not to be mistaken for
+working code (spec §28).
 
 ## FormaOps Manager — what actually exists
 
@@ -16,24 +19,28 @@ on `/admin/change-requests`). SMS is not wired yet (needs Twilio inbound
 credentials — see `DECISIONS.md` open decision #2) but calls the exact
 same function once it is, by design, not by later refactor.
 
-Tools: `get_pricing` / `get_hours` (read-only) and
-`propose_pricing_change` / `propose_hours_change`, which call the exact
+Tools: `get_pricing` / `get_hours` (read-only — `get_pricing` also
+returns each package's included-features list, useful grounding for a
+services proposal too) and `propose_pricing_change` /
+`propose_hours_change` / `propose_services_change`, which call the exact
 same `changeRequestsService.create()` the admin UI and tRPC router call —
-no privileged shortcut. There is no approve/execute/deploy/SQL tool, per
-the boundary below.
+no privileged shortcut. Kept in sync with the executor registry by hand
+(`services` got both an executor and a tool in the same change, so the
+agent's capabilities never lag what's actually executable). There is no
+approve/execute/deploy/SQL tool, per the boundary below.
 
 Budget: `server/formaops/agents/budget.ts` enforces the $20/month cutoff
 decided in `DECISIONS.md` — checked before every run (not just logged
 after), and `handleIncomingMessage` never throws: every failure mode
 (budget exceeded, OpenAI error, no usable output) degrades to a reply
-pointing at `/admin/change-requests`, which never calls OpenAI.
+pointing at `/admin/change-requests`, which never calls OpenAI. Verified
+live: a real 429 "no credits remaining" error from OpenAI came back as a
+clean message in the chat log, not a crash.
 
-**Not yet done**: real end-to-end testing against a live OpenAI API key
-(none was available in this working environment as of this writing — the
-graceful-failure path was verified live instead, real usage was not),
-SMS transport, and identity resolution for a channel where the caller
-isn't already an authenticated web session (SMS needs phone-number → user
-mapping, which doesn't exist yet).
+**Not yet done**: a real successful OpenAI response (blocked on the
+account's billing, not code), SMS transport, and identity resolution for
+a channel where the caller isn't already an authenticated web session
+(SMS needs phone-number → user mapping, which doesn't exist yet).
 
 ## Boundary (non-negotiable, from Phase 1 onward)
 

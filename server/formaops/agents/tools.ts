@@ -33,7 +33,7 @@ export function buildManagerTools(ctx: ManagerToolContext) {
   const getPricing = tool({
     name: "get_pricing",
     description:
-      "List every active service package and its current price, including vehicle-size tiers (sedan/suv/large) where they exist. Always call this before proposing a pricing change so the proposal is grounded in the real current price.",
+      "List every active service package: its current price (including vehicle-size tiers, sedan/suv/large, where they exist) and its current list of included-service line items. Always call this before proposing a pricing OR services change so the proposal is grounded in the real current values — for a services change, checking the current list first avoids proposing to add a duplicate or remove something that isn't there.",
     parameters: z.object({}),
     execute: async () => {
       const rows = await ctx.db
@@ -46,6 +46,7 @@ export function buildManagerTools(ctx: ManagerToolContext) {
         priceSedan: p.priceSedan != null ? Number(p.priceSedan) : null,
         priceSuv: p.priceSuv != null ? Number(p.priceSuv) : null,
         priceLarge: p.priceLarge != null ? Number(p.priceLarge) : null,
+        includedFeatures: p.features ? JSON.parse(p.features) : [],
       }));
     },
     errorFunction: (_context, error) =>
@@ -112,6 +113,39 @@ export function buildManagerTools(ctx: ManagerToolContext) {
       `Could not propose this pricing change: ${describeError(error)}`,
   });
 
+  const proposeServicesChange = tool({
+    name: "propose_services_change",
+    description:
+      "Draft a ChangeRequest to add or remove one included-service line item from a package (e.g. 'add ceramic top coat to The Signature Detail'). This does NOT change the live package — it only creates a pending request.",
+    parameters: z.object({
+      packageName: z.string().describe("Exact package name, from get_pricing."),
+      action: z.enum(["add", "remove"]),
+      item: z.string().describe("The included-service line, exactly as it should read."),
+      reasoning: z
+        .string()
+        .describe("One sentence explaining why, shown to whoever approves this."),
+    }),
+    execute: async args => {
+      const cr = await changeRequestsService.create(ctx.db, {
+        businessId: ctx.businessId,
+        submittedByUserId: ctx.actingUserId,
+        actorType: "AI_SYSTEM",
+        source: "ai_agent",
+        category: "services",
+        originalRequest: args.reasoning,
+        proposedChange: {
+          packageName: args.packageName,
+          action: args.action,
+          item: args.item,
+        },
+        reasoningSummary: args.reasoning,
+      });
+      return { changeRequestId: cr.id, status: cr.status };
+    },
+    errorFunction: (_context, error) =>
+      `Could not propose this services change: ${describeError(error)}`,
+  });
+
   const proposeHoursChange = tool({
     name: "propose_hours_change",
     description:
@@ -140,5 +174,11 @@ export function buildManagerTools(ctx: ManagerToolContext) {
       `Could not propose this hours change: ${describeError(error)}`,
   });
 
-  return [getPricing, getHours, proposePricingChange, proposeHoursChange];
+  return [
+    getPricing,
+    getHours,
+    proposePricingChange,
+    proposeHoursChange,
+    proposeServicesChange,
+  ];
 }

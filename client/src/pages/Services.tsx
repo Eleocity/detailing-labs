@@ -37,17 +37,24 @@ const activeAddOns = ADD_ONS.filter(a => a.isActive).sort(
 );
 
 export default function Services() {
-  // Package NAME/description/icon/included-items/etc. still come from the
-  // static catalog (shared/services.ts) — it's the only place quote-only
-  // services (ceramic, paint correction) and retired ones (isActive:false)
-  // are defined at all. But the displayed PRICE now prefers the DB
-  // `packages` table row when one exists by name, so an approved FormaOps
-  // pricing ChangeRequest (which only writes to that table — see
-  // server/formaops/executors/pricing.ts) is reflected here too, not just
-  // on /pricing.
+  // Package NAME/description/icon/etc. still come from the static catalog
+  // (shared/services.ts) — it's the only place quote-only services
+  // (ceramic, paint correction) and retired ones (isActive:false) are
+  // defined at all. But displayed PRICE and included-items both now
+  // prefer the DB `packages` table row when one exists by name, so an
+  // approved FormaOps pricing or services ChangeRequest (which only write
+  // to that table — see server/formaops/executors/{pricing,services}.ts)
+  // is reflected here too, not just on /pricing and the booking wizard,
+  // which already read the DB row directly.
   const { data: dbPackages } = trpc.bookings.getPackages.useQuery();
   const dbPriceByName = new Map(
     (dbPackages ?? []).map(p => [p.name, Number(p.price)])
+  );
+  const dbFeaturesByName = new Map(
+    (dbPackages ?? []).map(p => [
+      p.name,
+      p.features ? (JSON.parse(p.features) as string[]) : null,
+    ])
   );
 
   return (
@@ -110,6 +117,7 @@ export default function Services() {
           >
             {activePackages.map(pkg => {
               const displayPrice = dbPriceByName.get(pkg.name) ?? pkg.fromPrice;
+              const displayFeatures = dbFeaturesByName.get(pkg.name) ?? pkg.included;
               return (
               <motion.div key={pkg.internalKey} variants={fadeUp}>
                 <Link
@@ -145,7 +153,7 @@ export default function Services() {
                         {pkg.fullDescription}
                       </p>
                       <ul className="space-y-1.5">
-                        {pkg.included.slice(0, 4).map(item => (
+                        {displayFeatures.slice(0, 4).map(item => (
                           <li
                             key={item}
                             className="flex items-start gap-2 text-xs text-muted-foreground"

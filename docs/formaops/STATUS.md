@@ -1,8 +1,8 @@
 # FormaOps — Status
 
-Last updated: 2026-09-01 (Phase 4/5 groundwork: FormaOps Manager agent
-built and wired into the admin UI as a chat panel — untested against a
-real OpenAI key, since none exists in this environment yet).
+Last updated: 2026-09-03 (real OpenAI key confirmed working end-to-end —
+blocked only on the account having no billing credits; third executor,
+`services`, wired while waiting on that).
 
 ## WORKING
 
@@ -18,15 +18,26 @@ real OpenAI key, since none exists in this environment yet).
   (the spec says Operations Managers can "view request status"; the
   original seed only gave `approvals.read` to OWNER).
 - **Executor registry**: `server/formaops/executors/index.ts` maps a
-  category to `{schema, execute}`. Two are wired:
+  category to `{schema, execute}`. Three are wired:
   - **pricing** (`executors/pricing.ts`) — updates `packages.price` and,
     for packages with tiered pricing, `priceSedan`/`priceSuv`/
     `priceLarge` too.
   - **hours** (`executors/hours.ts`) — upserts `siteContent`'s
     `hours_weekday`/`hours_weekend` row.
-  Adding a third category's execution is "write an executor file, add one
-  line to the registry" — `create()` and `decide()` in `changeRequests.ts`
-  are fully generic over the registry, no per-category branching left.
+  - **services** (`executors/services.ts`, new) — adds or removes one line
+    item from a package's `features` list (the included-services shown on
+    `/pricing`, `/services`, and the booking wizard). Action-based
+    (add/remove one item), not "replace the whole list," so a proposer
+    never has to correctly restate every existing item to change one.
+    Chosen over `promotions` as a judgment call while the owner was
+    unavailable to pick (`DECISIONS.md` records the reasoning) — flag if
+    `promotions` was actually wanted instead.
+  Adding a further category's execution is "write an executor file, add
+  one line to the registry" — `create()` and `decide()` in
+  `changeRequests.ts` are fully generic over the registry, no
+  per-category branching left. The FormaOps Manager agent's tools stay in
+  sync with this registry by hand (`propose_services_change` was added to
+  `agents/tools.ts` alongside the executor, not left to drift).
 - Status transitions `AWAITING_APPROVAL → APPROVED → EXECUTING →
   COMPLETED`/`FAILED` are real for both wired categories. A failed
   execution (e.g. approving a price change for a package name that
@@ -85,7 +96,52 @@ real OpenAI key, since none exists in this environment yet).
   `changeRequestsService.create()`, exactly when a tool tries to actually
   propose something).
 
-## Verified this session
+## Verified this session (2026-09-03)
+
+- **Real `OPENAI_API_KEY` confirmed working end-to-end, blocked only on
+  billing.** Restarted the dev server to pick up the new env var (env
+  vars aren't hot-reloaded by `tsx watch` — only file changes are; editing
+  `.env` alone left the running process on its old, empty environment).
+  Sent a real message through the live "Ask the AI" panel — the request
+  genuinely reached OpenAI (not a config error) and OpenAI rejected it
+  with **"You have no credits remaining"** (HTTP 429, an account/billing
+  issue, not a bug). `handleIncomingMessage`'s error handling worked
+  exactly as designed: the raw OpenAI error was caught and shown as a
+  clean, readable message in the chat log, not a crash or a raw stack
+  trace. **Still unverified**: an actual successful agent response — that
+  needs the OpenAI account to have billing/credits added at
+  platform.openai.com, not any further code change here.
+- **Third executor wired: `services`.** `server/formaops/executors/services.ts`
+  adds/removes one `features` line item on a package; registered in
+  `executors/index.ts`; a matching `propose_services_change` tool added to
+  the agent (`agents/tools.ts`); a third "Services change" tab added to
+  `/admin/change-requests`'s form. 5 new tests
+  (`server/formaops.test.ts`: 22→27) cover validation, add, remove, the
+  add-already-present/remove-already-absent no-op cases, and the
+  package-not-found FAILED path. Full pipeline verified live against the
+  real dev DB: submitted "add Interior UV protectant treatment to The
+  Signature Detail" through the actual admin form (not a script), approved
+  it as a second real OWNER account, confirmed `packages.features` in the
+  database actually gained the new line and the audit trail's `before`/
+  `after` metadata is correct, and confirmed `/pricing` (which has no cap
+  on the rendered feature list) shows the new item live.
+- **Found and fixed a real, second instance of the "looks DB-driven but
+  isn't" bug class** (same class as the `VEHICLE_TIERS` bug found earlier
+  this session in `Home.tsx`): `Services.tsx` already read the DB `price`
+  for its package cards, but its included-items list still came from the
+  static `shared/services.ts` catalog even though `Pricing.tsx` and
+  `Booking.tsx` both already read `pkg.features` from the DB. Once the
+  `services` executor made that DB column real, this became a genuine gap
+  — an approved services change would silently not show on `/services`
+  while showing everywhere else. Fixed the same way the price gap was
+  fixed: prefer the DB `features` list when the package has one, fall back
+  to the static catalog's `included` only when it doesn't (quote-only
+  packages, or a name-based rename lookup miss). Full suite now 93/95
+  (up from 88/90 — the 5 new `services` tests; same 2 pre-existing
+  environmental failures), `npm run check` clean, `npm run build`
+  succeeds.
+
+## Verified this session (2026-09-01)
 
 - `npm run check` — clean (same 9 pre-existing, unrelated errors as
   before any FormaOps work existed)
@@ -191,7 +247,7 @@ real OpenAI key, since none exists in this environment yet).
 
 ## PARTIAL
 
-- **Two categories, not five.** `services`, `promotions`, `content`,
+- **Three categories, not five.** `promotions`, `content`,
   `business_profile` still have no executor — approving one of those is
   indistinguishable from before any of this session's work.
 - **Hours execution is narrow by design**: only the standing
@@ -201,9 +257,11 @@ real OpenAI key, since none exists in this environment yet).
 - **Residual security gap unchanged from last session**: a future
   procedure could still be written without `withPermissionCheck`,
   bypassing the guarantee. See `SECURITY.md` "Residual gap."
-- **FormaOps Manager agent exists but is unverified against a real
-  OpenAI key** — see "Verified this session" above for exactly what was
-  and wasn't checked.
+- **FormaOps Manager agent's plumbing is confirmed live** (a real message
+  genuinely reached OpenAI and the response — an error — was handled
+  correctly) **but a real successful response is still unverified**,
+  blocked on the OpenAI account having no billing credits. Not a code
+  problem — see "Verified this session (2026-09-03)" above.
 
 ## NOT IMPLEMENTED
 
@@ -212,7 +270,7 @@ Phases 4-5 (see PARTIAL above), plus the untouched parts of Phase 2:
 
 - No submitter-initiated cancellation
 - No per-date hours override
-- No `services`/`promotions`/`content`/`business_profile` executors
+- No `promotions`/`content`/`business_profile` executors
 - No SMS transport or phone-number → user identity mapping (needs Twilio
   inbound credentials — see `DECISIONS.md` open decision #2)
 - No tracing/observability for the agent
@@ -235,19 +293,26 @@ Phases 4-5 (see PARTIAL above), plus the untouched parts of Phase 2:
 4. `addOns` still has the same wipe-and-reseed durability bug `packages`
    had — deliberately not fixed, since no executor writes to it yet (see
    `DECISIONS.md` ADR-007's closing note).
-5. **New this update**: `FORMAOPS_AGENT_MODEL` defaults to `"gpt-5-mini"`
-   and the budget cost-per-token defaults assume that model's published
-   pricing — neither has been confirmed against a live OpenAI account.
-   Verify both (or override via `FORMAOPS_AGENT_MODEL` /
+5. **Still open**: `FORMAOPS_AGENT_MODEL` defaults to `"gpt-5-mini"` and
+   the budget cost-per-token defaults assume that model's published
+   pricing — neither has been confirmed against a live OpenAI account
+   (blocked on the same missing billing credits as the rest of live agent
+   testing). Verify both (or override via `FORMAOPS_AGENT_MODEL` /
    `FORMAOPS_AGENT_INPUT_COST_CENTS_PER_1M` /
-   `FORMAOPS_AGENT_OUTPUT_COST_CENTS_PER_1M`) once a real API key exists,
+   `FORMAOPS_AGENT_OUTPUT_COST_CENTS_PER_1M`) once credits are added,
    before relying on the $20/month cutoff being accurate.
+6. **RESOLVED this update.** `Services.tsx`'s included-items list now
+   reads the DB `features` column when a matching package row has one,
+   same as `Pricing.tsx`/`Booking.tsx` already did — see "Found and fixed
+   a real, second instance of..." above.
 
 ## NEXT RECOMMENDED WORK
 
-1. **Get a real `OPENAI_API_KEY` into `.env`** — nothing about the agent
-   is provably correct until it's actually run. This is the immediate
-   blocker for everything else in Phase 4/5.
+1. **Add billing credits to the OpenAI account** at
+   platform.openai.com/settings/organization/billing — this is the only
+   remaining blocker on verifying the agent actually works, not a code
+   change. Confirmed working end-to-end otherwise (see "Verified this
+   session (2026-09-03)" above).
 2. Once verified, wire real Twilio inbound SMS (needs
    `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/a number capable of receiving
    SMS, and a public webhook URL — a local dev server can't receive
@@ -255,7 +320,7 @@ Phases 4-5 (see PARTIAL above), plus the untouched parts of Phase 2:
    already used for outbound reminders is the intended one first
    (`DECISIONS.md` open decision #2), and design phone-number → user
    identity resolution (not built yet).
-3. Wire a third executor. `ROADMAP.md` suggests `services` or `promotions`
-   as next-simplest but doesn't pick one — a real product-priority
-   question, not an engineering judgment call, left for `DECISIONS.md`'s
-   open list rather than assumed.
+3. **Done**: a third executor (`services`) is wired — see WORKING above.
+   `promotions`/`content`/`business_profile` remain, in that rough order
+   of likely usefulness, but still no forcing product reason to pick one
+   over the others yet.

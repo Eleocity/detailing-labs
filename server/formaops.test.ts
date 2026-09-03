@@ -261,14 +261,14 @@ describe("changeRequests.create — pricing validation", () => {
     (permissions.hasPermission as any).mockResolvedValue(true);
     const { create } = await import("./formaops/changeRequests");
 
-    // "services" has no executor/schema yet — any object is currently accepted.
-    const result = await create(makeMockDb({ ...CHANGE_REQUEST_ROW, category: "services" }), {
+    // "promotions" has no executor/schema yet — any object is currently accepted.
+    const result = await create(makeMockDb({ ...CHANGE_REQUEST_ROW, category: "promotions" }), {
       businessId: 1,
       submittedByUserId: 10,
       actorType: "HUMAN",
       source: "admin_dashboard",
-      category: "services",
-      originalRequest: "Add pet hair removal to the interior package",
+      category: "promotions",
+      originalRequest: "Add a spring discount banner to the homepage",
       proposedChange: { anything: "goes for now" },
     });
     expect(result.status).toBe("AWAITING_APPROVAL");
@@ -492,7 +492,7 @@ describe("changeRequests.approve — pricing execution", () => {
     const { approve } = await import("./formaops/changeRequests");
 
     const db = makeExecutionMockDb({
-      changeRequestRow: { ...CHANGE_REQUEST_ROW, category: "services" },
+      changeRequestRow: { ...CHANGE_REQUEST_ROW, category: "promotions" },
       packageRow: null,
     });
 
@@ -558,5 +558,148 @@ describe("changeRequests.approve — hours execution", () => {
 
     const siteContentUpdate = db.setCalls.find(c => c.table === siteContentTable);
     expect(siteContentUpdate?.values.value).toBe("Mon–Fri: 8:00 AM – 6:00 PM");
+  });
+});
+
+describe("changeRequests.create — services validation", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("rejects a services category with a malformed proposedChange", async () => {
+    const permissions = await import("./formaops/permissions");
+    (permissions.hasPermission as any).mockResolvedValue(true);
+    const { create } = await import("./formaops/changeRequests");
+
+    await expect(
+      create(makeMockDb(), {
+        businessId: 1,
+        submittedByUserId: 10,
+        actorType: "HUMAN",
+        source: "admin_dashboard",
+        category: "services",
+        originalRequest: "Add ceramic top coat to the Signature Detail",
+        proposedChange: { action: "sprinkle", item: "Ceramic top coat" }, // invalid action
+      })
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});
+
+describe("changeRequests.approve — services execution", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  const approvedAddChangeRequestRow = {
+    ...CHANGE_REQUEST_ROW,
+    category: "services",
+    proposedChange: {
+      packageName: "The Signature Detail",
+      action: "add",
+      item: "Ceramic top coat",
+    },
+  };
+
+  it("adds a new feature line and completes", async () => {
+    const permissions = await import("./formaops/permissions");
+    (permissions.hasPermission as any).mockResolvedValue(true);
+    (permissions.getMembershipRole as any).mockResolvedValue("OWNER");
+    const { approve } = await import("./formaops/changeRequests");
+
+    const db = makeExecutionMockDb({
+      changeRequestRow: approvedAddChangeRequestRow,
+      packageRow: {
+        id: 2,
+        name: "The Signature Detail",
+        features: JSON.stringify(["Clay bar decontamination"]),
+      },
+    });
+
+    await approve(db, { changeRequestId: 1, actingUserId: 999, actorType: "HUMAN" });
+
+    const statusesSet = db.setCalls
+      .filter(c => c.table === changeRequestsTable)
+      .map(c => c.values.status);
+    expect(statusesSet).toEqual(["APPROVED", "EXECUTING", "COMPLETED"]);
+
+    const packageUpdate = db.setCalls.find(c => c.table === packagesTable);
+    expect(JSON.parse(packageUpdate!.values.features as string)).toEqual([
+      "Clay bar decontamination",
+      "Ceramic top coat",
+    ]);
+  });
+
+  it("removes a feature line and completes", async () => {
+    const permissions = await import("./formaops/permissions");
+    (permissions.hasPermission as any).mockResolvedValue(true);
+    (permissions.getMembershipRole as any).mockResolvedValue("OWNER");
+    const { approve } = await import("./formaops/changeRequests");
+
+    const db = makeExecutionMockDb({
+      changeRequestRow: {
+        ...CHANGE_REQUEST_ROW,
+        category: "services",
+        proposedChange: {
+          packageName: "The Signature Detail",
+          action: "remove",
+          item: "Clay bar decontamination",
+        },
+      },
+      packageRow: {
+        id: 2,
+        name: "The Signature Detail",
+        features: JSON.stringify(["Clay bar decontamination", "Ceramic top coat"]),
+      },
+    });
+
+    await approve(db, { changeRequestId: 1, actingUserId: 999, actorType: "HUMAN" });
+
+    const packageUpdate = db.setCalls.find(c => c.table === packagesTable);
+    expect(JSON.parse(packageUpdate!.values.features as string)).toEqual([
+      "Ceramic top coat",
+    ]);
+  });
+
+  it("adding an item that's already present is a harmless no-op, not a failure", async () => {
+    const permissions = await import("./formaops/permissions");
+    (permissions.hasPermission as any).mockResolvedValue(true);
+    (permissions.getMembershipRole as any).mockResolvedValue("OWNER");
+    const { approve } = await import("./formaops/changeRequests");
+
+    const db = makeExecutionMockDb({
+      changeRequestRow: approvedAddChangeRequestRow,
+      packageRow: {
+        id: 2,
+        name: "The Signature Detail",
+        features: JSON.stringify(["Ceramic top coat"]),
+      },
+    });
+
+    await approve(db, { changeRequestId: 1, actingUserId: 999, actorType: "HUMAN" });
+
+    const statusesSet = db.setCalls
+      .filter(c => c.table === changeRequestsTable)
+      .map(c => c.values.status);
+    expect(statusesSet).toEqual(["APPROVED", "EXECUTING", "COMPLETED"]);
+
+    const packageUpdate = db.setCalls.find(c => c.table === packagesTable);
+    expect(JSON.parse(packageUpdate!.values.features as string)).toEqual([
+      "Ceramic top coat",
+    ]);
+  });
+
+  it("marks FAILED when the package doesn't exist", async () => {
+    const permissions = await import("./formaops/permissions");
+    (permissions.hasPermission as any).mockResolvedValue(true);
+    (permissions.getMembershipRole as any).mockResolvedValue("OWNER");
+    const { approve } = await import("./formaops/changeRequests");
+
+    const db = makeExecutionMockDb({
+      changeRequestRow: approvedAddChangeRequestRow,
+      packageRow: null,
+    });
+
+    await approve(db, { changeRequestId: 1, actingUserId: 999, actorType: "HUMAN" });
+
+    const statusesSet = db.setCalls
+      .filter(c => c.table === changeRequestsTable)
+      .map(c => c.values.status);
+    expect(statusesSet).toEqual(["APPROVED", "EXECUTING", "FAILED"]);
   });
 });

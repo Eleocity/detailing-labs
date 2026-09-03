@@ -97,7 +97,7 @@ export default function AdminChangeRequests() {
     chat.mutate({ businessId: BUSINESS_ID, message });
   }
 
-  const [form, setForm] = useState<"pricing" | "hours">("pricing");
+  const [form, setForm] = useState<"pricing" | "hours" | "services">("pricing");
 
   // Pricing form state
   const [packageName, setPackageName] = useState("");
@@ -113,8 +113,18 @@ export default function AdminChangeRequests() {
   const [hoursValue, setHoursValue] = useState("");
   const [hoursWhy, setHoursWhy] = useState("");
 
+  // Services form state (add/remove one included-feature line on a package)
+  const [servicesPackageName, setServicesPackageName] = useState("");
+  const [servicesAction, setServicesAction] = useState<"add" | "remove">("add");
+  const [servicesItem, setServicesItem] = useState("");
+  const [servicesWhy, setServicesWhy] = useState("");
+
   const selectedPackage = packages?.find(p => p.name === packageName);
   const selectedHasTiers = !!selectedPackage?.priceSedan;
+  const selectedServicesPackage = packages?.find(p => p.name === servicesPackageName);
+  const selectedServicesFeatures: string[] = selectedServicesPackage?.features
+    ? JSON.parse(selectedServicesPackage.features)
+    : [];
 
   function submitPricing() {
     if (!packageName || !newPrice || !pricingWhy) {
@@ -165,6 +175,33 @@ export default function AdminChangeRequests() {
         onSuccess: () => {
           setHoursValue("");
           setHoursWhy("");
+        },
+      }
+    );
+  }
+
+  function submitServices() {
+    if (!servicesPackageName || !servicesItem || !servicesWhy) {
+      toast.error("Package, item, and a reason are all required.");
+      return;
+    }
+    create.mutate(
+      {
+        businessId: BUSINESS_ID,
+        source: "admin_dashboard",
+        category: "services",
+        originalRequest: servicesWhy,
+        proposedChange: {
+          packageName: servicesPackageName,
+          action: servicesAction,
+          item: servicesItem,
+        },
+      },
+      {
+        onSuccess: () => {
+          setServicesPackageName("");
+          setServicesItem("");
+          setServicesWhy("");
         },
       }
     );
@@ -281,6 +318,17 @@ export default function AdminChangeRequests() {
             >
               Hours change
             </button>
+            <button
+              onClick={() => setForm("services")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                form === "services"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted"
+              )}
+            >
+              Services change
+            </button>
           </div>
 
           {form === "pricing" ? (
@@ -349,7 +397,7 @@ export default function AdminChangeRequests() {
                 Submit for approval
               </Button>
             </div>
-          ) : (
+          ) : form === "hours" ? (
             <div className="grid gap-3">
               <Select
                 value={hoursField}
@@ -379,6 +427,67 @@ export default function AdminChangeRequests() {
 
               <Button
                 onClick={submitHours}
+                disabled={create.isPending}
+                className="w-fit bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                {create.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
+                Submit for approval
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              <Select value={servicesPackageName} onValueChange={setServicesPackageName}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a package" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(packages ?? []).map(p => (
+                    <SelectItem key={p.id} value={p.name}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {selectedServicesFeatures.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Currently included: {selectedServicesFeatures.join(" · ")}
+                </p>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-3">
+                <Select
+                  value={servicesAction}
+                  onValueChange={v => setServicesAction(v as "add" | "remove")}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="add">Add item</SelectItem>
+                    <SelectItem value="remove">Remove item</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  placeholder='e.g. "Ceramic top coat"'
+                  value={servicesItem}
+                  onChange={e => setServicesItem(e.target.value)}
+                />
+              </div>
+
+              <Textarea
+                placeholder="Why is this changing? (required — kept in the audit log)"
+                value={servicesWhy}
+                onChange={e => setServicesWhy(e.target.value)}
+                rows={2}
+              />
+
+              <Button
+                onClick={submitServices}
                 disabled={create.isPending}
                 className="w-fit bg-primary hover:bg-primary/90 text-primary-foreground"
               >
