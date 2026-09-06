@@ -27,7 +27,7 @@ const faqs = [
       },
       {
         q: "Do you need access to water or electricity?",
-        a: "No. Our mobile setup includes our own water tank and generator, so we can detail in most locations without needing water or power access.",
+        a: "Yes. Please provide access to an outdoor water spigot and a standard electrical outlet at the service address — we bring everything else needed to do the job.",
       },
     ],
   },

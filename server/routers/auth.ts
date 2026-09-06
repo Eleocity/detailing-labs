@@ -127,7 +127,7 @@ export const authRouter = router({
   // ── Me (current user) ────────────────────────────────────────────────────────
   me: publicProcedure.query(async ({ ctx }) => {
     if (ctx.user) return ctx.user;
-    // Also try reading from our own JWT cookie if Manus SDK didn't populate ctx.user
+    // Fallback: re-verify the session cookie directly if context resolution didn't populate ctx.user
     try {
       const { parse: parseCookieHeader } = await import("cookie");
       const cookieHeader = ctx.req.headers.cookie;

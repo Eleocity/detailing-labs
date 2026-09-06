@@ -2,7 +2,6 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { BRAND } from "../../shared/brand";
@@ -578,8 +577,6 @@ async function startServer() {
     }
   });
 
-  registerOAuthRoutes(app);
-
   app.use(
     "/api/trpc",
     createExpressMiddleware({ router: appRouter, createContext })
@@ -649,7 +646,7 @@ async function seedDefaultContent() {
       section: "hero",
       key: "subheadline",
       value:
-        "Forma Auto Spa is a professional mobile detailing service based in Southeast Wisconsin. We bring a fully equipped setup — our own water, our own power — directly to your driveway. No drop-off. No waiting rooms. Just results.",
+        "Forma Auto Spa is a professional mobile detailing service based in Southeast Wisconsin. We bring the equipment and products — you provide access to water and power. No drop-off. No waiting rooms. Just results.",
     },
     { section: "hero", key: "cta_primary", value: "Book Your Appointment" },
     { section: "hero", key: "cta_secondary", value: "See What's Included" },
@@ -677,7 +674,7 @@ async function seedDefaultContent() {
       section: "about",
       key: "body",
       value:
-        "We designed Forma Auto Spa around one problem: finding a truly professional detailer in Southeast Wisconsin shouldn't be hard. We carry our own water tank, run our own generator, and use professional-grade products on every single job. You don't give up your day. You don't drive anywhere. We handle it where your car lives.",
+        "We designed Forma Auto Spa around one problem: finding a truly professional detailer in Southeast Wisconsin shouldn't be hard. We bring professional-grade equipment and products to every single job — you just provide access to water and power. You don't give up your day. You don't drive anywhere. We handle it where your car lives.",
     },
     { section: "about", key: "years_experience", value: "3+" },
     { section: "about", key: "vehicles_detailed", value: "100+" },

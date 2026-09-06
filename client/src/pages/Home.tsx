@@ -43,8 +43,8 @@ const stagger = { visible: { transition: { staggerChildren: 0.1 } } };
 const pillars = [
   {
     icon: <Droplets className="w-5 h-5" />,
-    title: "Fully Self-Contained Rig",
-    desc: "We carry our own water tank and run our own generator. We don't need your hose or your outlet — we show up completely independent and ready to work.",
+    title: "Professional Equipment, Every Job",
+    desc: "We bring the pressure washer, vacuums, polishers, and premium products. You just provide access to an outdoor water spigot and a standard electrical outlet.",
   },
   {
     icon: <Shield className="w-5 h-5" />,
@@ -98,7 +98,7 @@ const PACKAGE_META: Record<string, { bestFor: string; duration: string }> =
 const faqs = [
   {
     q: "Do you need access to water or power at my location?",
-    a: "No. We carry everything — our own water tank and our own generator. Your hookups stay yours. We operate completely independently.",
+    a: "Yes — please provide access to an outdoor water spigot and a standard electrical outlet at the service address. We bring everything else: equipment, products, and the professional-grade gear to do the job right.",
   },
   {
     q: "What if I'm not home during the appointment?",
@@ -256,7 +256,7 @@ export default function Home() {
       <SiteHeader />
       <SEO
         title="Mobile Auto Detailing — Racine County, WI | Forma Auto Spa"
-        description="Forma Auto Spa is a professional mobile detailing service in Southeast Wisconsin. Fully self-contained — we bring our own water and power. Serving Racine, Kenosha, and Milwaukee County. Book online."
+        description="Forma Auto Spa is a professional mobile detailing service in Southeast Wisconsin. We bring the equipment and products — you provide water and power access. Serving Racine, Kenosha, and Milwaukee County. Book online."
         canonical="/"
         jsonLd={[
           localBusinessSchema,
@@ -346,7 +346,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
-                  {hero.trust_certified || "Fully insured & self-contained"}
+                  {hero.trust_certified || "Fully insured & professionally equipped"}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -490,8 +490,8 @@ export default function Home() {
               },
               {
                 n: "02",
-                title: "We show up fully equipped",
-                desc: "Water tank, generator, professional equipment — all ours. You don't move a thing or provide a single hookup.",
+                title: "We show up ready to work",
+                desc: "Professional equipment and premium products — all ours. Just provide access to an outdoor water spigot and a standard electrical outlet.",
               },
               {
                 n: "03",
@@ -772,7 +772,7 @@ export default function Home() {
                 className="text-muted-foreground leading-relaxed mb-8"
               >
                 {about.body ||
-                  "We built Forma Auto Spa around one problem: finding a truly professional mobile detailer in Southeast Wisconsin shouldn't be this hard. We carry our own water tank, run our own generator, and use professional-grade products on every single job. You don't give up your day. We handle it where your car lives."}
+                  "We built Forma Auto Spa around one problem: finding a truly professional mobile detailer in Southeast Wisconsin shouldn't be this hard. We bring professional-grade equipment and products to every single job — you just provide access to water and power. You don't give up your day. We handle it where your car lives."}
               </motion.p>
               <motion.div variants={stagger} className="space-y-4">
                 {pillars.map(item => (
@@ -824,8 +824,8 @@ export default function Home() {
                 </h3>
                 <p className="text-muted-foreground text-sm leading-relaxed mb-5">
                   Book online in two minutes. We confirm your appointment and
-                  show up with everything we need — no hookups, no hassle, no
-                  surprises.
+                  show up ready to work — just provide access to water and
+                  power, and we'll handle the rest.
                 </p>
                 <Link href={BRAND.booking.primaryPath}>
                   <Button className="w-full bg-primary hover:bg-primary/85 text-primary-foreground font-bold h-12 text-base mb-3">

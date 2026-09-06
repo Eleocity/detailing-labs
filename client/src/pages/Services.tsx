@@ -98,8 +98,8 @@ export default function Services() {
               className="text-muted-foreground text-lg max-w-2xl mx-auto"
             >
               Every service is performed at your location — no drop-off
-              required. We bring our own water and power, and use only
-              professional-grade, paint-safe products.
+              required. We bring professional-grade, paint-safe products and
+              equipment; you provide access to water and power.
             </motion.p>
           </motion.div>
         </div>

@@ -46,7 +46,7 @@ export const LOCATIONS: LocationData[] = [
     slug: "racine-wi",
     headline: "Mobile Auto Detailing in Racine, WI",
     subheadline:
-      "Professional detailing delivered to your driveway in Racine. We bring everything — water, power, and equipment.",
+      "Professional detailing delivered to your driveway in Racine. We bring the equipment and products — you provide water and power access.",
     bodyParagraph:
       "Forma Auto Spa serves Racine and surrounding Racine County with professional mobile detailing. Whether you're near the lakefront, in the north side neighborhoods, or out by the Highway 20 corridor, we come to you. No drop-off, no waiting — we show up equipped and ready to work.",
     nearbyTowns: [
@@ -67,7 +67,7 @@ export const LOCATIONS: LocationData[] = [
     subheadline:
       "We bring professional detailing directly to your home or office in Kenosha. No drop-off required.",
     bodyParagraph:
-      "Forma Auto Spa provides professional mobile detailing throughout Kenosha and Kenosha County. From the lakeside neighborhoods to Pleasant Prairie and beyond, we operate a fully self-contained setup — our own water tank, our own generator. You stay where you are. We handle everything.",
+      "Forma Auto Spa provides professional mobile detailing throughout Kenosha and Kenosha County. From the lakeside neighborhoods to Pleasant Prairie and beyond, we bring professional equipment and products to your location. You stay where you are — just provide access to water and power, and we handle the rest.",
     nearbyTowns: [
       "Pleasant Prairie",
       "Somers",
@@ -104,7 +104,7 @@ export const LOCATIONS: LocationData[] = [
     subheadline:
       "Professional mobile detailing throughout Mount Pleasant and Racine County. We come to your door.",
     bodyParagraph:
-      "Mount Pleasant is one of our most frequently served areas. Whether you're in a residential neighborhood or a commercial location near Highway 20 or the I-94 corridor, we can reach you quickly. Our mobile setup is fully self-contained — no water or power hookup needed from your property.",
+      "Mount Pleasant is one of our most frequently served areas. Whether you're in a residential neighborhood or a commercial location near Highway 20 or the I-94 corridor, we can reach you quickly. We bring professional equipment to every job — just provide access to water and power at your property.",
     nearbyTowns: [
       "Racine",
       "Sturtevant",
@@ -122,7 +122,7 @@ export const LOCATIONS: LocationData[] = [
     subheadline:
       "We serve Oak Creek and the south Milwaukee area with professional mobile detailing. Book online.",
     bodyParagraph:
-      "Forma Auto Spa extends service into Oak Creek and the southern Milwaukee suburbs. If you're in Oak Creek, Caledonia, or the surrounding area and looking for a professional mobile detailer who shows up properly equipped, we're the team. We carry everything needed to do the job right.",
+      "Forma Auto Spa extends service into Oak Creek and the southern Milwaukee suburbs. If you're in Oak Creek, Caledonia, or the surrounding area and looking for a professional mobile detailer who shows up properly equipped, we're the team. We carry the equipment and products needed to do the job right — you just provide access to water and power.",
     nearbyTowns: [
       "Caledonia",
       "South Milwaukee",
@@ -138,7 +138,7 @@ export const LOCATIONS: LocationData[] = [
     slug: "caledonia-wi",
     headline: "Mobile Auto Detailing in Caledonia, WI",
     subheadline:
-      "Professional mobile detailing in Caledonia, WI. We bring our own water and power — no hookup needed.",
+      "Professional mobile detailing in Caledonia, WI. We bring the equipment and products — you provide water and power access.",
     bodyParagraph:
       "Caledonia sits right in our core service area. We regularly detail vehicles throughout the township — from rural properties to residential neighborhoods along Highway 31 and 38. Our fully mobile setup means we can reach most locations in Caledonia with ease and same-week availability.",
     nearbyTowns: [
@@ -176,7 +176,7 @@ export const LOCATIONS: LocationData[] = [
     subheadline:
       "Professional mobile detailing in Franksville and central Racine County. We come to your location.",
     bodyParagraph:
-      "Franksville and the surrounding areas of central Racine County are well within our service range. Whether you're a few miles off I-94 or out on a rural property, our self-contained mobile setup can reach you. Book online and we'll confirm availability at your address.",
+      "Franksville and the surrounding areas of central Racine County are well within our service range. Whether you're a few miles off I-94 or out on a rural property, we can reach you with our mobile setup. Book online and we'll confirm availability at your address.",
     nearbyTowns: [
       "Mount Pleasant",
       "Sturtevant",
@@ -308,8 +308,9 @@ function LocationPage({ location }: { location: LocationData }) {
 
               <p className="text-muted-foreground leading-relaxed mb-8">
                 All services are performed by a trained detailer with
-                professional-grade equipment. We use our own water tank and
-                generator, so we don't need access to your property's utilities.
+                professional-grade equipment. Please provide access to an
+                outdoor water spigot and a standard electrical outlet at your
+                property.
               </p>
 
               {/* What's included */}
@@ -351,7 +352,7 @@ function LocationPage({ location }: { location: LocationData }) {
                 </h3>
                 <div className="space-y-3">
                   {[
-                    "Fully self-contained — our own water & power",
+                    "Professional-grade equipment on every job",
                     "Professional products on every job",
                     "Trained technicians, not day laborers",
                     "Same-week availability on most dates",

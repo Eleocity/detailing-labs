@@ -155,17 +155,17 @@ The downsides are what most people already know: you have to get your car there,
 
 The obvious advantage is convenience. We come to you — your home, your office, wherever the car is. You don't give up half a day. For most clients, that alone is worth it.
 
-The concern people have about mobile detailing is whether quality can match a shop. The answer is yes — if the operation is properly equipped. The key is whether the mobile setup includes proper lighting, professional-grade products, and enough water and power to do the job without cutting corners.
+The concern people have about mobile detailing is whether quality can match a shop. The answer is yes — if the operation is properly equipped. The key is proper lighting, professional-grade products, and making good use of the water and power access you provide, without cutting corners.
 
 **What to watch out for**
 
 The mobile detailing space has a wide range of operators. Some are properly equipped professionals. Some show up with a bucket of soap and a battery-powered vacuum and charge you $100 for a "detail."
 
-Ask the right questions before you book anyone: Do they bring their own water and power? What products do they use? Can they show you their work? A legitimate professional operation will answer all of these clearly.
+Ask the right questions before you book anyone: What products do they use? Do they carry professional-grade equipment? Can they show you their work? Most mobile detailers — us included — use your water and power access, so ask what to have ready before they arrive. A legitimate professional operation will answer all of these clearly.
 
 **The bottom line**
 
-For most people in Southeast Wisconsin, a properly equipped mobile detailer offers the same quality as a shop with significantly less inconvenience. The key word is "properly equipped." If the mobile setup is self-contained with professional tools and products, you're not giving anything up.`,
+For most people in Southeast Wisconsin, a properly equipped mobile detailer offers the same quality as a shop with significantly less inconvenience. The key word is "properly equipped." If the operator shows up with professional tools and products — and you've got a hose and an outlet ready — you're not giving anything up.`,
   },
 ];
 
@@ -447,7 +447,7 @@ export function BlogPost() {
               Serving Racine County & Southeast Wisconsin
             </h3>
             <p className="text-muted-foreground text-sm mb-5">
-              Book online in under 2 minutes. We show up fully equipped.
+              Book online in under 2 minutes. We'll take care of the rest.
             </p>
             <Link href="/book">
               <Button className="bg-primary hover:bg-primary/90 font-semibold px-8">

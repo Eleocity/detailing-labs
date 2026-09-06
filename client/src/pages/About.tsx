@@ -24,8 +24,8 @@ const stagger = { visible: { transition: { staggerChildren: 0.1 } } };
 const values = [
   {
     icon: <Zap className="w-5 h-5" />,
-    title: "Self-Contained Operation",
-    desc: "We bring our own water tank and generator. We don't need access to your utilities — we show up and get to work.",
+    title: "Professional-Grade Equipment",
+    desc: "We bring the pressure washer, vacuums, polishers, and premium products to every job. You provide access to water and power, and we handle the rest.",
   },
   {
     icon: <Shield className="w-5 h-5" />,
@@ -132,10 +132,10 @@ export default function About() {
                 </p>
                 <p>
                   We're based in Sturtevant and serve Racine County, Kenosha
-                  County, and surrounding areas. We operate a fully
-                  self-contained mobile setup — our own water supply, our own
-                  power, professional equipment on every job. You don't need to
-                  do anything except tell us where to show up.
+                  County, and surrounding areas. We bring professional
+                  equipment and premium products to every job — you just need
+                  to provide access to water and power at the address. Tell
+                  us where to show up, and we handle the rest.
                 </p>
                 <p>
                   We've been doing this in Wisconsin for 3 years. We're not a
@@ -174,7 +174,7 @@ export default function About() {
             >
               <motion.div variants={fadeUp} className="grid grid-cols-2 gap-4">
                 {[
-                  { value: "Self-Contained", label: "Own Water & Power" },
+                  { value: "Insured", label: "Every Appointment" },
                   { value: "Documented", label: "Before & After, Every Job" },
                   { value: "3 yrs", label: "In SE Wisconsin" },
                   { value: "100%", label: "Mobile Service" },
@@ -282,7 +282,7 @@ export default function About() {
               {
                 step: "3",
                 title: "We show up",
-                desc: "We arrive at your location with all equipment. No water or power hookup needed from you.",
+                desc: "We arrive at your location with all equipment. Please have an outdoor water spigot and electrical outlet accessible.",
               },
               {
                 step: "4",

@@ -16,7 +16,7 @@ references Next.js, Prisma, and PostgreSQL. The actual repository is:
 | Backend | Express + tRPC v11, one process (`server/_core/index.ts`) |
 | ORM | Drizzle ORM (not Prisma) |
 | Database | MySQL (not PostgreSQL) — single instance, single schema, no tenant column anywhere |
-| Auth | Custom JWT-in-cookie, `jose` for signing, `bcryptjs` for passwords. Legacy dual-format support for an old Manus-OAuth cookie shape, plus the current email/password shape |
+| Auth | Custom JWT-in-cookie, `jose` for signing, `bcryptjs` for passwords. Email/password only — the legacy Manus-OAuth cookie format has been removed |
 | Authorization | `users.role` enum: `"user" | "admin" | "employee"`. Checked via two tRPC middlewares (`protectedProcedure`, `adminProcedure`) and a repeated `adminOnly(role)` helper duplicated across ~10 router files. **No permissions table. No fine-grained checks. No memberships. No tenant concept.** |
 | Migrations | Plain numbered `.sql` files in `drizzle/`, applied by `scripts/migrate.mjs`, tracked via `__drizzle_migrations`. Current head: `0013_booking_provider_integration.sql` |
 | Background jobs | Two HTTP `GET` endpoints (`/api/cron/process-followup`, `/api/cron/process-reminders`) gated by a shared `CRON_SECRET` header, presumably hit by an external scheduler (Railway cron or similar). **No queue, no worker process, no retry/backoff, no job leasing.** Durable job-*like* tables exist for these two specific flows (`followUpQueue`, `appointmentReminders`) — each row has a `status`/`scheduledFor`, which is the closest existing precedent for a durable-job pattern |

@@ -16,8 +16,6 @@ const SKIP_DIRS = new Set([
   ".git",
   "dist",
   "build",
-  ".manus",
-  "__manus__",
   ".vite",
   "coverage",
   // design-sync scratch/build output (gitignored — see .design-sync/NOTES.md).

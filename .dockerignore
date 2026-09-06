@@ -8,6 +8,5 @@ node_modules
 !.env.example
 dist
 client/dist
-.manus-logs
 screenshots
 *.log

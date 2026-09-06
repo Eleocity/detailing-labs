@@ -25,8 +25,8 @@ const packages = getBookingEligiblePackages();
 const reasons = [
   {
     icon: <Droplets className="w-5 h-5" />,
-    title: "We bring our own water and power",
-    desc: "A self-contained rig with its own water tank and generator. Your hose and outlet stay yours — we don't need either.",
+    title: "Just a hose and an outlet",
+    desc: "We bring the pressure washer, vacuums, and professional products. You provide access to an outdoor water spigot and a standard electrical outlet — most homes and offices already have both.",
   },
   {
     icon: <HomeIcon className="w-5 h-5" />,
@@ -46,12 +46,12 @@ export default function MobileDetailing() {
       <SiteHeader />
       <SEO
         title="Mobile Detailing — We Come to You | Racine & Kenosha County, WI"
-        description={`Fully self-contained mobile auto detailing across ${BRAND.serviceArea.primaryRegionLabel}. We bring our own water and power — no hookups needed at your location.`}
+        description={`Professional mobile auto detailing across ${BRAND.serviceArea.primaryRegionLabel}. We bring the equipment and products — you provide access to water and power at your location.`}
         canonical="/mobile-detailing"
         jsonLd={[
           serviceSchema(
             "Mobile Auto Detailing",
-            "Self-contained mobile detailing service that brings its own water and power to the customer's location."
+            "Professional mobile detailing service that brings equipment and products to the customer's location, using the customer's water and power access."
           ),
           breadcrumbSchema([
             { name: "Home", url: "/" },
@@ -80,10 +80,10 @@ export default function MobileDetailing() {
               variants={fadeUp}
               className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed mb-8"
             >
-              Forma Auto Spa is mobile-only, by design — a fully self-contained
-              rig with its own water tank and generator, so we can deliver a
-              professional-grade detail at your home, office, or anywhere else
-              you park.
+              Forma Auto Spa is mobile-only, by design — we bring
+              professional-grade equipment and products to your home, office,
+              or anywhere else you park. Just provide access to water and
+              power at the location.
             </motion.p>
             <motion.div variants={fadeUp}>
               <Link href={BRAND.booking.primaryPath}>

@@ -207,7 +207,7 @@ export function bookingConfirmationEmail(booking: {
 
   return {
     subject: `Booking Confirmed — ${booking.bookingNumber} | Forma Auto Spa`,
-    text: `Hi ${booking.customerFirstName},\n\nYour booking is confirmed. Here are your details:\n\nBooking #: ${booking.bookingNumber}\nService: ${booking.packageName ?? "Mobile Detailing"}\nDate: ${dateStr} at ${timeStr}\nLocation: ${address}\n${total ? `Total: ${total}\n` : ""}\nQuestions? Call or text us at ${booking.phone}.\n\nWe'll show up ready — no water or power hookup needed from you.\n\n— Forma Auto Spa`,
+    text: `Hi ${booking.customerFirstName},\n\nYour booking is confirmed. Here are your details:\n\nBooking #: ${booking.bookingNumber}\nService: ${booking.packageName ?? "Mobile Detailing"}\nDate: ${dateStr} at ${timeStr}\nLocation: ${address}\n${total ? `Total: ${total}\n` : ""}\nQuestions? Call or text us at ${booking.phone}.\n\n${BRAND.mobileRequirements.short}\n\n— Forma Auto Spa`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -259,7 +259,7 @@ export function bookingConfirmationEmail(booking: {
         <tr><td style="padding:0 40px 28px">
           <p style="margin:0 0 12px;color:#e2e8f0;font-size:15px;font-weight:600">What to expect</p>
           <ul style="margin:0;padding:0 0 0 20px;color:#94a3b8;font-size:14px;line-height:1.8">
-            <li>We'll arrive at your location with all equipment — no water or power hookup needed from you.</li>
+            <li>${BRAND.mobileRequirements.short}</li>
             <li>Make sure the vehicle is accessible at the address you provided.</li>
             <li>You don't need to be present for the full appointment.</li>
           </ul>

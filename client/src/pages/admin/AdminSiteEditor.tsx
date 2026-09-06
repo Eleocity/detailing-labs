@@ -57,14 +57,14 @@ const SECTIONS: SectionDef[] = [
       {
         key: "headline",
         label: "Main Headline",
-        placeholder: "Professional Mobile Detailing.\nWe Bring Everything.",
+        placeholder: "Professional Mobile Detailing.\nBooked in Minutes.",
         hint: "Supports <br /> for line breaks",
       },
       {
         key: "subheadline",
         label: "Subheadline",
         multiline: true,
-        placeholder: "We carry our own water...",
+        placeholder: "We bring professional-grade equipment...",
       },
       {
         key: "cta_primary",
@@ -84,7 +84,7 @@ const SECTIONS: SectionDef[] = [
       {
         key: "trust_certified",
         label: "Trust — Certification",
-        placeholder: "Fully insured & self-contained",
+        placeholder: "Fully insured & professionally equipped",
       },
       {
         key: "trust_availability",
@@ -407,8 +407,8 @@ function FAQEditor({
         }))
       : [
           {
-            q: "Do you need access to water or power at my location?",
-            a: "No. We carry everything — our own water tank and generator.",
+            q: "Do you need to provide water or power at my location?",
+            a: "Yes — please provide access to an outdoor water spigot and a standard electrical outlet. We bring everything else.",
           },
           {
             q: "What if I'm not home during the appointment?",
