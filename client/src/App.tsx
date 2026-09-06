@@ -27,6 +27,7 @@ const CeramicCoatings = lazy(() => import("./pages/CeramicCoatings"));
 const PaintCorrection = lazy(() => import("./pages/PaintCorrection"));
 const MobileDetailing = lazy(() => import("./pages/MobileDetailing"));
 const ServiceArea = lazy(() => import("./pages/ServiceArea"));
+const Commercial = lazy(() => import("./pages/Commercial"));
 
 // Booking
 const Booking = lazy(() => import("./pages/Booking"));
@@ -163,6 +164,7 @@ function Router() {
         <Route path="/paint-correction" component={PaintCorrection} />
         <Route path="/mobile-detailing" component={MobileDetailing} />
         <Route path="/service-area" component={ServiceArea} />
+        <Route path="/commercial" component={Commercial} />
         <Route path="/about" component={About} />
         <Route path="/gallery" component={Gallery} />
         <Route path="/contact" component={Contact} />

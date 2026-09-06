@@ -16,6 +16,7 @@ import {
   Droplets,
   ChevronLeft,
   HelpCircle,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
@@ -959,6 +960,37 @@ export default function Home() {
             <Link href={BRAND.booking.primaryPath}>
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold whitespace-nowrap px-7 flex-shrink-0">
                 Check Availability
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── COMMERCIAL / FLEET STRIP ─────────────────────────────────────── */}
+      <section className="py-14 sm:py-20">
+        <div className="container">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-7 rounded-2xl border border-border bg-card">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-lg">
+                  Running a fleet or dealership?
+                </h3>
+                <p className="text-muted-foreground text-sm mt-1 max-w-md">
+                  See commercial programs for businesses, contractors, and
+                  property managers.
+                </p>
+              </div>
+            </div>
+            <Link href="/commercial">
+              <Button
+                variant="outline"
+                className="border-border hover:border-primary/50 whitespace-nowrap px-7 flex-shrink-0"
+              >
+                See Commercial Programs
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>

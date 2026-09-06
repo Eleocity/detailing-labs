@@ -3,6 +3,14 @@
  * All outgoing transactional emails go through this module.
  */
 import { BRAND } from "../shared/brand";
+import {
+  FLEET_VEHICLE_TYPE_LABELS,
+  FLEET_OPPORTUNITY_TYPE_LABELS,
+  FLEET_FREQUENCY_LABELS,
+  type FleetVehicleType,
+  type FleetOpportunityType,
+  type FleetFrequency,
+} from "../shared/fleetQuote";
 
 const SENDGRID_API_URL = "https://api.sendgrid.com/v3/mail/send";
 
@@ -691,6 +699,83 @@ export function contactFormEmail(params: {
         <tr><td style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border-radius:8px">
           <a href="mailto:${params.email}" style="display:inline-block;padding:12px 28px;color:#fff;font-size:14px;font-weight:700;text-decoration:none">
             Reply to ${params.name} →
+          </a>
+        </td></tr>
+      </table>`
+    ),
+  };
+}
+
+export function fleetQuoteEmail(params: {
+  companyName: string;
+  contactName: string;
+  phone: string;
+  email: string;
+  city: string;
+  vehicleCount: string;
+  vehicleTypes: FleetVehicleType[];
+  opportunityType: FleetOpportunityType;
+  frequency: FleetFrequency;
+  notes?: string;
+  ownerEmail: string;
+}): { subject: string; html: string; text: string } {
+  const vehicleTypesLabel = params.vehicleTypes
+    .map(t => FLEET_VEHICLE_TYPE_LABELS[t])
+    .join(", ");
+  const opportunityLabel = FLEET_OPPORTUNITY_TYPE_LABELS[params.opportunityType];
+  const frequencyLabel = FLEET_FREQUENCY_LABELS[params.frequency];
+
+  const rows: [string, string][] = [
+    ["Company", params.companyName],
+    ["Contact", params.contactName],
+    [
+      "Phone",
+      `<a href="tel:${params.phone.replace(/\D/g, "")}" style="color:#7c3aed;text-decoration:none">${params.phone}</a>`,
+    ],
+    [
+      "Email",
+      `<a href="mailto:${params.email}" style="color:#7c3aed;text-decoration:none">${params.email}</a>`,
+    ],
+    ["City / Location", params.city],
+    ["Vehicle Count", params.vehicleCount],
+    ["Vehicle Types", vehicleTypesLabel],
+    ["Opportunity", opportunityLabel],
+    ["Frequency", frequencyLabel],
+  ];
+
+  return {
+    subject: `New Fleet Quote Request — ${params.companyName} | Forma Auto Spa`,
+    text: `New fleet/commercial quote request from your website.\n\nCompany: ${params.companyName}\nContact: ${params.contactName}\nPhone: ${params.phone}\nEmail: ${params.email}\nCity/Location: ${params.city}\nVehicle Count: ${params.vehicleCount}\nVehicle Types: ${vehicleTypesLabel}\nOpportunity: ${opportunityLabel}\nFrequency: ${frequencyLabel}\n${params.notes ? `\nNotes:\n${params.notes}\n` : ""}\nReply to: ${params.email}`,
+    html: emailBase(
+      `<tr><td style="background:#0d0d1a;padding:28px 40px 0;border:1px solid #1e1e3a;border-top:none;border-bottom:none">
+        <p style="margin:0 0 4px;color:#7c3aed;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase">Fleet / Commercial Quote</p>
+        <p style="margin:0;color:#f0f0ff;font-size:22px;font-weight:800">${params.companyName}</p>
+        <div style="height:1px;background:#1a1a30;margin:20px 0 0"></div>
+      </td></tr>`,
+      `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-top:24px;border-collapse:collapse">
+        ${rows
+          .map(
+            ([label, value]) => `
+          <tr>
+            <td style="padding:10px 0;color:#4a4a6a;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;width:130px;vertical-align:top;border-bottom:1px solid #1a1a30">${label}</td>
+            <td style="padding:10px 0 10px 16px;color:#c8c8e8;font-size:14px;border-bottom:1px solid #1a1a30">${value}</td>
+          </tr>`
+          )
+          .join("")}
+      </table>
+      ${
+        params.notes
+          ? `<div style="margin-top:20px;padding:20px;background:#0f0f20;border-left:3px solid #5b21b6;border-radius:0 8px 8px 0">
+        <p style="margin:0 0 8px;color:#4a4a6a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Notes</p>
+        <p style="margin:0;color:#a0a0c0;font-size:14px;line-height:1.7;white-space:pre-wrap">${params.notes}</p>
+      </div>`
+          : ""
+      }
+      <div style="height:1px;background:#1a1a30;margin:24px 0"></div>
+      <table cellpadding="0" cellspacing="0" role="presentation">
+        <tr><td style="background:linear-gradient(135deg,#5b21b6,#7c3aed);border-radius:8px">
+          <a href="mailto:${params.email}" style="display:inline-block;padding:12px 28px;color:#fff;font-size:14px;font-weight:700;text-decoration:none">
+            Reply to ${params.contactName} →
           </a>
         </td></tr>
       </table>`

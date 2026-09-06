@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { passwordResetEmail, inviteEmail } from "./email";
+import { passwordResetEmail, inviteEmail, fleetQuoteEmail } from "./email";
 
 /**
  * Validates SendGrid configuration and email template generation.
@@ -42,5 +42,29 @@ describe("Email templates", () => {
   it("inviteEmail uses correct role label for user role", () => {
     const result = inviteEmail("https://example.com/invite?token=abc", "Boss", "user");
     expect(result.html).toContain("Team Member");
+  });
+
+  it("fleetQuoteEmail includes company, contact details, and readable labels", () => {
+    const result = fleetQuoteEmail({
+      companyName: "Acme Landscaping",
+      contactName: "Jamie Smith",
+      phone: "(262) 555-0100",
+      email: "jamie@acme.example",
+      city: "Racine, WI",
+      vehicleCount: "8",
+      vehicleTypes: ["vans", "light_trucks"],
+      opportunityType: "contractor_fleet",
+      frequency: "monthly",
+      notes: "Need service before spring season.",
+      ownerEmail: "owner@example.com",
+    });
+    expect(result.subject).toContain("Acme Landscaping");
+    expect(result.html).toContain("Jamie Smith");
+    expect(result.html).toContain("jamie@acme.example");
+    expect(result.html).toContain("Vans, Light Trucks");
+    expect(result.html).toContain("Contractor / Service Fleet");
+    expect(result.html).toContain("Monthly");
+    expect(result.html).toContain("Need service before spring season.");
+    expect(result.text).toContain("Acme Landscaping");
   });
 });

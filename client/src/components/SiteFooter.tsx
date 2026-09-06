@@ -97,6 +97,7 @@ export default function SiteFooter() {
                 { href: "/paint-correction", label: "Paint Correction" },
                 { href: "/services", label: "All Services" },
                 { href: "/pricing", label: "Add-On Services" },
+                { href: "/commercial", label: "Fleet & Commercial" },
                 {
                   href: BRAND.booking.primaryPath,
                   label: "Book an Appointment",

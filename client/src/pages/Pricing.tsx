@@ -896,11 +896,17 @@ export default function Pricing() {
                       custom-built around your vehicle count, service frequency,
                       and scheduling needs.
                     </p>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-sm mb-4">
                       We'll put together a program that works for your operation
                       — recurring service, on-site detailing at your facility,
                       or flexible scheduling around your fleet's availability.
                     </p>
+                    <Link href="/commercial">
+                      <span className="inline-flex items-center gap-1.5 text-sky-500 hover:underline font-medium text-sm cursor-pointer">
+                        Learn about fleet programs
+                        <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </Link>
                   </div>
 
                   <div className="rounded-2xl border border-border bg-card p-6 mb-6">
