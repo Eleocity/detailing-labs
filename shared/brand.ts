@@ -184,6 +184,22 @@ export const BRAND = {
     legacyPath: "/booking",
   },
 
+  // ── Mobile service requirements ─────────────────────────────────────────
+  /**
+   * Forma's mobile technicians use the customer's water and electrical
+   * supply for appointments — the rig does not carry its own water tank or
+   * generator. Single source of truth for this requirement so the booking
+   * flow, Terms of Service, and confirmation emails all state it
+   * identically instead of drifting.
+   */
+  mobileRequirements: {
+    /** Compact form — booking flow notices, confirmation emails. */
+    short:
+      "Please provide access to an exterior water source (a garden hose spigot) and a standard electrical outlet.",
+    /** Longer form — Terms of Service, FAQ. */
+    full: "Mobile appointments require reasonable access to an exterior water source (a garden hose spigot) and a standard electrical outlet at the service address, plus enough clear space to safely work around the vehicle.",
+  },
+
   /**
    * Rebrand transition notice. No longer rendered anywhere by default — the
    * cutover is complete (formaautospa.com is the live canonical domain), so
