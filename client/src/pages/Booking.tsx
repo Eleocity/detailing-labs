@@ -18,6 +18,7 @@ import {
   Car,
   Sparkles,
   ArrowRight,
+  Droplets,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { Link } from "wouter";
 import SEO from "@/components/SEO";
 import { compressImage, isSupportedImageFile } from "@/lib/imageCompress";
+import SmsConsentField from "@/components/SmsConsentField";
 import {
   ADD_ONS as CENTRAL_ADD_ONS,
   PACKAGES as CENTRAL_PACKAGES,
@@ -77,6 +79,7 @@ interface BookingData {
   lastName: string;
   email: string;
   phone: string;
+  smsConsent: boolean;
   howHeard: string;
   recurringInterval: string;
 }
@@ -579,6 +582,17 @@ function StepLocation({
         <p className="text-sm text-muted-foreground">
           Where should we come to detail your vehicle?
         </p>
+      </div>
+      <div className="px-5 mb-4">
+        <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl border border-border bg-card text-xs text-muted-foreground">
+          <Droplets className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+          <span>
+            <span className="font-semibold text-foreground">
+              Mobile service requirements:{" "}
+            </span>
+            {BRAND.mobileRequirements.full}
+          </span>
+        </div>
       </div>
       <div className="px-5 mb-4">
         <div className="flex items-center gap-3 px-4 py-3 rounded-2xl border-2 border-border focus-within:border-primary transition-colors bg-card">
@@ -1840,6 +1854,11 @@ function StepContact({
             </p>
           )}
         </div>
+        <SmsConsentField
+          id="booking-sms-consent"
+          checked={data.smsConsent}
+          onChange={v => onUpdate({ smsConsent: v })}
+        />
         <div className="space-y-1.5">
           <Label className="text-xs font-medium">
             Email{" "}
@@ -1892,12 +1911,6 @@ function StepContact({
             ))}
           </div>
         </div>
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
-          By providing your phone number, you agree to receive SMS
-          appointment reminders from {BRAND.displayName} regarding your
-          booking. Message and data rates may apply. Reply STOP to opt out
-          at any time.
-        </p>
         <p className="text-[11px] text-muted-foreground leading-relaxed">
           By submitting this booking you agree to our cancellation policy. We
           require 24-hour notice for any rescheduling or cancellations.
@@ -1953,6 +1966,7 @@ export default function Booking() {
     lastName: "",
     email: "",
     phone: "",
+    smsConsent: false,
     howHeard: "",
     recurringInterval: "",
   });
@@ -2016,6 +2030,7 @@ export default function Booking() {
         customerLastName: data.lastName.trim(),
         customerEmail: data.email.trim() || undefined,
         customerPhone: stripPhone(data.phone),
+        smsConsent: data.smsConsent,
         vehicleMake: data.vehicleMake.trim(),
         vehicleModel: data.vehicleModel.trim(),
         vehicleYear: parseInt(data.vehicleYear, 10),

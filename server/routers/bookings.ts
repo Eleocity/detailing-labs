@@ -16,6 +16,7 @@ import {
 } from "../booking";
 import { classifyZip, type ServiceAreaRecord } from "../../shared/serviceArea";
 import { BRAND } from "../../shared/brand";
+import { SMS_CONSENT_DISCLOSURE } from "../../shared/smsConsent";
 import { nanoid } from "nanoid";
 import { storagePut } from "../storage";
 import {
@@ -407,6 +408,11 @@ export const bookingsRouter = router({
         customerLastName: z.string().min(1),
         customerEmail: z.string().optional(),
         customerPhone: z.string().min(10),
+        /** Explicit SMS opt-in from the dedicated consent checkbox — never
+         * inferred from the presence of a phone number. Optional/defaults
+         * to false so booking submission never requires it (see
+         * shared/smsConsent.ts). */
+        smsConsent: z.boolean().default(false),
         vehicleMake: z.string().min(1),
         vehicleModel: z.string().min(1),
         vehicleYear: z.number().int().min(1900).max(2030),
@@ -458,6 +464,16 @@ export const bookingsRouter = router({
           .filter(Boolean)
           .join("\n\n") || undefined;
 
+      const smsConsentFields = input.smsConsent
+        ? {
+            smsConsent: true,
+            smsConsentTimestamp: new Date(),
+            smsConsentSource: "booking_form",
+            smsConsentPhone: input.customerPhone,
+            smsConsentText: SMS_CONSENT_DISCLOSURE,
+          }
+        : { smsConsent: false };
+
       await db.insert(bookings).values({
         bookingNumber,
         customerFirstName: input.customerFirstName,
@@ -492,6 +508,7 @@ export const bookingsRouter = router({
         status: "new",
         paymentStatus: "unpaid",
         source: "website",
+        ...smsConsentFields,
       });
 
       // Find the inserted booking
@@ -553,7 +570,17 @@ export const bookingsRouter = router({
             zip: input.serviceZip || null,
             source: input.howHeard || "website",
             crmStatus: "booked",
+            ...smsConsentFields,
           });
+        } else if (input.smsConsent) {
+          // Only ever upgrades an existing customer to opted-in on an
+          // explicit checked box on this submission — never flips consent
+          // back to false just because a later form was left unchecked
+          // (STOP is the opt-out mechanism, not "didn't re-check the box").
+          await db
+            .update(customers)
+            .set(smsConsentFields)
+            .where(eq(customers.id, existing[0].id));
         }
       }
 
@@ -596,9 +623,12 @@ export const bookingsRouter = router({
 
       // Auto-schedule appointment reminders (non-blocking)
       if (newBooking) {
-        scheduleRemindersForBooking(db, newBooking.id, appointmentDate).catch(
-          () => {}
-        );
+        scheduleRemindersForBooking(
+          db,
+          newBooking.id,
+          appointmentDate,
+          !!newBooking.smsConsent
+        ).catch(() => {});
       }
 
       // Route through the active BookingProvider (request-only by default —

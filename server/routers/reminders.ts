@@ -10,7 +10,8 @@ import { sendSMS } from "../sms";
 export async function scheduleRemindersForBooking(
   db: any,
   bookingId: number,
-  appointmentDate: Date
+  appointmentDate: Date,
+  smsConsent: boolean
 ): Promise<void> {
   const existing = await db
     .select({ id: appointmentReminders.id })
@@ -27,7 +28,9 @@ export async function scheduleRemindersForBooking(
     { bookingId, type: "24h", channel: "email", scheduledFor: minus24h },
     { bookingId, type: "2h", channel: "email", scheduledFor: minus2h },
   ];
-  if (hasTwilio) {
+  // SMS reminders only ever get queued when the customer explicitly opted
+  // in on the booking form — a phone number existing is not consent.
+  if (hasTwilio && smsConsent) {
     rows.push({
       bookingId,
       type: "24h",
@@ -63,7 +66,8 @@ export const remindersRouter = router({
       await scheduleRemindersForBooking(
         db,
         booking.id,
-        new Date(booking.appointmentDate)
+        new Date(booking.appointmentDate),
+        !!booking.smsConsent
       );
       return { success: true };
     }),
@@ -116,6 +120,19 @@ export const remindersRouter = router({
         ]
           .filter(Boolean)
           .join(", ");
+
+        // Defense in depth: re-check consent on the booking itself at send
+        // time too, not just at scheduling time, so an sms reminder queued
+        // before this consent model existed (smsConsent defaults to false
+        // on old rows) never goes out. Not a "failure" — mark it disabled
+        // rather than retry-forever or show as an error.
+        if (reminder.channel === "sms" && !booking.smsConsent) {
+          await db
+            .update(appointmentReminders)
+            .set({ status: "disabled" } as any)
+            .where(eq(appointmentReminders.id, reminder.id));
+          continue;
+        }
 
         let ok = false;
         if (reminder.channel === "email" && booking.customerEmail) {

@@ -5,6 +5,44 @@
  * there's one send implementation, not a copy per caller.
  */
 import twilio from "twilio";
+import { eq, desc } from "drizzle-orm";
+import { getDb } from "./db";
+import { bookings, customers } from "../drizzle/schema";
+
+/**
+ * Whether a phone number has an on-file, explicit SMS opt-in. A phone
+ * number existing somewhere is never sufficient on its own — Twilio
+ * Toll-Free Verification requires every send to trace back to explicit
+ * consent (see shared/smsConsent.ts). Checks the durable `customers`
+ * record first, falling back to the most recent booking that used this
+ * number (guest bookings with no email never create a customer row).
+ *
+ * Callers that already have a loaded booking row (e.g. appointment
+ * reminders) should read `booking.smsConsent` directly instead of calling
+ * this — it's cheaper and tied to the exact submission being acted on.
+ * This helper is for call sites that only have a phone number in hand.
+ */
+export async function hasSmsConsent(phone: string): Promise<boolean> {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return false;
+  const db = await getDb();
+  if (!db) return false;
+
+  const [customer] = await db
+    .select({ smsConsent: customers.smsConsent })
+    .from(customers)
+    .where(eq(customers.phone, digits))
+    .limit(1);
+  if (customer) return !!customer.smsConsent;
+
+  const [booking] = await db
+    .select({ smsConsent: bookings.smsConsent })
+    .from(bookings)
+    .where(eq(bookings.customerPhone, digits))
+    .orderBy(desc(bookings.createdAt))
+    .limit(1);
+  return !!booking?.smsConsent;
+}
 
 export async function sendSMS(to: string, body: string): Promise<boolean> {
   const sid = process.env.TWILIO_ACCOUNT_SID;

@@ -93,6 +93,17 @@ export const customers = mysqlTable("customers", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   urableId: varchar("urableId", { length: 100 }), // Urable customer ID for sync
   urableSyncedAt: timestamp("urableSyncedAt"),
+  // SMS/TCPA consent — see shared/smsConsent.ts for the disclosure text and
+  // server/sms.ts's hasSmsConsent() for the read side. Defaults to false so
+  // existing rows are never silently treated as opted in (Twilio Toll-Free
+  // Verification requires explicit, unbundled consent). Only ever flipped
+  // true by an explicit checkbox submission — never flipped back to false
+  // here (STOP replies are the opt-out mechanism, handled separately).
+  smsConsent: boolean("smsConsent").default(false).notNull(),
+  smsConsentTimestamp: timestamp("smsConsentTimestamp"),
+  smsConsentSource: varchar("smsConsentSource", { length: 40 }), // e.g. "booking_form" | "contact_form"
+  smsConsentPhone: varchar("smsConsentPhone", { length: 32 }), // the number consent was given for
+  smsConsentText: text("smsConsentText"), // snapshot of the disclosure shown at consent time
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
@@ -291,6 +302,16 @@ export const bookings = mysqlTable("bookings", {
   providerStatus: varchar("providerStatus", { length: 40 }), // BookingSyncStatus
   providerMessage: text("providerMessage"),
   externalEventId: varchar("externalEventId", { length: 100 }),
+  // SMS/TCPA consent captured at the moment of this specific submission —
+  // see shared/smsConsent.ts. Kept on the booking itself (not just the
+  // customer record) because guest bookings without an email never create
+  // a customers row, and because each submission should be independently
+  // attributable to the exact disclosure shown at the time.
+  smsConsent: boolean("smsConsent").default(false).notNull(),
+  smsConsentTimestamp: timestamp("smsConsentTimestamp"),
+  smsConsentSource: varchar("smsConsentSource", { length: 40 }),
+  smsConsentPhone: varchar("smsConsentPhone", { length: 32 }),
+  smsConsentText: text("smsConsentText"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -771,7 +792,10 @@ export const changeRequests = mysqlTable("changeRequests", {
     .notNull(),
   originalRequest: text("originalRequest").notNull(),
   proposedChange: json("proposedChange").notNull(),
-  requiredApprovalRole: mysqlEnum("requiredApprovalRole", FORMAOPS_ROLES).notNull(),
+  requiredApprovalRole: mysqlEnum(
+    "requiredApprovalRole",
+    FORMAOPS_ROLES
+  ).notNull(),
   reasoningSummary: text("reasoningSummary"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

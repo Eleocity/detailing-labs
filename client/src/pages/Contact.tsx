@@ -19,6 +19,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { trpc } from "@/lib/trpc";
 import SEO, { breadcrumbSchema } from "@/components/SEO";
 import { BRAND } from "@shared/brand";
+import SmsConsentField from "@/components/SmsConsentField";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -31,6 +32,7 @@ export default function Contact() {
     email: "",
     phone: "",
     message: "",
+    smsConsent: false,
   });
   const [sending, setSending] = useState(false);
   const { data: contactContent } = trpc.content.getSiteContent.useQuery({
@@ -46,7 +48,13 @@ export default function Contact() {
   const sendForm = trpc.content.sendContactForm.useMutation({
     onSuccess: () => {
       toast.success("Message sent! We'll get back to you soon.");
-      setForm({ name: "", email: "", phone: "", message: "" });
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        message: "",
+        smsConsent: false,
+      });
       setSending(false);
     },
     onError: err => {
@@ -67,6 +75,7 @@ export default function Contact() {
       email: form.email,
       phone: form.phone || undefined,
       message: form.message,
+      smsConsent: form.smsConsent,
     });
   };
 
@@ -262,6 +271,11 @@ export default function Contact() {
                       />
                     </div>
                   </div>
+                  <SmsConsentField
+                    id="contact-sms-consent"
+                    checked={form.smsConsent}
+                    onChange={v => setForm({ ...form, smsConsent: v })}
+                  />
                   <div className="space-y-2">
                     <Label htmlFor="email">
                       Email <span className="text-destructive">*</span>
