@@ -92,9 +92,76 @@ describe("UrableApiBookingProvider", () => {
     );
   });
 
-  it("createBooking never claims confirmed status (no Jobs API to reserve capacity)", async () => {
+  it("createBooking falls back to failed_sync (not confirmed) when URABLE_API_KEY isn't set", async () => {
     const result = await provider.createBooking(sampleInput);
     expect(result.status).not.toBe("confirmed");
+    expect(result.status).toBe("failed_sync");
+  });
+
+  it("createBooking reports confirmed with an externalJobId when Urable sync + job creation succeed", async () => {
+    process.env.URABLE_API_KEY = "test-key";
+    const originalFetch = global.fetch;
+    global.fetch = (async (url: string, opts: any) => {
+      const method = opts?.method ?? "GET";
+      const body = opts?.body ? JSON.parse(opts.body) : undefined;
+      const json = (data: unknown) =>
+        new Response(JSON.stringify(data), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+
+      if (url.includes("/v1/customers?email=")) {
+        return json({ success: true, data: [] }); // no existing customer
+      }
+      if (method === "POST" && url.endsWith("/v1/customers")) {
+        expect(body.firstName).toBe("Test");
+        return json({ success: true, data: { id: "cust_123" } });
+      }
+      if (method === "POST" && url.endsWith("/v1/items")) {
+        expect(body.customerId).toBe("cust_123");
+        return json({ success: true, data: { id: "veh_456" } });
+      }
+      if (method === "PATCH" && url.includes("/v1/customers/")) {
+        return json({ success: true, data: { id: "cust_123" } }); // booking note append
+      }
+      if (
+        method === "GET" &&
+        url.includes("/v1/products") &&
+        !body
+      ) {
+        return json({ success: true, data: [] }); // no existing catalog entry
+      }
+      if (method === "POST" && url.endsWith("/v1/products")) {
+        expect(body.name).toBe("Premium Detail");
+        expect(body.prices[0].value).toBe(19900);
+        return json({ success: true, data: { id: "prod_789" } });
+      }
+      if (method === "POST" && url.endsWith("/v1/jobs")) {
+        expect(body.customerId).toBe("cust_123");
+        expect(body.itemIds).toEqual(["veh_456"]);
+        expect(body.lineItems).toEqual([
+          { productServiceId: "prod_789", quantity: 1 },
+        ]);
+        expect(body.type).toBe("field");
+        expect(body.status).toBe("scheduled");
+        return json({ success: true, data: { id: "job_999", num: 42 } });
+      }
+      throw new Error(`Unexpected fetch: ${method} ${url}`);
+    }) as any;
+
+    try {
+      const result = await provider.createBooking({
+        ...sampleInput,
+        packageName: "Premium Detail",
+        totalAmount: 199,
+      });
+      expect(result.status).toBe("confirmed");
+      expect(result.externalJobId).toBe("job_999");
+      expect(result.externalCustomerId).toBe("cust_123");
+      expect(result.externalVehicleId).toBe("veh_456");
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 });
 

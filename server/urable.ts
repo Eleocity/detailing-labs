@@ -1,13 +1,19 @@
 /**
- * Urable API integration — built against the documented v1 REST API
- * Docs: https://api.urable.com
+ * Urable API integration — built against the real OpenAPI 3.0.3 spec at
+ * https://app.urable.com/docs/openapi.yaml (fetched and read directly,
+ * 2026-09-06 — see docs/URABLE_INTEGRATION.md for how/why).
  *
- * Public API supports: Customers + Items (vehicles in automotive industry)
- * There is no public Jobs/Bookings endpoint — booking details are written
- * to the customer's notes and the vehicle Item's notes in Urable.
+ * Public API supports: Customers, Items (vehicles), Products & Services
+ * (the real catalog resource — NOT the same as Items, despite the
+ * catalog-sync panel below reusing Items for it), and Jobs. Creating a Job
+ * with a `start`/`end` and `status: "scheduled"` (the default) puts it
+ * directly on the account's calendar — no separate Event is needed for a
+ * service appointment.
  *
  * Required Railway env var:
  *   URABLE_API_KEY  — your Urable access token (Settings → Developer → Show)
+ *   Needs scopes: customers:read, customers:write, items:write,
+ *   products:read, products:write, jobs:write.
  */
 
 const URABLE_BASE = "https://app.urable.com/api";
@@ -396,6 +402,161 @@ export async function syncItemToUrable(
   if (!id) return null;
   console.log(`[Urable] Item created: ${input.name} (${id})`);
   return id;
+}
+
+// ─── Products & Services (real catalog resource — for Job line items) ────────
+// This is a DIFFERENT resource from "Items" above. Items are the things work
+// is performed on (vehicles); Products & Services (/v1/products) is Urable's
+// actual sellable-catalog resource, and it's what a Job's lineItems reference
+// via productServiceId. The admin catalog-sync panel's syncItemToUrable
+// (below) pushes packages to /v1/items instead — a pre-existing mismatch,
+// left alone here since fixing it is out of scope for job creation.
+
+export interface UrableProductServiceInput {
+  name: string;
+  /** Only used when creating a new catalog entry — ignored if one already exists. */
+  priceCents: number;
+}
+
+/** Page through /v1/products looking for a case-insensitive name match. No server-side name filter exists. */
+async function findUrableProductServiceByName(name: string): Promise<any> {
+  let cursor: string | undefined;
+  for (let page = 0; page < 10; page++) {
+    const qs = new URLSearchParams({ type: "service", limit: "100" });
+    if (cursor) qs.set("startAfter", cursor);
+    const res = await urableRequest("GET", `/v1/products?${qs.toString()}`);
+    const list: any[] = res?.data ?? [];
+    const match = list.find(
+      (p) => (p.name ?? "").toLowerCase() === name.toLowerCase()
+    );
+    if (match) return match;
+    if (list.length < 100) break;
+    const last = list[list.length - 1];
+    cursor = String(last?._id ?? last?.id ?? "");
+    if (!cursor) break;
+  }
+  return null;
+}
+
+/**
+ * Find a Products & Services catalog entry by name, or create one at the
+ * given price if none exists yet. Returns the Urable product/service ID
+ * (usable as a Job lineItem's productServiceId), or null on failure.
+ *
+ * NOTE on pricing: a Job's line-item price comes from whatever is currently
+ * stored on the referenced product, not from a per-line price sent with the
+ * job — so if this package's local price later changes, the Urable catalog
+ * entry created here will go stale until re-synced. Forma's own `bookings`
+ * table stays the authoritative billing record regardless.
+ */
+export async function findOrCreateUrableProductService(
+  input: UrableProductServiceInput
+): Promise<string | null> {
+  if (!process.env.URABLE_API_KEY) return null;
+
+  const existing = await findUrableProductServiceByName(input.name);
+  if (existing) {
+    const id = String(existing._id ?? existing.id ?? "");
+    return id || null;
+  }
+
+  const res = await urableRequest("POST", "/v1/products", {
+    type: "service",
+    industry: "vehicleCare",
+    name: input.name,
+    taxable: true,
+    prices: [{ value: Math.round(input.priceCents) }],
+  });
+  const id = String(res?.data?.id ?? res?.data?._id ?? "");
+  if (!id) {
+    console.error("[Urable] Product/service creation returned no ID");
+    return null;
+  }
+  console.log(`[Urable] Product/service created: ${input.name} (${id})`);
+  return id;
+}
+
+// ─── Jobs (real, verified endpoint — puts the appointment on the calendar) ────
+
+export interface UrableJobInput {
+  urableCustomerId: string;
+  /** Urable Item ID for the vehicle — a Job's itemIds must reference an existing Item. */
+  urableVehicleItemId: string;
+  /** Urable Products & Services ID — see findOrCreateUrableProductService. */
+  productServiceId: string;
+  packageName: string;
+  appointmentDate: Date;
+  durationMinutes: number;
+  serviceAddress: string;
+  serviceCity?: string | null;
+  serviceState?: string | null;
+  serviceZip?: string | null;
+  notes?: string | null;
+}
+
+export interface UrableJobResult {
+  urableJobId: string;
+  urableJobNum: number | null;
+}
+
+/**
+ * Create a real Job in Urable — POST /v1/jobs, requires `jobs:write`.
+ * Verified against the account's live OpenAPI spec 2026-09-06 (schema-level
+ * verification only — not yet exercised against a live API key, since none
+ * with jobs:write existed at the time this was written; see
+ * docs/URABLE_INTEGRATION.md).
+ *
+ * `type: "field"` + `location` because Forma is mobile (on-site at the
+ * customer's address). `status: "scheduled"` with `start`/`end` set is what
+ * puts this directly on the calendar — no separate Event required.
+ * `deployScheduledMessage` is deliberately left unset (defaults to
+ * suppressed) so Urable doesn't send its own "job scheduled" message on top
+ * of the confirmation email Forma's own site already sends.
+ */
+export async function createUrableJob(
+  input: UrableJobInput
+): Promise<UrableJobResult | null> {
+  if (!process.env.URABLE_API_KEY) return null;
+
+  const start = input.appointmentDate.getTime();
+  const end = start + input.durationMinutes * 60_000;
+
+  const payload = {
+    customerId: input.urableCustomerId,
+    industry: "vehicleCare",
+    itemIds: [input.urableVehicleItemId],
+    type: "field",
+    status: "scheduled",
+    name: input.packageName,
+    location: {
+      label: "Service Location",
+      value: {
+        address: {
+          line1: input.serviceAddress,
+          ...(input.serviceCity ? { city: input.serviceCity } : {}),
+          ...(input.serviceState ? { state: input.serviceState } : {}),
+          ...(input.serviceZip ? { postalCode: input.serviceZip } : {}),
+          country: "US",
+        },
+      },
+    },
+    start,
+    end,
+    lineItems: [{ productServiceId: input.productServiceId, quantity: 1 }],
+    ...(input.notes ? { notes: input.notes } : {}),
+  };
+
+  const res = await urableRequest("POST", "/v1/jobs", payload);
+  const id = String(res?.data?.id ?? res?.data?._id ?? "");
+  if (!id) {
+    console.error("[Urable] Job creation returned no ID");
+    return null;
+  }
+  const num = typeof res?.data?.num === "number" ? res.data.num : null;
+  console.log(
+    `[Urable] Job created: ${id}${num ? ` (#${num})` : ""} — ${input.packageName}`
+  );
+  return { urableJobId: id, urableJobNum: num };
 }
 
 // ─── Webhook helper ───────────────────────────────────────────────────────────
