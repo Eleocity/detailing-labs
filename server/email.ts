@@ -192,16 +192,22 @@ export function bookingConfirmationEmail(booking: {
   totalAmount?: string | null;
   phone: string;
 }): { subject: string; html: string; text: string } {
+  // Explicit timeZone: this runs server-side, where the process's own
+  // timezone (typically UTC on Railway) would otherwise silently replace
+  // the intended America/Chicago business time — see
+  // docs/BOOKING_TIMEZONE_FIX.md.
   const dateStr = booking.appointmentDate.toLocaleDateString("en-US", {
+    timeZone: "America/Chicago",
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
   });
-  const timeStr = booking.appointmentDate.toLocaleTimeString("en-US", {
+  const timeStr = `${booking.appointmentDate.toLocaleTimeString("en-US", {
+    timeZone: "America/Chicago",
     hour: "numeric",
     minute: "2-digit",
-  });
+  })} CT`;
   const address = [
     booking.serviceAddress,
     booking.serviceCity,

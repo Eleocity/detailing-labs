@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { passwordResetEmail, inviteEmail, fleetQuoteEmail } from "./email";
+import {
+  passwordResetEmail,
+  inviteEmail,
+  fleetQuoteEmail,
+  bookingConfirmationEmail,
+} from "./email";
 
 /**
  * Validates SendGrid configuration and email template generation.
@@ -66,5 +71,24 @@ describe("Email templates", () => {
     expect(result.html).toContain("Monthly");
     expect(result.html).toContain("Need service before spring season.");
     expect(result.text).toContain("Acme Landscaping");
+  });
+
+  it("bookingConfirmationEmail shows the appointment in America/Chicago regardless of server timezone", () => {
+    // 2026-09-07T14:00:00Z is 9:00 AM CDT — this is the exact instant a
+    // correctly-encoded "9:00 AM Sep 7" wizard booking now produces (see
+    // shared/bookingTimeZone.ts and docs/BOOKING_TIMEZONE_FIX.md). Without
+    // an explicit timeZone, Node formats this using the server process's
+    // own timezone (UTC on Railway), which would show "2:00 PM" instead.
+    const result = bookingConfirmationEmail({
+      bookingNumber: "FA-TEST123",
+      customerFirstName: "Jamie",
+      customerLastName: "Tester",
+      appointmentDate: new Date("2026-09-07T14:00:00.000Z"),
+      serviceAddress: "123 Main St",
+      phone: "(262) 260-9474",
+    });
+    expect(result.text).toContain("9:00 AM CT");
+    expect(result.html).toContain("9:00 AM CT");
+    expect(result.text).not.toContain("2:00 PM");
   });
 });
