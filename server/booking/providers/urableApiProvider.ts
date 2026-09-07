@@ -1,15 +1,24 @@
 /**
  * UrableApiBookingProvider — talks to the Urable REST API directly.
  *
- * IMPORTANT: the public Urable API (as documented in server/urable.ts,
- * built against the live account) exposes Customers and Items only — there
- * is no confirmed Jobs/Events/Orders/Payments schema. That means this
- * provider CAN reliably create/update the customer and vehicle records, but
- * CANNOT reserve real schedule capacity. It reports "requires_review"
- * rather than "confirmed", and throws NotSupportedError for operations that
- * would require guessing at an unproven schema (availability, job update,
- * job cancellation) — per the project rule to never fabricate Urable
- * request shapes. See docs/URABLE_INTEGRATION.md.
+ * As of 2026-09-06 (see docs/URABLE_INTEGRATION.md), createBooking creates a
+ * real, calendar-visible Job — POST /v1/jobs, verified against the account's
+ * live OpenAPI spec. That means this provider now genuinely reports
+ * "confirmed" when the Job is created, not just "requires_review". Job
+ * creation needs a synced vehicle (Item) and a package name + total amount
+ * to resolve/create a Products & Services catalog entry for the line item;
+ * if any of that is missing, or the Job request itself fails, this falls
+ * back to the previous customer/vehicle-only sync ("requires_review")
+ * rather than failing the booking.
+ *
+ * getAvailability, updateBooking, and cancelBooking still throw
+ * NotSupportedError. There's no proven availability/free-busy endpoint, so
+ * getAvailability stays unimplemented. Real PATCH/DELETE /v1/jobs/{id}
+ * endpoints do exist per the OpenAPI spec and could back updateBooking /
+ * cancelBooking in a follow-up — left out here because reschedule/cancel
+ * sync wasn't part of this task and deserves its own verification pass
+ * (e.g. how a cancellation should be reflected — `status: canceled` with
+ * `canceledAt` — and whether that's what staff actually want to see).
  */
 import type {
   BookingProvider,
@@ -22,7 +31,11 @@ import type {
   CancelBookingResult,
 } from "../types";
 import { NotSupportedError } from "../types";
-import { syncBookingToUrable } from "../../urable";
+import {
+  syncBookingToUrable,
+  findOrCreateUrableProductService,
+  createUrableJob,
+} from "../../urable";
 
 export class UrableApiBookingProvider implements BookingProvider {
   async getAvailability(
@@ -69,8 +82,45 @@ export class UrableApiBookingProvider implements BookingProvider {
       };
     }
 
-    // Honest status: the customer/vehicle record is synced, but no schedule
-    // capacity has actually been reserved (no Jobs API to reserve it with).
+    // Attempt a real Job so the appointment actually shows up on the
+    // calendar. Needs a vehicle Item, a package name, and a total to price
+    // the line item against — all three are usually present, but a booking
+    // can legitimately lack a totalAmount (e.g. a custom-quote request).
+    if (urableVehicleId && input.packageName && input.totalAmount) {
+      const productServiceId = await findOrCreateUrableProductService({
+        name: input.packageName,
+        priceCents: Math.round(input.totalAmount * 100),
+      });
+
+      if (productServiceId) {
+        const job = await createUrableJob({
+          urableCustomerId,
+          urableVehicleItemId: urableVehicleId,
+          productServiceId,
+          packageName: input.packageName,
+          appointmentDate: new Date(input.appointmentDate),
+          durationMinutes: input.durationMinutes,
+          serviceAddress: input.serviceAddress,
+          serviceCity: input.serviceCity,
+          serviceState: input.serviceState,
+          serviceZip: input.serviceZip,
+          notes: notesParts.join("\n") || undefined,
+        });
+
+        if (job) {
+          return {
+            status: "confirmed",
+            externalCustomerId: urableCustomerId,
+            externalVehicleId: urableVehicleId,
+            externalJobId: job.urableJobId,
+            message: "Your appointment is on our calendar — see you then!",
+          };
+        }
+      }
+    }
+
+    // Fallback: customer/vehicle synced, but no Job — either something
+    // needed for a Job was missing, or the Job request itself failed.
     return {
       status: "requires_review",
       externalCustomerId: urableCustomerId,

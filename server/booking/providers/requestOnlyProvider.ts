@@ -3,9 +3,12 @@
  *
  * Submits a structured booking request: creates/updates the Urable customer
  * and vehicle (Items) if URABLE_API_KEY is configured, and appends the
- * booking details as a note on the customer record (Urable's public API has
- * no Jobs/Events endpoint — see server/urable.ts). Never claims a confirmed
- * appointment; the time is requested, and staff confirm manually.
+ * booking details as a note on the customer record. Deliberately does NOT
+ * create a Job — even though a real Jobs endpoint exists (see
+ * server/urable.ts / UrableApiBookingProvider) — so this mode stays the
+ * conservative fallback that never claims a confirmed appointment; the time
+ * is requested, and staff confirm manually. Switch BOOKING_PROVIDER to
+ * "urable-api" to get real Job creation.
  */
 import type {
   BookingProvider,
