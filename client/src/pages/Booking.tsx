@@ -37,6 +37,11 @@ import {
   dbVehiclePricingFromPackageRow,
 } from "@shared/services";
 import { BRAND } from "@shared/brand";
+import {
+  chicagoTodayAsLocalDate,
+  chicagoWallTimeToUtcDate,
+  toDateKey,
+} from "@shared/bookingTimeZone";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 interface BookingData {
@@ -218,8 +223,7 @@ function buildConditionSummary(data: BookingData): string {
 // ─── Date/time helpers ──────────────────────────────────────────────────────
 function getAvailableDates(): Date[] {
   const out: Date[] = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = chicagoTodayAsLocalDate();
   for (let i = 1; i <= 60; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
@@ -938,11 +942,7 @@ function StepSchedule({
   onUpdate: (d: Partial<BookingData>) => void;
   onNext: () => void;
 }) {
-  const todayStart = useMemo(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }, []);
+  const todayStart = useMemo(() => chicagoTodayAsLocalDate(), []);
   const firstAvailableMonth = useMemo(() => {
     const f = ALL_DATES[0];
     return f ? new Date(f.getFullYear(), f.getMonth(), 1) : new Date();
@@ -959,9 +959,7 @@ function StepSchedule({
     for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
     return cells;
   }, [viewMonth]);
-  const availableSet = new Set(
-    ALL_DATES.map(d => d.toISOString().split("T")[0])
-  );
+  const availableSet = new Set(ALL_DATES.map(toDateKey));
   const dateLabel =
     data.appointmentDate && data.appointmentTime
       ? formatDateLabel(data.appointmentDate, data.appointmentTime)
@@ -1019,7 +1017,7 @@ function StepSchedule({
                 const e = ALL_DATES[0];
                 if (e) {
                   onUpdate({
-                    appointmentDate: e.toISOString().split("T")[0],
+                    appointmentDate: toDateKey(e),
                     appointmentTime: "",
                   });
                   setViewMonth(new Date(e.getFullYear(), e.getMonth(), 1));
@@ -1058,7 +1056,7 @@ function StepSchedule({
         <div className="grid grid-cols-7 gap-0.5">
           {monthDates.map((d, i) => {
             if (!d) return <div key={i} />;
-            const str = d.toISOString().split("T")[0];
+            const str = toDateKey(d);
             const isPast = d < todayStart;
             const isAvail = availableSet.has(str) && !isPast;
             const isSel = data.appointmentDate === str;
@@ -2012,7 +2010,10 @@ export default function Booking() {
       toast.error("Please enter a valid email address.");
       return;
     }
-    const dt = new Date(`${data.appointmentDate}T${data.appointmentTime}:00`);
+    const dt = chicagoWallTimeToUtcDate(
+      data.appointmentDate,
+      data.appointmentTime
+    );
     // Expand add-on IDs by quantity for proper line item tracking
     const addOnIds: number[] = [];
     Object.entries(data.addOnQty).forEach(([id, q]) => {

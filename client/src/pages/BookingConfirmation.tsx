@@ -221,6 +221,7 @@ export default function BookingConfirmation() {
                       {new Date(booking.appointmentDate).toLocaleString(
                         "en-US",
                         {
+                          timeZone: "America/Chicago",
                           weekday: "long",
                           year: "numeric",
                           month: "long",
@@ -228,7 +229,8 @@ export default function BookingConfirmation() {
                           hour: "numeric",
                           minute: "2-digit",
                         }
-                      )}
+                      )}{" "}
+                      CT
                     </div>
                   </div>
                 </div>
