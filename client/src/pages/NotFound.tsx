@@ -1,57 +1,107 @@
+import { Link } from "wouter";
+import { motion } from "framer-motion";
+import { ChevronRight, Home, Phone, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle, Home } from "lucide-react";
-import { useLocation } from "wouter";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 import SEO from "@/components/SEO";
+import { BRAND } from "@shared/brand";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55 } },
+};
+const stagger = { visible: { transition: { staggerChildren: 0.1 } } };
+
+const HELPFUL_LINKS = [
+  { href: "/services", label: "Services" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/commercial", label: "Commercial" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+  { href: "/faq", label: "FAQ" },
+];
 
 export default function NotFound() {
-  const [, setLocation] = useLocation();
-
-  const handleGoHome = () => {
-    setLocation("/");
-  };
-
   return (
-    <>
-      <SEO title="Page Not Found" description="The page you were looking for doesn't exist." noindex={true} />
-      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-      <Card className="w-full max-w-lg mx-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-        <CardContent className="pt-8 pb-8 text-center">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-red-100 rounded-full animate-pulse" />
-              <AlertCircle className="relative h-16 w-16 text-red-500" />
-            </div>
-          </div>
+    <div className="min-h-screen bg-background text-foreground">
+      <SiteHeader />
+      <SEO
+        title="Page Not Found"
+        description="The page you were looking for doesn't exist."
+        noindex={true}
+      />
 
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">404</h1>
-
-          <h2 className="text-xl font-semibold text-slate-700 mb-4">
-            Page Not Found
-          </h2>
-
-          <p className="text-slate-600 mb-8 leading-relaxed">
-            Sorry, the page you are looking for doesn't exist.
-            <br />
-            It may have been moved or deleted.
-          </p>
-
-          <div
-            id="not-found-button-group"
-            className="flex flex-col sm:flex-row gap-3 justify-center"
-          >
-            <Button
-              onClick={handleGoHome}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+      <section className="pt-28 pb-20 sm:pt-32 sm:pb-28 bg-[#0a0a0a] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,oklch(0.55_0.22_29/0.08),transparent)]" />
+        <div className="container relative z-10 text-center">
+          <motion.div initial="hidden" animate="visible" variants={stagger}>
+            <motion.div
+              variants={fadeUp}
+              className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto mb-6"
             >
-              <Home className="w-4 h-4 mr-2" />
-              Go Home
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+              <Wrench className="w-8 h-8" />
+            </motion.div>
+            <motion.p
+              variants={fadeUp}
+              className="text-primary text-sm font-semibold tracking-widest uppercase mb-3"
+            >
+              404 Error
+            </motion.p>
+            <motion.h1
+              variants={fadeUp}
+              className="text-5xl sm:text-6xl font-display font-bold mb-5"
+            >
+              Page Not Found
+            </motion.h1>
+            <motion.p
+              variants={fadeUp}
+              className="text-muted-foreground text-lg max-w-xl mx-auto mb-10"
+            >
+              The page you're looking for doesn't exist — it may have been
+              moved, renamed, or the link was mistyped.
+            </motion.p>
+            <motion.div
+              variants={fadeUp}
+              className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-14"
+            >
+              <Link href="/">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12 text-base w-full sm:w-auto">
+                  <Home className="w-4 h-4 mr-1" />
+                  Back to Home
+                </Button>
+              </Link>
+              <a href={`tel:${BRAND.phone.replace(/\D/g, "")}`}>
+                <Button
+                  variant="outline"
+                  className="border-border hover:border-primary/50 px-8 h-12 text-base w-full sm:w-auto"
+                >
+                  <Phone className="w-4 h-4 mr-1" />
+                  Call {BRAND.phone}
+                </Button>
+              </a>
+            </motion.div>
+
+            <motion.div variants={fadeUp}>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold mb-4">
+                Or find your way from here
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2 max-w-lg mx-auto">
+                {HELPFUL_LINKS.map(link => (
+                  <Link key={link.href} href={link.href}>
+                    <span className="inline-flex items-center gap-1 px-4 py-2 rounded-lg border border-border bg-card hover:border-primary/40 hover:bg-primary/5 text-sm text-muted-foreground hover:text-foreground transition-all cursor-pointer">
+                      {link.label}
+                      <ChevronRight className="w-3 h-3" />
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      <SiteFooter />
     </div>
-  
-    </>
   );
 }
