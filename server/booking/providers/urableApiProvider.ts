@@ -86,13 +86,33 @@ export class UrableApiBookingProvider implements BookingProvider {
     // calendar. Needs a vehicle Item, a package name, and a total to price
     // the line item against — all three are usually present, but a booking
     // can legitimately lack a totalAmount (e.g. a custom-quote request).
-    if (urableVehicleId && input.packageName && input.totalAmount) {
+    //
+    // Every branch that falls through to the requires_review fallback logs
+    // which specific step didn't happen, tagged with the booking number —
+    // the customer-facing `message` below stays generic on purpose
+    // (providerMessage is shown on the confirmation page), but Railway logs
+    // are how a stuck booking actually gets diagnosed (this is exactly how
+    // the licensePlates/vins shape bug was found — see
+    // docs/URABLE_INTEGRATION.md).
+    if (!urableVehicleId) {
+      console.warn(
+        `[booking ${input.bookingNumber}] Urable Job skipped: vehicle (Item) sync failed — see the "[Urable]" error above for why.`
+      );
+    } else if (!input.packageName || !input.totalAmount) {
+      console.warn(
+        `[booking ${input.bookingNumber}] Urable Job skipped: missing packageName or totalAmount (custom-quote booking?).`
+      );
+    } else {
       const productServiceId = await findOrCreateUrableProductService({
         name: input.packageName,
         priceCents: Math.round(input.totalAmount * 100),
       });
 
-      if (productServiceId) {
+      if (!productServiceId) {
+        console.warn(
+          `[booking ${input.bookingNumber}] Urable Job skipped: could not find/create the "${input.packageName}" Products & Services catalog entry.`
+        );
+      } else {
         const job = await createUrableJob({
           urableCustomerId,
           urableVehicleItemId: urableVehicleId,
@@ -116,6 +136,9 @@ export class UrableApiBookingProvider implements BookingProvider {
             message: "Your appointment is on our calendar — see you then!",
           };
         }
+        console.warn(
+          `[booking ${input.bookingNumber}] Urable Job skipped: POST /v1/jobs failed — see the "[Urable]" error above for why.`
+        );
       }
     }
 

@@ -188,8 +188,14 @@ export async function createUrableVehicle(input: UrableVehicleInput): Promise<st
     customerId: input.urableCustomerId,
     type:       "automotive",
     name:       vehicleName(input),
-    ...(input.vin   ? { vins:          [{ label: "VIN",   value: input.vin   }] } : {}),
-    ...(input.plate ? { licensePlates: [{ label: "Plate", value: input.plate }] } : {}),
+    // ItemInput.vins/licensePlates are plain string arrays — unlike
+    // Customer's phoneNumbers/emails/locations, which are {label, value}
+    // objects. Sending labeled-value objects here 400s ("licensePlates
+    // must be a string"), which silently skipped vehicle + Job creation
+    // for any booking with a plate (confirmed against real Railway logs
+    // and the OpenAPI ItemInput schema — see docs/URABLE_INTEGRATION.md).
+    ...(input.vin   ? { vins:          [input.vin]   } : {}),
+    ...(input.plate ? { licensePlates: [input.plate] } : {}),
     ...(input.notes ? { notes: input.notes } : {}),
   };
 
