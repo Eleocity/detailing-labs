@@ -17,7 +17,9 @@ const Home = lazy(() => import("./pages/Home"));
 const Services = lazy(() => import("./pages/Services"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const About = lazy(() => import("./pages/About"));
-const Gallery = lazy(() => import("./pages/Gallery"));
+// Gallery is hidden site-wide until real job photos exist — see the
+// commented-out route below. Re-enable by uncommenting both.
+// const Gallery = lazy(() => import("./pages/Gallery"));
 const Contact = lazy(() => import("./pages/Contact"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -167,7 +169,7 @@ function Router() {
         <Route path="/service-area" component={ServiceArea} />
         <Route path="/commercial" component={Commercial} />
         <Route path="/about" component={About} />
-        <Route path="/gallery" component={Gallery} />
+        {/* <Route path="/gallery" component={Gallery} /> — hidden until real photos exist */}
         <Route path="/contact" component={Contact} />
         <Route path="/faq" component={FAQ} />
         <Route path="/terms" component={Terms} />

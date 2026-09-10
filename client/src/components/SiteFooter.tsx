@@ -125,7 +125,7 @@ export default function SiteFooter() {
                 { href: BRAND.booking.primaryPath, label: "Book Appointment" },
                 { href: "/pricing", label: "Pricing & Packages" },
                 { href: "/service-area", label: "Service Area" },
-                { href: "/gallery", label: "Photo Gallery" },
+                // Gallery hidden until real job photos exist
                 { href: "/about", label: "About Us" },
                 { href: "/faq", label: "FAQ" },
                 { href: "/blog", label: "Detailing Blog" },

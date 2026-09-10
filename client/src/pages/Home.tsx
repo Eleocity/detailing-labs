@@ -394,6 +394,11 @@ export default function Home() {
       </section>
 
       {/* ── BEFORE / AFTER ────────────────────────────────────────────────── */}
+      {/* Hidden until real job photos exist — beforeSrc/afterSrc below are
+          still empty placeholders, and this section's copy explicitly
+          claims "every photo is from an actual Forma Auto Spa appointment,"
+          which isn't true yet. Re-enable once beforeAfterPairs has real
+          images (and the /gallery route + its nav/footer links are back).
       <section className="py-20 sm:py-32">
         <div className="container">
           <motion.div
@@ -451,6 +456,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      */}
 
       {/* ── HOW IT WORKS ──────────────────────────────────────────────────── */}
       <section className="py-20 sm:py-32 bg-[#0a0a0a]">
